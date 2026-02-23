@@ -31,6 +31,8 @@ struct RootSplitView: View {
                             OverviewView(filters: filters, isCalendarExpanded: $isCalendarExpanded)
                         case .appsCategories:
                             AppsCategoriesView(filters: filters)
+                        case .webHistory:
+                            WebHistoryView(filters: filters)
                         case .settings:
                             SettingsScaffoldView(filters: filters)
                         }

@@ -157,6 +157,9 @@ private extension ExportCoordinator {
                 ]
             )
 
+        case .webHistory:
+            throw ExportError.unsupportedDestination
+
         case .settings:
             throw ExportError.unsupportedDestination
         }

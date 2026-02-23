@@ -13,7 +13,7 @@ struct ExportsView: View {
             switch destination {
             case .overview, .appsCategories:
                 return true
-            case .settings:
+            case .webHistory, .settings:
                 return false
             }
         }

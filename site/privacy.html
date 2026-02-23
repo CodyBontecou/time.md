@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Timeprint</title>
+  <meta name="description" content="Timeprint Privacy Policy. Your data stays on your machine.">
+  <link rel="icon" type="image/png" href="app-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="legal.css">
+</head>
+<body>
+
+  <!-- ═══════════════════ NAV ═══════════════════ -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img src="app-icon.png" alt="Timeprint" class="nav-icon">
+        <span class="nav-wordmark">TIMEPRINT</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html#features">FEATURES</a>
+        <a href="index.html#how-it-works">HOW IT WORKS</a>
+        <a href="index.html#privacy">PRIVACY</a>
+      </div>
+      <a href="index.html#download" class="nav-cta">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════ CONTENT ═══════════════════ -->
+  <main class="legal-page">
+    <div class="legal-inner">
+      <div class="legal-header">
+        <div class="section-label">LEGAL</div>
+        <h1 class="legal-title">Privacy Policy<span class="hero-dot">.</span></h1>
+        <p class="legal-effective">EFFECTIVE DATE: FEBRUARY 23, 2026</p>
+      </div>
+
+      <div class="legal-body">
+
+        <section class="legal-section">
+          <h2>01 / OVERVIEW</h2>
+          <p>Timeprint ("the App") is a macOS screen time analytics application built and operated by Isolated Tech ("we", "us", "our"). This Privacy Policy describes how the App handles your information.</p>
+          <p><strong>The short version:</strong> Timeprint is a local-only application. We do not collect, transmit, store, or process any of your personal data. Your screen time data never leaves your machine.</p>
+        </section>
+
+        <section class="legal-section">
+          <h2>02 / DATA COLLECTION</h2>
+          <p>Timeprint does <strong>not</strong> collect any data. Specifically:</p>
+          <ul>
+            <li>No personal information (name, email, account details)</li>
+            <li>No usage analytics or telemetry</li>
+            <li>No crash reports</li>
+            <li>No device identifiers</li>
+            <li>No IP addresses</li>
+            <li>No cookies or tracking technologies</li>
+          </ul>
+          <p>The App makes <strong>zero outbound network connections</strong>. There are no analytics SDKs, no crash reporters, and no phone-home mechanisms of any kind embedded in the App.</p>
+        </section>
+
+        <section class="legal-section">
+          <h2>03 / LOCAL DATA STORAGE</h2>
+          <p>Timeprint reads screen time data from your Mac's local Screen Time database (provided by macOS) and stores processed analytics in a local SQLite database on your machine:</p>
+          <ul>
+            <li><strong>Screen time data:</strong> Read from the local <code>screentime.db</code> or <code>knowledgeC.db</code> maintained by macOS.</li>
+            <li><strong>Category mappings:</strong> Stored at <code>~/Library/Application Support/Timeprint/category-mappings.db</code></li>
+            <li><strong>Application preferences:</strong> Stored locally via macOS standard <code>UserDefaults</code>.</li>
+          </ul>
+          <p>All data remains exclusively on your device. We have no access to it.</p>
+        </section>
+
+        <section class="legal-section">
+          <h2>04 / BACKGROUND PROCESSING</h2>
+          <p>Timeprint installs a local Launch Agent that syncs screen time data every 4 hours in the background, even when the App is not running. This process:</p>
+          <ul>
+            <li>Runs entirely on your local machine</li>
+            <li>Reads only from local macOS databases</li>
+            <li>Writes only to local Timeprint databases</li>
+            <li>Makes no network connections</li>
+          </ul>
+        </section>
+
+        <section class="legal-section">
+          <h2>05 / THIRD-PARTY SERVICES</h2>
+          <p>Timeprint does not integrate with, connect to, or share data with any third-party services, APIs, or platforms.</p>
+        </section>
+
+        <section class="legal-section">
+          <h2>06 / DATA EXPORT</h2>
+          <p>The App allows you to export your screen time data in PNG, PDF, and CSV formats. These exports are generated locally and saved to a location you choose on your device. We do not have access to your exports.</p>
+        </section>
+
+        <section class="legal-section">
+          <h2>07 / CHILDREN'S PRIVACY</h2>
+          <p>Timeprint does not collect any data from any users, including children under the age of 13. Since no data is collected or transmitted, there are no specific children's privacy concerns.</p>
+        </section>
+
+        <section class="legal-section">
+          <h2>08 / CHANGES TO THIS POLICY</h2>
+          <p>We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated effective date. Since we do not collect contact information, we cannot notify you directly of changes — we recommend checking this page periodically.</p>
+        </section>
+
+        <section class="legal-section">
+          <h2>09 / CONTACT</h2>
+          <p>If you have questions about this Privacy Policy, contact us at:</p>
+          <p class="legal-contact"><a href="mailto:cody@isolated.tech">cody@isolated.tech</a></p>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══════════════════ FOOTER ═══════════════════ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="privacy.html" class="footer-link">PRIVACY</a>
+        <a href="terms.html" class="footer-link">TERMS</a>
+        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+      </div>
+      <div class="footer-right">
+        <span>© 2026 TIMEPRINT. BUILT WITH PRECISION.</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

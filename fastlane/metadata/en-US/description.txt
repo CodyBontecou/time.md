@@ -1,0 +1,35 @@
+Timeprint gives you beautiful, detailed insights into your screen time — across all your Apple devices.
+
+See exactly where your time goes with rich analytics, interactive charts, and heatmaps. No account required. No data leaves your device. Just honest, private screen time tracking.
+
+HOW IT WORKS
+
+On Mac, Timeprint reads Apple's built-in Screen Time database to surface your usage data in a way that's actually useful. On iPhone, it uses Apple's DeviceActivity framework to track usage natively. Daily summaries sync automatically via iCloud so you get the full picture in one place.
+
+FEATURES
+
+• Overview Dashboard — Today's total screen time, weekly trends, and top apps at a glance
+• Trends — Daily, weekly, and monthly usage patterns with beautiful Swift Charts
+• Apps & Categories — See which apps consume your time with detailed breakdowns
+• Session Analysis — Understand your habits with session duration buckets
+• Focus Streaks — Track your productivity momentum over time
+• Calendar Views — Day, week, and month views with hour-by-hour breakdowns
+• Heatmaps — Discover your most active hours and days visually
+• Cross-Device Sync — View combined usage from Mac, iPhone, and iPad via iCloud
+• Home Screen Widgets — Small, medium, and lock screen widgets for quick stats
+• Export — Save your data as CSV, JSON, or PDF anytime
+
+PRIVACY
+
+Your privacy is not negotiable. Timeprint is built on these principles:
+
+• Local-Only — All raw data stays on your device, always
+• No Account Required — No sign-up, no tracking, no analytics
+• No Server — There is no backend; iCloud is the only network service
+• Sync is Optional — Use it on a single device without iCloud
+• Open Source — Audit every line of code yourself
+• Only daily summaries sync to iCloud — never individual sessions, timestamps, or browsing history
+
+YOUR DATA, YOUR CONTROL
+
+Timeprint doesn't sell your data because Timeprint doesn't have your data. Everything is processed locally on your device. Export or delete your data anytime.

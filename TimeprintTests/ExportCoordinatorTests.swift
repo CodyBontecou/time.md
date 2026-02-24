@@ -157,8 +157,35 @@ private struct MockDataService: ScreenTimeDataServing, @unchecked Sendable {
     func fetchTopCategories(filters: FilterSnapshot, limit: Int) async throws -> [CategoryUsageSummary] { Array(categories.prefix(max(0, limit))) }
     func fetchSessionBuckets(filters: FilterSnapshot) async throws -> [SessionBucket] { sessions }
     func fetchHeatmap(filters: FilterSnapshot) async throws -> [HeatmapCell] { heatmap }
+    func fetchHeatmapCellAppUsage(filters: FilterSnapshot) async throws -> [HeatmapCellAppUsage] { [] }
     func fetchFocusDays(filters: FilterSnapshot) async throws -> [FocusDay] { focusDays }
     func fetchCategoryMappings() async throws -> [AppCategoryMapping] { [] }
     func saveCategoryMapping(appName: String, category: String) async throws {}
     func deleteCategoryMapping(appName: String) async throws {}
+
+    // Phase 2 — enriched overview
+    func fetchTodaySummary() async throws -> TodaySummary {
+        TodaySummary(todayTotalSeconds: 3600, yesterdayTotalSeconds: 3000, peakHour: 14, peakHourSeconds: 600, appsUsedCount: 5, topAppName: "YouTube", topAppSeconds: 1200)
+    }
+    func fetchPeriodSummary(filters: FilterSnapshot) async throws -> PeriodSummary {
+        PeriodSummary(granularity: filters.granularity, totalSeconds: 3600, previousTotalSeconds: 3000, peakHour: 14, peakHourSeconds: 600, appsUsedCount: 5, topAppName: "YouTube", topAppSeconds: 1200)
+    }
+    func fetchRecentSparkline(days: Int) async throws -> [SparklinePoint] {
+        trend.map { SparklinePoint(date: $0.date, totalSeconds: $0.totalSeconds) }
+    }
+    func fetchSparkline(filters: FilterSnapshot) async throws -> [SparklinePoint] {
+        trend.map { SparklinePoint(date: $0.date, totalSeconds: $0.totalSeconds) }
+    }
+    func fetchLongestSession(filters: FilterSnapshot) async throws -> LongestSession? { nil }
+    func fetchHourlyAppUsage(for date: Date) async throws -> [HourlyAppUsage] { [] }
+    func fetchDailyAppBreakdown(filters: FilterSnapshot, topN: Int) async throws -> [DailyAppBreakdown] { [] }
+
+    // Phase 4 — analytics engine
+    func fetchContextSwitchRate(filters: FilterSnapshot) async throws -> [ContextSwitchPoint] { [] }
+    func fetchAppTransitions(filters: FilterSnapshot, limit: Int) async throws -> [AppTransition] { [] }
+    func fetchWeekdayAverages(filters: FilterSnapshot) async throws -> [WeekdayAverage] { [] }
+    func fetchPeriodComparison(current: FilterSnapshot, previous: FilterSnapshot) async throws -> PeriodDelta {
+        PeriodDelta(currentTotalSeconds: 3600, previousTotalSeconds: 3000, percentChange: 20, currentAppsUsed: 5, previousAppsUsed: 4, appDeltas: [])
+    }
+    func generateInsights(filters: FilterSnapshot) async throws -> [Insight] { [] }
 }

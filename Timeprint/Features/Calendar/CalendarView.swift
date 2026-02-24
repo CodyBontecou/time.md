@@ -187,6 +187,8 @@ struct CalendarView: View {
                 }
             }
         }
+        .scrollClipDisabled()
+        .scrollIndicators(.never)
         .task(id: monthTaskID) {
             await loadMonth()
         }

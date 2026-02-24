@@ -239,6 +239,8 @@ struct CalendarWeekTimelineView: View {
                 .frame(height: 24 * hourHeight)
                 .padding(.bottom, 20)
             }
+            .scrollClipDisabled()
+            .scrollIndicators(.never)
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     withAnimation(.none) {

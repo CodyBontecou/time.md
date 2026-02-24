@@ -9,11 +9,30 @@ protocol ScreenTimeDataServing: Sendable {
     func fetchTopCategories(filters: FilterSnapshot, limit: Int) async throws -> [CategoryUsageSummary]
     func fetchSessionBuckets(filters: FilterSnapshot) async throws -> [SessionBucket]
     func fetchHeatmap(filters: FilterSnapshot) async throws -> [HeatmapCell]
+    func fetchHeatmapCellAppUsage(filters: FilterSnapshot) async throws -> [HeatmapCellAppUsage]
     func fetchFocusDays(filters: FilterSnapshot) async throws -> [FocusDay]
     func fetchHourlyAppUsage(for date: Date) async throws -> [HourlyAppUsage]
     func fetchCategoryMappings() async throws -> [AppCategoryMapping]
     func saveCategoryMapping(appName: String, category: String) async throws
     func deleteCategoryMapping(appName: String) async throws
+
+    // Phase 2 — enriched overview
+    func fetchTodaySummary() async throws -> TodaySummary
+    func fetchPeriodSummary(filters: FilterSnapshot) async throws -> PeriodSummary
+    func fetchRecentSparkline(days: Int) async throws -> [SparklinePoint]
+    func fetchSparkline(filters: FilterSnapshot) async throws -> [SparklinePoint]
+    func fetchLongestSession(filters: FilterSnapshot) async throws -> LongestSession?
+
+    // Phase 4 — analytics engine
+    func fetchContextSwitchRate(filters: FilterSnapshot) async throws -> [ContextSwitchPoint]
+    func fetchAppTransitions(filters: FilterSnapshot, limit: Int) async throws -> [AppTransition]
+    func fetchWeekdayAverages(filters: FilterSnapshot) async throws -> [WeekdayAverage]
+    func fetchPeriodComparison(current: FilterSnapshot, previous: FilterSnapshot) async throws -> PeriodDelta
+    func generateInsights(filters: FilterSnapshot) async throws -> [Insight]
+
+    // Phase E1 — raw session export
+    func fetchRawSessions(filters: FilterSnapshot) async throws -> [RawSession]
+    func fetchRawSessionCount(filters: FilterSnapshot) async throws -> Int
 }
 
 enum ScreenTimeDataError: LocalizedError, Sendable {
@@ -184,6 +203,17 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
         return completed
     }
 
+    func fetchHeatmapCellAppUsage(filters: FilterSnapshot) async throws -> [HeatmapCellAppUsage] {
+        try await runQuery { context in
+            switch context.backend {
+            case .normalized:
+                return try Self.fetchHeatmapCellAppUsageNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
+            case .knowledge:
+                return try Self.fetchHeatmapCellAppUsageKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
+            }
+        }
+    }
+
     func fetchFocusDays(filters: FilterSnapshot) async throws -> [FocusDay] {
         let fetchedRows = try await runQuery { context in
             switch context.backend {
@@ -237,6 +267,347 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
                 return try Self.fetchHourlyAppUsageNormalized(db: context.db, filters: filters)
             case .knowledge:
                 return try Self.fetchHourlyAppUsageKnowledge(db: context.db, filters: filters)
+            }
+        }
+    }
+
+    func fetchTodaySummary() async throws -> TodaySummary {
+        let calendar = Calendar.current
+        let todayStart = calendar.startOfDay(for: .now)
+        let yesterdayStart = calendar.date(byAdding: .day, value: -1, to: todayStart) ?? todayStart
+
+        let todayFilters = FilterSnapshot(
+            startDate: todayStart, endDate: .now,
+            granularity: .day, selectedApps: [], selectedCategories: [], selectedHeatmapCells: []
+        )
+        let yesterdayFilters = FilterSnapshot(
+            startDate: yesterdayStart, endDate: todayStart,
+            granularity: .day, selectedApps: [], selectedCategories: [], selectedHeatmapCells: []
+        )
+
+        async let todayApps = fetchTopApps(filters: todayFilters, limit: 100)
+        async let yesterdayApps = fetchTopApps(filters: yesterdayFilters, limit: 1)
+        async let todayHeatmap = fetchHeatmap(filters: todayFilters)
+
+        let resolvedTodayApps = try await todayApps
+        let resolvedYesterdayApps = try await yesterdayApps
+        let resolvedHeatmap = try await todayHeatmap
+
+        let todayTotal = resolvedTodayApps.reduce(0.0) { $0 + $1.totalSeconds }
+        let yesterdayTotal = resolvedYesterdayApps.reduce(0.0) { $0 + $1.totalSeconds }
+
+        // Peak hour from today's heatmap
+        let todayWeekday = calendar.component(.weekday, from: .now) - 1  // 0-indexed Sunday
+        let todayHours = resolvedHeatmap.filter { $0.weekday == todayWeekday }
+        let peak = todayHours.max(by: { $0.totalSeconds < $1.totalSeconds })
+
+        let topApp = resolvedTodayApps.first
+
+        return TodaySummary(
+            todayTotalSeconds: todayTotal,
+            yesterdayTotalSeconds: yesterdayTotal,
+            peakHour: peak?.hour ?? 0,
+            peakHourSeconds: peak?.totalSeconds ?? 0,
+            appsUsedCount: resolvedTodayApps.count,
+            topAppName: topApp?.appName ?? "None",
+            topAppSeconds: topApp?.totalSeconds ?? 0
+        )
+    }
+
+    func fetchRecentSparkline(days: Int) async throws -> [SparklinePoint] {
+        let calendar = Calendar.current
+        let endDate = Date.now
+        let startDate = calendar.date(byAdding: .day, value: -(days - 1), to: calendar.startOfDay(for: endDate)) ?? endDate
+
+        let filters = FilterSnapshot(
+            startDate: startDate, endDate: endDate,
+            granularity: .day, selectedApps: [], selectedCategories: [], selectedHeatmapCells: []
+        )
+
+        let trend = try await fetchTrend(filters: filters)
+        return trend.map { SparklinePoint(date: $0.date, totalSeconds: $0.totalSeconds) }
+    }
+
+    func fetchSparkline(filters: FilterSnapshot) async throws -> [SparklinePoint] {
+        let trend = try await fetchTrend(filters: filters)
+        return trend.map { SparklinePoint(date: $0.date, totalSeconds: $0.totalSeconds) }
+    }
+
+    func fetchPeriodSummary(filters: FilterSnapshot) async throws -> PeriodSummary {
+        let calendar = Calendar.current
+
+        // Compute the previous period's date range based on granularity
+        let previousFilters: FilterSnapshot
+        switch filters.granularity {
+        case .day:
+            let prevStart = calendar.date(byAdding: .day, value: -1, to: filters.startDate) ?? filters.startDate
+            let prevEnd = filters.startDate
+            previousFilters = FilterSnapshot(
+                startDate: prevStart, endDate: prevEnd,
+                granularity: filters.granularity, selectedApps: filters.selectedApps,
+                selectedCategories: filters.selectedCategories, selectedHeatmapCells: filters.selectedHeatmapCells
+            )
+        case .week:
+            let prevStart = calendar.date(byAdding: .weekOfYear, value: -1, to: filters.startDate) ?? filters.startDate
+            let prevEnd = filters.startDate
+            previousFilters = FilterSnapshot(
+                startDate: prevStart, endDate: prevEnd,
+                granularity: filters.granularity, selectedApps: filters.selectedApps,
+                selectedCategories: filters.selectedCategories, selectedHeatmapCells: filters.selectedHeatmapCells
+            )
+        case .month:
+            let prevStart = calendar.date(byAdding: .month, value: -1, to: filters.startDate) ?? filters.startDate
+            let prevEnd = filters.startDate
+            previousFilters = FilterSnapshot(
+                startDate: prevStart, endDate: prevEnd,
+                granularity: filters.granularity, selectedApps: filters.selectedApps,
+                selectedCategories: filters.selectedCategories, selectedHeatmapCells: filters.selectedHeatmapCells
+            )
+        case .year:
+            let prevStart = calendar.date(byAdding: .year, value: -1, to: filters.startDate) ?? filters.startDate
+            let prevEnd = filters.startDate
+            previousFilters = FilterSnapshot(
+                startDate: prevStart, endDate: prevEnd,
+                granularity: filters.granularity, selectedApps: filters.selectedApps,
+                selectedCategories: filters.selectedCategories, selectedHeatmapCells: filters.selectedHeatmapCells
+            )
+        }
+
+        async let currentApps = fetchTopApps(filters: filters, limit: 100)
+        async let previousApps = fetchTopApps(filters: previousFilters, limit: 1)
+        async let currentHeatmap = fetchHeatmap(filters: filters)
+
+        let resolvedCurrentApps = try await currentApps
+        let resolvedPreviousApps = try await previousApps
+        let resolvedHeatmap = try await currentHeatmap
+
+        let currentTotal = resolvedCurrentApps.reduce(0.0) { $0 + $1.totalSeconds }
+        let previousTotal = resolvedPreviousApps.reduce(0.0) { $0 + $1.totalSeconds }
+
+        // Peak hour from current period's heatmap (aggregate across all days)
+        let hourTotals = Dictionary(grouping: resolvedHeatmap, by: { $0.hour })
+            .mapValues { cells in cells.reduce(0.0) { $0 + $1.totalSeconds } }
+        let peak = hourTotals.max(by: { $0.value < $1.value })
+
+        let topApp = resolvedCurrentApps.first
+
+        return PeriodSummary(
+            granularity: filters.granularity,
+            totalSeconds: currentTotal,
+            previousTotalSeconds: previousTotal,
+            peakHour: peak?.key ?? 0,
+            peakHourSeconds: peak?.value ?? 0,
+            appsUsedCount: resolvedCurrentApps.count,
+            topAppName: topApp?.appName ?? "None",
+            topAppSeconds: topApp?.totalSeconds ?? 0
+        )
+    }
+
+    func fetchLongestSession(filters: FilterSnapshot) async throws -> LongestSession? {
+        try await runQuery { context in
+            switch context.backend {
+            case .normalized:
+                return try Self.fetchLongestSessionNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
+            case .knowledge:
+                return try Self.fetchLongestSessionKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
+            }
+        }
+    }
+
+    // MARK: - Phase 4 — Analytics Engine
+
+    func fetchContextSwitchRate(filters: FilterSnapshot) async throws -> [ContextSwitchPoint] {
+        try await runQuery { context in
+            switch context.backend {
+            case .normalized:
+                return try Self.fetchContextSwitchesNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
+            case .knowledge:
+                return try Self.fetchContextSwitchesKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
+            }
+        }
+    }
+
+    func fetchAppTransitions(filters: FilterSnapshot, limit: Int) async throws -> [AppTransition] {
+        guard limit > 0 else { return [] }
+        return try await runQuery { context in
+            switch context.backend {
+            case .normalized:
+                return try Self.fetchAppTransitionsNormalized(db: context.db, filters: filters, limit: limit, hasCategoryMap: context.hasCategoryMap)
+            case .knowledge:
+                return try Self.fetchAppTransitionsKnowledge(db: context.db, filters: filters, limit: limit, hasCategoryMap: context.hasCategoryMap)
+            }
+        }
+    }
+
+    func fetchWeekdayAverages(filters: FilterSnapshot) async throws -> [WeekdayAverage] {
+        try await runQuery { context in
+            switch context.backend {
+            case .normalized:
+                return try Self.fetchWeekdayAveragesNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
+            case .knowledge:
+                return try Self.fetchWeekdayAveragesKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
+            }
+        }
+    }
+
+    func fetchPeriodComparison(current: FilterSnapshot, previous: FilterSnapshot) async throws -> PeriodDelta {
+        async let currentApps = fetchTopApps(filters: current, limit: 200)
+        async let previousApps = fetchTopApps(filters: previous, limit: 200)
+
+        let resolvedCurrent = try await currentApps
+        let resolvedPrevious = try await previousApps
+
+        let currentTotal = resolvedCurrent.reduce(0.0) { $0 + $1.totalSeconds }
+        let previousTotal = resolvedPrevious.reduce(0.0) { $0 + $1.totalSeconds }
+        let percentChange: Double = previousTotal > 0
+            ? ((currentTotal - previousTotal) / previousTotal) * 100
+            : (currentTotal > 0 ? 100 : 0)
+
+        // Build per-app deltas
+        let previousMap = Dictionary(uniqueKeysWithValues: resolvedPrevious.map { ($0.appName, $0.totalSeconds) })
+        let allApps = Set(resolvedCurrent.map(\.appName)).union(resolvedPrevious.map(\.appName))
+
+        var deltas: [AppDelta] = []
+        for app in allApps {
+            let curr = resolvedCurrent.first(where: { $0.appName == app })?.totalSeconds ?? 0
+            let prev = previousMap[app] ?? 0
+            deltas.append(AppDelta(appName: app, currentSeconds: curr, previousSeconds: prev))
+        }
+        deltas.sort { abs($0.currentSeconds - $0.previousSeconds) > abs($1.currentSeconds - $1.previousSeconds) }
+
+        return PeriodDelta(
+            currentTotalSeconds: currentTotal,
+            previousTotalSeconds: previousTotal,
+            percentChange: percentChange,
+            currentAppsUsed: resolvedCurrent.count,
+            previousAppsUsed: resolvedPrevious.count,
+            appDeltas: Array(deltas.prefix(20))
+        )
+    }
+
+    func generateInsights(filters: FilterSnapshot) async throws -> [Insight] {
+        // Gather data in parallel
+        async let summaryFetch = fetchDashboardSummary(filters: filters)
+        async let topAppsFetch = fetchTopApps(filters: filters, limit: 5)
+        async let sessionBucketsFetch = fetchSessionBuckets(filters: filters)
+        async let longestFetch = fetchLongestSession(filters: filters)
+        async let weekdayAvgFetch = fetchWeekdayAverages(filters: filters)
+
+        let summary = try await summaryFetch
+        let topApps = try await topAppsFetch
+        let buckets = try await sessionBucketsFetch
+        let longest = try await longestFetch
+        let weekdayAvgs = try await weekdayAvgFetch
+
+        var insights: [Insight] = []
+
+        // 1. Total screen time
+        let totalHours = summary.totalSeconds / 3600
+        insights.append(Insight(
+            icon: "clock.fill",
+            text: String(format: "Total screen time: %.1fh across the selected period", totalHours),
+            sentiment: .neutral
+        ))
+
+        // 2. Daily average
+        let avgHours = summary.averageDailySeconds / 3600
+        let sentiment: InsightSentiment = avgHours < 4 ? .positive : avgHours > 6 ? .negative : .neutral
+        insights.append(Insight(
+            icon: "chart.line.downtrend.xyaxis",
+            text: String(format: "Your daily average is %.1fh", avgHours),
+            sentiment: sentiment
+        ))
+
+        // 3. Top app
+        if let top = topApps.first {
+            let pct = summary.totalSeconds > 0 ? (top.totalSeconds / summary.totalSeconds) * 100 : 0
+            insights.append(Insight(
+                icon: "star.fill",
+                text: String(format: "%@ accounts for %.0f%% of your screen time", top.appName, pct),
+                sentiment: .neutral
+            ))
+        }
+
+        // 4. Apps used count
+        insights.append(Insight(
+            icon: "square.grid.3x3.fill",
+            text: "You used \(topApps.count > 4 ? "5+" : "\(topApps.count)") different apps",
+            sentiment: .neutral
+        ))
+
+        // 5. Longest session
+        if let longest {
+            insights.append(Insight(
+                icon: "timer",
+                text: String(format: "Longest session: %@ in %@", DurationFormatter.short(longest.durationSeconds), longest.appName),
+                sentiment: longest.durationSeconds > 7200 ? .negative : .neutral
+            ))
+        }
+
+        // 6. Most common session length
+        if let peakBucket = buckets.max(by: { $0.sessionCount < $1.sessionCount }) {
+            insights.append(Insight(
+                icon: "chart.bar.fill",
+                text: "Most sessions are \(peakBucket.label) long (\(peakBucket.sessionCount) sessions)",
+                sentiment: .neutral
+            ))
+        }
+
+        // 7. Focus streak
+        if summary.currentStreakDays > 0 {
+            insights.append(Insight(
+                icon: "flame.fill",
+                text: "You're on a \(summary.currentStreakDays)-day focus streak!",
+                sentiment: .positive
+            ))
+        }
+
+        // 8. Busiest weekday
+        if let busiest = weekdayAvgs.max(by: { $0.averageSeconds < $1.averageSeconds }) {
+            let dayNames = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"]
+            let dayName = busiest.weekday < dayNames.count ? dayNames[busiest.weekday] : "Day \(busiest.weekday)"
+            insights.append(Insight(
+                icon: "calendar",
+                text: String(format: "%@ are your busiest — %.1fh avg, mostly %@", dayName, busiest.averageSeconds / 3600, busiest.topApp),
+                sentiment: .neutral
+            ))
+        }
+
+        // 9. Quietest weekday
+        if let quietest = weekdayAvgs.min(by: { $0.averageSeconds < $1.averageSeconds }),
+           weekdayAvgs.count > 1 {
+            let dayNames = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"]
+            let dayName = quietest.weekday < dayNames.count ? dayNames[quietest.weekday] : "Day \(quietest.weekday)"
+            insights.append(Insight(
+                icon: "moon.fill",
+                text: String(format: "%@ are your lightest — %.1fh avg", dayName, quietest.averageSeconds / 3600),
+                sentiment: .positive
+            ))
+        }
+
+        return insights
+    }
+
+    // MARK: - Phase E1 — Raw Session Export
+
+    func fetchRawSessions(filters: FilterSnapshot) async throws -> [RawSession] {
+        try await runQuery { context in
+            switch context.backend {
+            case .normalized:
+                return try Self.fetchRawSessionsNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
+            case .knowledge:
+                return try Self.fetchRawSessionsKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
+            }
+        }
+    }
+
+    func fetchRawSessionCount(filters: FilterSnapshot) async throws -> Int {
+        try await runQuery { context in
+            switch context.backend {
+            case .normalized:
+                return try Self.fetchRawSessionCountNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
+            case .knowledge:
+                return try Self.fetchRawSessionCountKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
             }
         }
     }
@@ -544,6 +915,60 @@ private extension SQLiteScreenTimeDataService {
         }
     }
 
+    static func fetchHeatmapCellAppUsageNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [HeatmapCellAppUsage] {
+        let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
+
+        let sql = """
+        SELECT
+            CAST(strftime('%w', u.start_time) AS INTEGER) AS weekday,
+            CAST(strftime('%H', u.start_time) AS INTEGER) AS hour,
+            u.app_name,
+            SUM(u.duration_seconds) AS total_seconds
+        FROM usage u
+        \(join)
+        WHERE \(filter.whereClause)
+        GROUP BY weekday, hour, u.app_name
+        ORDER BY weekday, hour, total_seconds DESC
+        """
+
+        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+            HeatmapCellAppUsage(
+                weekday: Int(SQLiteRunner.columnInt(statement, index: 0)),
+                hour: Int(SQLiteRunner.columnInt(statement, index: 1)),
+                appName: SQLiteRunner.columnText(statement, index: 2) ?? "Unknown",
+                totalSeconds: SQLiteRunner.columnDouble(statement, index: 3)
+            )
+        }
+    }
+
+    static func fetchHeatmapCellAppUsageKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [HeatmapCellAppUsage] {
+        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
+
+        let sql = """
+        SELECT
+            CAST(strftime('%w', datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER) AS weekday,
+            CAST(strftime('%H', datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER) AS hour,
+            o.ZVALUESTRING AS app_name,
+            SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds
+        FROM ZOBJECT o
+        \(join)
+        WHERE \(filter.whereClause)
+        GROUP BY weekday, hour, app_name
+        ORDER BY weekday, hour, total_seconds DESC
+        """
+
+        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+            HeatmapCellAppUsage(
+                weekday: Int(SQLiteRunner.columnInt(statement, index: 0)),
+                hour: Int(SQLiteRunner.columnInt(statement, index: 1)),
+                appName: SQLiteRunner.columnText(statement, index: 2) ?? "Unknown",
+                totalSeconds: SQLiteRunner.columnDouble(statement, index: 3)
+            )
+        }
+    }
+
     static func fetchFocusDayRowsNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [FocusDayRow] {
         let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
         let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
@@ -637,6 +1062,416 @@ private extension SQLiteScreenTimeDataService {
                 totalSeconds: SQLiteRunner.columnDouble(statement, index: 2)
             )
         }
+    }
+
+    // MARK: - Longest session queries
+
+    static func fetchLongestSessionNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> LongestSession? {
+        let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: false)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
+
+        let sql = """
+        SELECT u.app_name, u.duration_seconds, u.start_time
+        FROM usage u
+        \(join)
+        WHERE \(filter.whereClause)
+        ORDER BY u.duration_seconds DESC
+        LIMIT 1
+        """
+
+        let rows: [LongestSession] = try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+            let appName = SQLiteRunner.columnText(statement, index: 0) ?? "Unknown"
+            let duration = SQLiteRunner.columnDouble(statement, index: 1)
+            let startText = SQLiteRunner.columnText(statement, index: 2) ?? ""
+            let startDate = parseISO(startText) ?? .distantPast
+            return LongestSession(appName: appName, durationSeconds: duration, startDate: startDate)
+        }
+        return rows.first
+    }
+
+    static func fetchLongestSessionKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> LongestSession? {
+        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: false)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
+
+        let sql = """
+        SELECT
+            o.ZVALUESTRING AS app_name,
+            CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END AS duration_seconds,
+            o.ZSTARTDATE
+        FROM ZOBJECT o
+        \(join)
+        WHERE \(filter.whereClause)
+        ORDER BY duration_seconds DESC
+        LIMIT 1
+        """
+
+        let rows: [LongestSession] = try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+            let appName = SQLiteRunner.columnText(statement, index: 0) ?? "Unknown"
+            let duration = SQLiteRunner.columnDouble(statement, index: 1)
+            let appleTimestamp = SQLiteRunner.columnDouble(statement, index: 2)
+            let startDate = Date(timeIntervalSince1970: appleTimestamp + 978_307_200)
+            return LongestSession(appName: appName, durationSeconds: duration, startDate: startDate)
+        }
+        return rows.first
+    }
+
+    // MARK: - Raw session queries
+
+    static func fetchRawSessionsNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [RawSession] {
+        let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
+
+        let sql = """
+        SELECT
+            u.app_name,
+            u.start_time,
+            u.duration_seconds
+        FROM usage u
+        \(join)
+        WHERE \(filter.whereClause)
+        ORDER BY u.start_time ASC
+        """
+
+        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+            let appName = SQLiteRunner.columnText(statement, index: 0) ?? "Unknown"
+            let startTimeText = SQLiteRunner.columnText(statement, index: 1) ?? ""
+            let duration = SQLiteRunner.columnDouble(statement, index: 2)
+
+            let startTime = parseISO(startTimeText) ?? .distantPast
+            let endTime = startTime.addingTimeInterval(duration)
+
+            return RawSession(
+                appName: appName,
+                startTime: startTime,
+                endTime: endTime,
+                durationSeconds: duration
+            )
+        }
+        .filter { $0.startTime != .distantPast }
+    }
+
+    static func fetchRawSessionsKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [RawSession] {
+        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
+
+        let sql = """
+        SELECT
+            o.ZVALUESTRING AS app_name,
+            o.ZSTARTDATE,
+            o.ZENDDATE
+        FROM ZOBJECT o
+        \(join)
+        WHERE \(filter.whereClause)
+        ORDER BY o.ZSTARTDATE ASC
+        """
+
+        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+            let appName = SQLiteRunner.columnText(statement, index: 0) ?? "Unknown"
+            let appleStart = SQLiteRunner.columnDouble(statement, index: 1)
+            let appleEnd = SQLiteRunner.columnDouble(statement, index: 2)
+
+            let startTime = Date(timeIntervalSince1970: appleStart + 978_307_200)
+            let endTime = Date(timeIntervalSince1970: appleEnd + 978_307_200)
+            let duration = max(0, appleEnd - appleStart)
+
+            return RawSession(
+                appName: appName,
+                startTime: startTime,
+                endTime: endTime,
+                durationSeconds: duration
+            )
+        }
+    }
+
+    static func fetchRawSessionCountNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> Int {
+        let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
+
+        let sql = """
+        SELECT COUNT(*) FROM usage u
+        \(join)
+        WHERE \(filter.whereClause)
+        """
+
+        let count = try SQLiteRunner.scalarDouble(db: db, sql: sql, parameters: filter.parameters) ?? 0
+        return Int(count)
+    }
+
+    static func fetchRawSessionCountKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> Int {
+        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
+
+        let sql = """
+        SELECT COUNT(*) FROM ZOBJECT o
+        \(join)
+        WHERE \(filter.whereClause)
+        """
+
+        let count = try SQLiteRunner.scalarDouble(db: db, sql: sql, parameters: filter.parameters) ?? 0
+        return Int(count)
+    }
+
+    // MARK: - Context switch queries
+
+    static func fetchContextSwitchesNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [ContextSwitchPoint] {
+        let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
+
+        // Use LAG window function to detect app switches
+        let sql = """
+        SELECT day, hour, COUNT(*) AS switch_count
+        FROM (
+            SELECT
+                date(u.start_time) AS day,
+                CAST(strftime('%H', u.start_time) AS INTEGER) AS hour,
+                u.app_name,
+                LAG(u.app_name) OVER (ORDER BY u.start_time) AS prev_app
+            FROM usage u
+            \(join)
+            WHERE \(filter.whereClause)
+        ) t
+        WHERE prev_app IS NOT NULL AND app_name != prev_app
+        GROUP BY day, hour
+        ORDER BY day, hour
+        """
+
+        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+            let dayText = SQLiteRunner.columnText(statement, index: 0) ?? ""
+            let parsedDay = parseDay(dayText) ?? .distantPast
+            return ContextSwitchPoint(
+                date: parsedDay,
+                hour: Int(SQLiteRunner.columnInt(statement, index: 1)),
+                switchCount: Int(SQLiteRunner.columnInt(statement, index: 2))
+            )
+        }
+        .filter { $0.date != .distantPast }
+    }
+
+    static func fetchContextSwitchesKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [ContextSwitchPoint] {
+        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
+
+        let sql = """
+        SELECT day, hour, COUNT(*) AS switch_count
+        FROM (
+            SELECT
+                date(datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS day,
+                CAST(strftime('%H', datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER) AS hour,
+                o.ZVALUESTRING AS app_name,
+                LAG(o.ZVALUESTRING) OVER (ORDER BY o.ZSTARTDATE) AS prev_app
+            FROM ZOBJECT o
+            \(join)
+            WHERE \(filter.whereClause)
+        ) t
+        WHERE prev_app IS NOT NULL AND app_name != prev_app
+        GROUP BY day, hour
+        ORDER BY day, hour
+        """
+
+        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+            let dayText = SQLiteRunner.columnText(statement, index: 0) ?? ""
+            let parsedDay = parseDay(dayText) ?? .distantPast
+            return ContextSwitchPoint(
+                date: parsedDay,
+                hour: Int(SQLiteRunner.columnInt(statement, index: 1)),
+                switchCount: Int(SQLiteRunner.columnInt(statement, index: 2))
+            )
+        }
+        .filter { $0.date != .distantPast }
+    }
+
+    // MARK: - App transition queries
+
+    static func fetchAppTransitionsNormalized(db: OpaquePointer, filters: FilterSnapshot, limit: Int, hasCategoryMap: Bool) throws -> [AppTransition] {
+        let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
+
+        let sql = """
+        SELECT prev_app, app_name, COUNT(*) AS transition_count
+        FROM (
+            SELECT
+                u.app_name,
+                LAG(u.app_name) OVER (ORDER BY u.start_time) AS prev_app
+            FROM usage u
+            \(join)
+            WHERE \(filter.whereClause)
+        ) t
+        WHERE prev_app IS NOT NULL AND app_name != prev_app
+        GROUP BY prev_app, app_name
+        ORDER BY transition_count DESC
+        LIMIT ?
+        """
+
+        var parameters = filter.parameters
+        parameters.append(.int(Int64(limit)))
+
+        return try SQLiteRunner.query(db: db, sql: sql, parameters: parameters) { statement in
+            AppTransition(
+                fromApp: SQLiteRunner.columnText(statement, index: 0) ?? "Unknown",
+                toApp: SQLiteRunner.columnText(statement, index: 1) ?? "Unknown",
+                count: Int(SQLiteRunner.columnInt(statement, index: 2))
+            )
+        }
+    }
+
+    static func fetchAppTransitionsKnowledge(db: OpaquePointer, filters: FilterSnapshot, limit: Int, hasCategoryMap: Bool) throws -> [AppTransition] {
+        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
+
+        let sql = """
+        SELECT prev_app, app_name, COUNT(*) AS transition_count
+        FROM (
+            SELECT
+                o.ZVALUESTRING AS app_name,
+                LAG(o.ZVALUESTRING) OVER (ORDER BY o.ZSTARTDATE) AS prev_app
+            FROM ZOBJECT o
+            \(join)
+            WHERE \(filter.whereClause)
+        ) t
+        WHERE prev_app IS NOT NULL AND app_name != prev_app
+        GROUP BY prev_app, app_name
+        ORDER BY transition_count DESC
+        LIMIT ?
+        """
+
+        var parameters = filter.parameters
+        parameters.append(.int(Int64(limit)))
+
+        return try SQLiteRunner.query(db: db, sql: sql, parameters: parameters) { statement in
+            AppTransition(
+                fromApp: SQLiteRunner.columnText(statement, index: 0) ?? "Unknown",
+                toApp: SQLiteRunner.columnText(statement, index: 1) ?? "Unknown",
+                count: Int(SQLiteRunner.columnInt(statement, index: 2))
+            )
+        }
+    }
+
+    // MARK: - Weekday average queries
+
+    static func fetchWeekdayAveragesNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [WeekdayAverage] {
+        let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
+
+        // Step 1: get total seconds per weekday and count of distinct days
+        let sql = """
+        SELECT
+            CAST(strftime('%w', u.start_time) AS INTEGER) AS weekday,
+            SUM(u.duration_seconds) AS total_seconds,
+            COUNT(DISTINCT date(u.start_time)) AS day_count
+        FROM usage u
+        \(join)
+        WHERE \(filter.whereClause)
+        GROUP BY weekday
+        ORDER BY weekday
+        """
+
+        let weekdayTotals = try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+            (
+                weekday: Int(SQLiteRunner.columnInt(statement, index: 0)),
+                totalSeconds: SQLiteRunner.columnDouble(statement, index: 1),
+                dayCount: Int(SQLiteRunner.columnInt(statement, index: 2))
+            )
+        }
+
+        // Step 2: get top app per weekday
+        let topAppSQL = """
+        SELECT weekday, app_name FROM (
+            SELECT
+                CAST(strftime('%w', u.start_time) AS INTEGER) AS weekday,
+                u.app_name,
+                SUM(u.duration_seconds) AS total_seconds,
+                ROW_NUMBER() OVER (PARTITION BY CAST(strftime('%w', u.start_time) AS INTEGER) ORDER BY SUM(u.duration_seconds) DESC) AS rn
+            FROM usage u
+            \(join)
+            WHERE \(filter.whereClause)
+            GROUP BY weekday, u.app_name
+        ) t
+        WHERE rn = 1
+        """
+
+        let topAppsPerWeekday = try SQLiteRunner.query(db: db, sql: topAppSQL, parameters: filter.parameters) { statement in
+            (
+                weekday: Int(SQLiteRunner.columnInt(statement, index: 0)),
+                appName: SQLiteRunner.columnText(statement, index: 1) ?? "Unknown"
+            )
+        }
+
+        let topAppMap = Dictionary(uniqueKeysWithValues: topAppsPerWeekday.map { ($0.weekday, $0.appName) })
+
+        return weekdayTotals.map { row in
+            WeekdayAverage(
+                weekday: row.weekday,
+                averageSeconds: row.dayCount > 0 ? row.totalSeconds / Double(row.dayCount) : 0,
+                topApp: topAppMap[row.weekday] ?? "Unknown"
+            )
+        }
+    }
+
+    static func fetchWeekdayAveragesKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [WeekdayAverage] {
+        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
+
+        let localDateExpr = "datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')"
+
+        let sql = """
+        SELECT
+            CAST(strftime('%w', \(localDateExpr)) AS INTEGER) AS weekday,
+            SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds,
+            COUNT(DISTINCT date(\(localDateExpr))) AS day_count
+        FROM ZOBJECT o
+        \(join)
+        WHERE \(filter.whereClause)
+        GROUP BY weekday
+        ORDER BY weekday
+        """
+
+        let weekdayTotals = try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+            (
+                weekday: Int(SQLiteRunner.columnInt(statement, index: 0)),
+                totalSeconds: SQLiteRunner.columnDouble(statement, index: 1),
+                dayCount: Int(SQLiteRunner.columnInt(statement, index: 2))
+            )
+        }
+
+        let topAppSQL = """
+        SELECT weekday, app_name FROM (
+            SELECT
+                CAST(strftime('%w', \(localDateExpr)) AS INTEGER) AS weekday,
+                o.ZVALUESTRING AS app_name,
+                SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds,
+                ROW_NUMBER() OVER (PARTITION BY CAST(strftime('%w', \(localDateExpr)) AS INTEGER) ORDER BY SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) DESC) AS rn
+            FROM ZOBJECT o
+            \(join)
+            WHERE \(filter.whereClause)
+            GROUP BY weekday, app_name
+        ) t
+        WHERE rn = 1
+        """
+
+        let topAppsPerWeekday = try SQLiteRunner.query(db: db, sql: topAppSQL, parameters: filter.parameters) { statement in
+            (
+                weekday: Int(SQLiteRunner.columnInt(statement, index: 0)),
+                appName: SQLiteRunner.columnText(statement, index: 1) ?? "Unknown"
+            )
+        }
+
+        let topAppMap = Dictionary(uniqueKeysWithValues: topAppsPerWeekday.map { ($0.weekday, $0.appName) })
+
+        return weekdayTotals.map { row in
+            WeekdayAverage(
+                weekday: row.weekday,
+                averageSeconds: row.dayCount > 0 ? row.totalSeconds / Double(row.dayCount) : 0,
+                topApp: topAppMap[row.weekday] ?? "Unknown"
+            )
+        }
+    }
+
+    static func parseISO(_ text: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        return formatter.date(from: text)
     }
 
     static func fetchDailyTotalsNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [DailyTotalRow] {
@@ -870,6 +1705,49 @@ private extension SQLiteScreenTimeDataService {
                 conditions.append("1 = 0")
             }
         }
+        
+        // ── Advanced Time Filters ──
+        
+        // Time-of-day ranges (OR logic)
+        if !filters.timeOfDayRanges.isEmpty {
+            let hourExpr = "CAST(strftime('%H', \(alias).start_time) AS INTEGER)"
+            var rangePredicates: [String] = []
+            
+            for range in filters.timeOfDayRanges {
+                if range.startHour <= range.endHour {
+                    // Normal range (e.g., 9-17)
+                    rangePredicates.append("(\(hourExpr) >= ? AND \(hourExpr) < ?)")
+                    parameters.append(.int(Int64(range.startHour)))
+                    parameters.append(.int(Int64(range.endHour)))
+                } else {
+                    // Overnight range (e.g., 22-6)
+                    rangePredicates.append("(\(hourExpr) >= ? OR \(hourExpr) < ?)")
+                    parameters.append(.int(Int64(range.startHour)))
+                    parameters.append(.int(Int64(range.endHour)))
+                }
+            }
+            
+            conditions.append("(\(rangePredicates.joined(separator: " OR ")))")
+        }
+        
+        // Weekday filter (OR logic)
+        if !filters.weekdayFilter.isEmpty {
+            let weekdayExpr = "CAST(strftime('%w', \(alias).start_time) AS INTEGER)"
+            let sortedWeekdays = filters.weekdayFilter.sorted()
+            conditions.append("\(weekdayExpr) IN (\(placeholders(count: sortedWeekdays.count)))")
+            parameters.append(contentsOf: sortedWeekdays.map { .int(Int64($0)) })
+        }
+        
+        // Duration thresholds
+        if let minDuration = filters.minDurationSeconds {
+            conditions.append("\(alias).duration_seconds >= ?")
+            parameters.append(.double(minDuration))
+        }
+        
+        if let maxDuration = filters.maxDurationSeconds {
+            conditions.append("\(alias).duration_seconds <= ?")
+            parameters.append(.double(maxDuration))
+        }
 
         return SQLFilter(whereClause: conditions.joined(separator: " AND "), parameters: parameters, needsCategoryJoin: needsCategoryJoin)
     }
@@ -932,6 +1810,52 @@ private extension SQLiteScreenTimeDataService {
             } else if !filters.selectedCategories.contains("Uncategorized") {
                 conditions.append("1 = 0")
             }
+        }
+        
+        // ── Advanced Time Filters ──
+        
+        let hourExpr = "CAST(strftime('%H', datetime(\(alias).ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER)"
+        let weekdayExpr = "CAST(strftime('%w', datetime(\(alias).ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER)"
+        
+        // Time-of-day ranges (OR logic)
+        if !filters.timeOfDayRanges.isEmpty {
+            var rangePredicates: [String] = []
+            
+            for range in filters.timeOfDayRanges {
+                if range.startHour <= range.endHour {
+                    // Normal range (e.g., 9-17)
+                    rangePredicates.append("(\(hourExpr) >= ? AND \(hourExpr) < ?)")
+                    parameters.append(.int(Int64(range.startHour)))
+                    parameters.append(.int(Int64(range.endHour)))
+                } else {
+                    // Overnight range (e.g., 22-6)
+                    rangePredicates.append("(\(hourExpr) >= ? OR \(hourExpr) < ?)")
+                    parameters.append(.int(Int64(range.startHour)))
+                    parameters.append(.int(Int64(range.endHour)))
+                }
+            }
+            
+            conditions.append("(\(rangePredicates.joined(separator: " OR ")))")
+        }
+        
+        // Weekday filter (OR logic)
+        if !filters.weekdayFilter.isEmpty {
+            let sortedWeekdays = filters.weekdayFilter.sorted()
+            conditions.append("\(weekdayExpr) IN (\(placeholders(count: sortedWeekdays.count)))")
+            parameters.append(contentsOf: sortedWeekdays.map { .int(Int64($0)) })
+        }
+        
+        // Duration thresholds (using ZENDDATE - ZSTARTDATE for knowledgeC)
+        let durationExpr = "((\(alias).ZENDDATE - \(alias).ZSTARTDATE))"
+        
+        if let minDuration = filters.minDurationSeconds {
+            conditions.append("\(durationExpr) >= ?")
+            parameters.append(.double(minDuration))
+        }
+        
+        if let maxDuration = filters.maxDurationSeconds {
+            conditions.append("\(durationExpr) <= ?")
+            parameters.append(.double(maxDuration))
         }
 
         return SQLFilter(whereClause: conditions.joined(separator: " AND "), parameters: parameters, needsCategoryJoin: needsCategoryJoin)
@@ -1213,6 +2137,9 @@ private extension SQLiteScreenTimeDataService {
         }
 
         defer { sqlite3_close(sourceDB) }
+        
+        // Set busy timeout to wait for write locks to release
+        sqlite3_busy_timeout(sourceDB, 10000) // 10 seconds
 
         var destinationHandle: OpaquePointer?
         let destinationOpenResult = sqlite3_open_v2(
@@ -1242,18 +2169,30 @@ private extension SQLiteScreenTimeDataService {
             )
         }
 
+        // Use incremental backup with more retries and exponential backoff
+        // This handles concurrent writes from HistoryStore.syncIfNeeded()
         var stepResult: Int32 = SQLITE_OK
         var busyRetries = 0
+        let maxRetries = 500
+        var sleepMs: Int32 = 10
+        
         repeat {
-            stepResult = sqlite3_backup_step(backup, -1)
+            // Copy in chunks of 100 pages at a time to allow other transactions to proceed
+            stepResult = sqlite3_backup_step(backup, 100)
+            
             if stepResult == SQLITE_BUSY || stepResult == SQLITE_LOCKED {
                 busyRetries += 1
-                if busyRetries > 200 {
+                if busyRetries > maxRetries {
                     break
                 }
-                sqlite3_sleep(25)
+                sqlite3_sleep(sleepMs)
+                // Exponential backoff up to 100ms
+                sleepMs = min(sleepMs * 2, 100)
+            } else if stepResult == SQLITE_OK {
+                // More pages to copy, reset backoff
+                sleepMs = 10
             }
-        } while stepResult == SQLITE_BUSY || stepResult == SQLITE_LOCKED
+        } while stepResult == SQLITE_OK || stepResult == SQLITE_BUSY || stepResult == SQLITE_LOCKED
 
         let finishResult = sqlite3_backup_finish(backup)
 

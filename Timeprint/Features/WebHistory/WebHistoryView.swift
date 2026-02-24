@@ -33,9 +33,15 @@ struct WebHistoryView: View {
     @State private var hourlyCounts: [HourlyVisitCount] = []
     @State private var loadError: Error?
     @State private var isLoading = false
+    @State private var hasLoadedOnce = false
     @State private var availableBrowsers: [BrowserSource] = [.all]
 
     private let service: BrowsingHistoryServing = SQLiteBrowsingHistoryService()
+    
+    /// Show skeleton only on initial load, not on subsequent filter changes
+    private var showSkeleton: Bool {
+        isLoading && !hasLoadedOnce
+    }
 
     // MARK: Body
 
@@ -46,18 +52,26 @@ struct WebHistoryView: View {
                 // ─── Header ───
                 headerSection
 
-                // ─── Metrics strip ───
-                metricsStrip
+                if showSkeleton {
+                    // ─── Skeleton loader during initial load ───
+                    WebHistorySkeletonView()
+                } else {
+                    // ─── Metrics strip ───
+                    metricsStrip
 
-                // ─── Error ───
-                if let loadError {
-                    errorCard(loadError)
+                    // ─── Error ───
+                    if let loadError {
+                        errorCard(loadError)
+                    }
+
+                    // ─── Tab content ───
+                    tabContentSection
                 }
-
-                // ─── Tab content ───
-                tabContentSection
             }
+            .animation(.easeInOut(duration: 0.25), value: showSkeleton)
         }
+        .scrollClipDisabled()
+        .scrollIndicators(.never)
         .task {
             availableBrowsers = service.availableBrowsers()
             if !availableBrowsers.contains(browserFilter) {
@@ -93,7 +107,7 @@ struct WebHistoryView: View {
     }
 
     private var browserPicker: some View {
-        HStack(spacing: 2) {
+        HStack(spacing: 6) {
             ForEach(availableBrowsers) { source in
                 let isActive = browserFilter == source
 
@@ -111,19 +125,11 @@ struct WebHistoryView: View {
                     .foregroundColor(isActive ? .white : BrutalTheme.textSecondary)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 7)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(isActive ? BrutalTheme.accent : Color.clear)
-                    )
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.glass)
+                .tint(isActive ? BrutalTheme.accent : .clear)
             }
         }
-        .padding(3)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.black.opacity(0.04))
-        )
     }
 
     // MARK: - Metrics strip
@@ -197,14 +203,7 @@ struct WebHistoryView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(BrutalTheme.surface)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(Color.black.opacity(0.06), lineWidth: 1)
-        )
+        
     }
 
     // MARK: - Error card
@@ -235,8 +234,8 @@ struct WebHistoryView: View {
 
     private var tabContentSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Tab picker
-            HStack(spacing: 0) {
+            // Tab picker — glass buttons
+            HStack(spacing: 6) {
                 ForEach(WebHistoryTab.allCases) { t in
                     let isActive = tab == t
                     Button {
@@ -248,15 +247,12 @@ struct WebHistoryView: View {
                             Text(t.rawValue)
                                 .font(.system(size: 12, weight: .semibold, design: .monospaced))
                         }
-                        .foregroundColor(isActive ? BrutalTheme.accent : BrutalTheme.textTertiary)
+                        .foregroundColor(isActive ? .white : BrutalTheme.textTertiary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(isActive ? BrutalTheme.accentMuted : Color.clear)
-                        )
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.glass)
+                    .tint(isActive ? BrutalTheme.accent : .clear)
                 }
                 Spacer()
             }
@@ -277,7 +273,7 @@ struct WebHistoryView: View {
 
     private var timelineSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Search bar
+            // Search bar — glass effect
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 12, weight: .medium))
@@ -303,11 +299,7 @@ struct WebHistoryView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .background(BrutalTheme.surface)
-            .overlay(
-                Rectangle()
-                    .strokeBorder(BrutalTheme.border, lineWidth: BrutalTheme.borderWidth)
-            )
+            
 
             // Visit list
             GlassCard {
@@ -699,7 +691,10 @@ struct WebHistoryView: View {
 
     private func loadAll() async {
         isLoading = true
-        defer { isLoading = false }
+        defer { 
+            isLoading = false
+            hasLoadedOnce = true
+        }
 
         do {
             loadError = nil

@@ -9,14 +9,24 @@ final class GlobalFilterStore {
     var selectedApps: Set<String>
     var selectedCategories: Set<String>
     var selectedHeatmapCells: Set<HeatmapCellCoordinate>
+    
+    // Advanced time filters
+    var timeOfDayRanges: [TimeOfDayRange]
+    var weekdayFilter: Set<Int>
+    var minDurationSeconds: Double?
+    var maxDurationSeconds: Double?
 
     init(
-        startDate: Date = Calendar.current.date(byAdding: .day, value: -30, to: .now) ?? .now,
+        startDate: Date = Calendar.current.startOfDay(for: .now),
         endDate: Date = .now,
         granularity: TimeGranularity = .day,
         selectedApps: Set<String> = [],
         selectedCategories: Set<String> = [],
-        selectedHeatmapCells: Set<HeatmapCellCoordinate> = []
+        selectedHeatmapCells: Set<HeatmapCellCoordinate> = [],
+        timeOfDayRanges: [TimeOfDayRange] = [],
+        weekdayFilter: Set<Int> = [],
+        minDurationSeconds: Double? = nil,
+        maxDurationSeconds: Double? = nil
     ) {
         self.startDate = startDate
         self.endDate = endDate
@@ -24,6 +34,10 @@ final class GlobalFilterStore {
         self.selectedApps = selectedApps
         self.selectedCategories = selectedCategories
         self.selectedHeatmapCells = selectedHeatmapCells
+        self.timeOfDayRanges = timeOfDayRanges
+        self.weekdayFilter = weekdayFilter
+        self.minDurationSeconds = minDurationSeconds
+        self.maxDurationSeconds = maxDurationSeconds
     }
 
     var rangeLabel: String {
@@ -39,14 +53,56 @@ final class GlobalFilterStore {
             granularity: granularity,
             selectedApps: selectedApps,
             selectedCategories: selectedCategories,
-            selectedHeatmapCells: selectedHeatmapCells
+            selectedHeatmapCells: selectedHeatmapCells,
+            timeOfDayRanges: timeOfDayRanges,
+            weekdayFilter: weekdayFilter,
+            minDurationSeconds: minDurationSeconds,
+            maxDurationSeconds: maxDurationSeconds
         )
+    }
+    
+    /// Check if any advanced time filters are active
+    var hasAdvancedFilters: Bool {
+        !timeOfDayRanges.isEmpty || !weekdayFilter.isEmpty || minDurationSeconds != nil || maxDurationSeconds != nil
+    }
+    
+    /// Short label describing active advanced filters
+    var advancedFiltersLabel: String? {
+        var parts: [String] = []
+        
+        if !timeOfDayRanges.isEmpty {
+            let rangeCount = timeOfDayRanges.count
+            parts.append(rangeCount == 1 ? "1 time range" : "\(rangeCount) time ranges")
+        }
+        
+        if !weekdayFilter.isEmpty {
+            let dayCount = weekdayFilter.count
+            parts.append(dayCount == 1 ? "1 day" : "\(dayCount) days")
+        }
+        
+        if minDurationSeconds != nil || maxDurationSeconds != nil {
+            parts.append("duration filter")
+        }
+        
+        return parts.isEmpty ? nil : parts.joined(separator: ", ")
     }
 
     func clearSelections() {
         selectedApps.removeAll()
         selectedCategories.removeAll()
         selectedHeatmapCells.removeAll()
+    }
+    
+    func clearAdvancedFilters() {
+        timeOfDayRanges.removeAll()
+        weekdayFilter.removeAll()
+        minDurationSeconds = nil
+        maxDurationSeconds = nil
+    }
+    
+    func clearAllFilters() {
+        clearSelections()
+        clearAdvancedFilters()
     }
 
     /// Snap the date range to the current period matching the given granularity.

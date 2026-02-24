@@ -240,6 +240,8 @@ struct CalendarDayTimelineView: View {
                 .padding(.bottom, 20)
                 .id("timeline")
             }
+            .scrollClipDisabled()
+            .scrollIndicators(.never)
             .onAppear {
                 let scrollHour = firstActiveHour ?? 7
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -403,6 +405,8 @@ struct CalendarDayTimelineView: View {
             }
             .padding(14)
         }
+        .scrollClipDisabled()
+        .scrollIndicators(.never)
     }
 
     // MARK: Data Helpers

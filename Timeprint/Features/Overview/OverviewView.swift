@@ -1,45 +1,60 @@
 import Charts
 import SwiftUI
 
-// MARK: - Chart mode
-
-enum OverviewChartMode: String, CaseIterable, Identifiable {
-    case calendar = "Calendar"
-    case topApps = "Top Apps"
-
-    var id: String { rawValue }
-
-    var systemImage: String {
-        switch self {
-        case .calendar: return "calendar"
-        case .topApps: return "chart.bar.fill"
-        }
-    }
-}
-
 // MARK: - View
 
 struct OverviewView: View {
     let filters: GlobalFilterStore
-    @Binding var isCalendarExpanded: Bool
 
     @Environment(\.appEnvironment) private var appEnvironment
     @Environment(\.appNameDisplayMode) private var appNameDisplayMode
+    @Environment(NavigationCoordinator.self) private var navigation
+    @AppStorage("insightTickerAutoScroll") private var insightTickerAutoScroll: Bool = true
     @State private var summary = DashboardSummary(totalSeconds: 0, averageDailySeconds: 0, focusBlocks: 0, currentStreakDays: 0)
     @State private var topApps: [AppUsageSummary] = []
     @State private var loadError: Error?
-    @State private var chartMode: OverviewChartMode = .calendar
     @State private var showStartDatePicker = false
     @State private var showEndDatePicker = false
 
+    // Phase 2 — enriched overview state
+    @State private var todaySummary: TodaySummary?
+    @State private var periodSummary: PeriodSummary?
+    @State private var sparklinePoints: [SparklinePoint] = []
+    @State private var hourlyTrendPoints: [SparklinePoint] = []  // Hourly data for Day granularity
+    @State private var longestSession: LongestSession?
+    @State private var heatmapCells: [HeatmapCell] = []
+    @State private var heatmapMax: Double = 0
+
+    // Phase 4 — analytics insights
+    @State private var insights: [Insight] = []
+    @State private var weekdayAverages: [WeekdayAverage] = []
+    @State private var appTransitions: [AppTransition] = []
+    @State private var periodDelta: PeriodDelta?
+    
+    // Phase 7 — cross-device sync
+    @State private var syncPayload: SyncPayload = .empty
+    @State private var lastSyncDate: Date?
+    @State private var isSyncing: Bool = false
+    
+    // Loading state
+    @State private var isLoading: Bool = false
+    @State private var hasLoadedOnce: Bool = false
+    
+    private var showSkeleton: Bool {
+        isLoading && !hasLoadedOnce
+    }
+
     // MARK: Computed helpers
 
-    private var averageLabel: String { "AVG / DAY" }
+    /// Whether the current view is showing hourly data (Day granularity)
+    private var isHourlyMode: Bool { filters.granularity == .day }
 
-    private var chartTitle: String {
-        switch chartMode {
-        case .calendar: return "CALENDAR"
-        case .topApps: return "TOP APPS"
+    private var sparklineTitleForGranularity: String {
+        switch filters.granularity {
+        case .day: return "Daily Trend"
+        case .week: return "Weekly Trend"
+        case .month: return "Monthly Trend"
+        case .year: return "Yearly Trend"
         }
     }
 
@@ -52,19 +67,47 @@ struct OverviewView: View {
                 // ─── Header Row: Title + Date | Granularity Picker ───
                 headerSection
 
-                // ─── Metrics Strip ───
-                metricsStrip
+                if showSkeleton {
+                    // ─── Skeleton loader during initial load ───
+                    OverviewSkeletonView()
+                } else {
+                    // ─── Insight Cards Grid ───
+                    insightCardsGrid
 
-                if let loadError {
-                    DataLoadErrorView(error: loadError)
+                    if let loadError {
+                        DataLoadErrorView(error: loadError)
+                    }
+
+                    // ─── Insight Bar ───
+                    if !insights.isEmpty {
+                        insightBar
+                    }
+
+                    // ─── Content Area with integrated mode picker ───
+                    contentSection
+
+                    // ─── Weekday Patterns + App Transitions ───
+                    HStack(alignment: .top, spacing: 16) {
+                        weekdayPatternsCard
+                        appTransitionsCard
+                    }
                 }
-
-                // ─── Content Area with integrated mode picker ───
-                contentSection
             }
+            .animation(.easeInOut(duration: 0.25), value: showSkeleton)
         }
+        .scrollIndicators(.never)
+        .scrollClipDisabled()
         .task(id: filters.rangeLabel + filters.granularity.rawValue) {
             await load()
+        }
+        .task(id: filters.rangeLabel) {
+            await loadAnalytics()
+        }
+        .task(id: filters.rangeLabel + filters.granularity.rawValue + "insights") {
+            await loadInsights()
+        }
+        .task {
+            await loadSyncPayload()
         }
     }
 
@@ -72,11 +115,35 @@ struct OverviewView: View {
 
     private var headerSection: some View {
         HStack(alignment: .center) {
-            // Left: Title + date
+            // Left: Title + date + period comparison badge
             VStack(alignment: .leading, spacing: 4) {
-                Text("Overview")
-                    .font(.system(size: 26, weight: .bold, design: .default))
-                    .foregroundColor(BrutalTheme.textPrimary)
+                HStack(spacing: 10) {
+                    Text("Overview")
+                        .font(.system(size: 26, weight: .bold, design: .default))
+                        .foregroundColor(BrutalTheme.textPrimary)
+
+                    if let delta = periodDelta, delta.previousTotalSeconds > 0 {
+                        let pct = delta.percentChange
+                        let isUp = pct > 0
+                        HStack(spacing: 3) {
+                            Image(systemName: isUp ? "arrow.up.right" : "arrow.down.right")
+                                .font(.system(size: 10, weight: .bold))
+                            Text(String(format: "%.0f%%", abs(pct)))
+                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .contentTransition(.numericText(value: abs(pct)))
+                        }
+                        .foregroundColor(isUp ? .red : .green)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(
+                            Capsule()
+                                .fill((isUp ? Color.red : Color.green).opacity(0.12))
+                        )
+                        .transition(.scale.combined(with: .opacity))
+                        .help("vs. previous period")
+                        .accessibilityLabel(String(format: "%.0f percent %@ than previous period", abs(pct), isUp ? "more" : "less"))
+                    }
+                }
 
                 Text(filters.rangeLabel.uppercased())
                     .font(.system(size: 10, weight: .semibold, design: .monospaced))
@@ -84,158 +151,130 @@ struct OverviewView: View {
                     .tracking(0.8)
             }
 
-            Spacer(minLength: 20)
-
-            // Right: Granularity segmented control
-            granularityPicker
         }
     }
 
-    // MARK: - Granularity Picker (pill-style segmented control)
+    // MARK: - Insight Cards Grid
 
-    private var granularityPicker: some View {
-        HStack(spacing: 2) {
-            ForEach(TimeGranularity.allCases) { granularity in
-                let isActive = filters.granularity == granularity
+    private var insightCardsGrid: some View {
+        let columns = [
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 12),
+        ]
 
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        filters.granularity = granularity
-                    }
-                } label: {
-                    Text(granularity.title)
-                        .font(.system(size: 12, weight: isActive ? .bold : .medium, design: .monospaced))
-                        .foregroundColor(isActive ? .white : BrutalTheme.textSecondary)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 7)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(isActive ? BrutalTheme.accent : Color.clear)
-                        )
+        return LazyVGrid(columns: columns, spacing: 12) {
+                // Row 1: Period delta, sparkline, peak hour, apps used
+                navCard(.trends) {
+                    TodayDeltaCard(
+                        todaySeconds: periodSummary?.totalSeconds ?? 0,
+                        deltaPercent: periodSummary?.deltaPercent ?? 0,
+                        periodLabel: periodSummary?.periodLabel ?? "TODAY",
+                        comparisonLabel: periodSummary?.comparisonLabel ?? "vs yesterday"
+                    )
                 }
-                .buttonStyle(.plain)
+
+                navCard(.trends) {
+                    if isHourlyMode {
+                        HourlyTrendCard(
+                            hourlyPoints: hourlyTrendPoints,
+                            totalSeconds: periodSummary?.totalSeconds
+                        )
+                    } else {
+                        SparklineCard(
+                            points: sparklinePoints,
+                            title: sparklineTitleForGranularity,
+                            totalSeconds: periodSummary?.totalSeconds
+                        )
+                    }
+                }
+
+                navCard(.heatmap) {
+                    PeakHourCard(
+                        hour: periodSummary?.peakHour ?? 0,
+                        seconds: periodSummary?.peakHourSeconds ?? 0
+                    )
+                }
+
+                navCard(.appsCategories) {
+                    AppsUsedCard(
+                        count: periodSummary?.appsUsedCount ?? 0,
+                        contextLabel: periodSummary?.contextLabel ?? "today"
+                    )
+                }
+
+                // Row 2: Top app, focus streak, longest session, mini heatmap
+                navCard(.appsCategories) {
+                    TopAppSpotlightCard(
+                        appName: periodSummary?.topAppName ?? "None",
+                        seconds: periodSummary?.topAppSeconds ?? 0
+                    )
+                }
+
+                navCard(.focus) {
+                    FocusStreakCard(
+                        streakDays: summary.currentStreakDays,
+                        focusBlocks: summary.focusBlocks
+                    )
+                }
+
+                navCard(.sessions) {
+                    LongestSessionCard(
+                        session: longestSession
+                    )
+                }
+
+                navCard(.heatmap) {
+                    MiniHeatmapCard(
+                        cells: heatmapCells,
+                        maxSeconds: heatmapMax
+                    )
+                }
+                
+                // Row 3: Device breakdown and sync status (when multiple devices)
+                if syncPayload.devices.count > 1 {
+                    DeviceBreakdownCard(
+                        devices: syncPayload.devices,
+                        selectedDate: filters.startDate
+                    )
+                    
+                    SyncStatusCard(
+                        lastSyncDate: lastSyncDate,
+                        deviceCount: syncPayload.devices.count,
+                        isSyncing: isSyncing
+                    )
+                }
             }
-        }
-        .padding(3)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.black.opacity(0.04))
-        )
     }
 
-    // MARK: - Metrics Strip
+    // MARK: - Nav Card Wrapper
 
-    private var metricsStrip: some View {
-        HStack(spacing: 12) {
-            metricPill(
-                icon: "clock.fill",
-                label: "Total",
-                value: DurationFormatter.short(summary.totalSeconds)
-            )
-            metricPill(
-                icon: "chart.line.uptrend.xyaxis",
-                label: "Daily Avg",
-                value: DurationFormatter.short(summary.averageDailySeconds)
-            )
-            metricPill(
-                icon: "target",
-                label: "Focus Blocks",
-                value: "\(summary.focusBlocks)"
-            )
-            metricPill(
-                icon: "flame.fill",
-                label: "Streak",
-                value: "\(summary.currentStreakDays)d"
-            )
-        }
-    }
-
-    private func metricPill(icon: String, label: String, value: String) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(BrutalTheme.accent)
-                .frame(width: 28, height: 28)
-                .background(
-                    RoundedRectangle(cornerRadius: 7)
-                        .fill(BrutalTheme.accentMuted)
-                )
-
-            VStack(alignment: .leading, spacing: 1) {
-                Text(label.uppercased())
-                    .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                    .foregroundColor(BrutalTheme.textTertiary)
-                    .tracking(0.5)
-                Text(value)
-                    .font(.system(size: 16, weight: .bold, design: .monospaced))
-                    .foregroundColor(BrutalTheme.textPrimary)
+    /// Wraps an insight card so tapping it navigates to the given destination.
+    private func navCard<Content: View>(_ destination: NavigationDestination, @ViewBuilder content: () -> Content) -> some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                navigation.selectedDestination = destination
             }
-
-            Spacer(minLength: 0)
+        } label: {
+            content()
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(BrutalTheme.surface)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .strokeBorder(Color.black.opacity(0.06), lineWidth: 1)
-        )
+        .buttonStyle(.plain)
     }
 
-    // MARK: - Content Section (chart mode picker + chart)
+    // MARK: - Content Section (top apps chart + usage table)
 
     private var contentSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            // Section header with integrated mode toggle
-            HStack(alignment: .center) {
-                // Mode toggle (left-aligned, integrated)
-                HStack(spacing: 0) {
-                    ForEach(OverviewChartMode.allCases) { mode in
-                        let isActive = chartMode == mode
+            // Top Apps Chart
+            GlassCard {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("TOP APPS")
+                        .font(BrutalTheme.headingFont)
+                        .foregroundColor(BrutalTheme.textSecondary)
+                        .tracking(1)
 
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                chartMode = mode
-                            }
-                        } label: {
-                            HStack(spacing: 5) {
-                                Image(systemName: mode.systemImage)
-                                    .font(.system(size: 11, weight: .semibold))
-                                Text(mode.rawValue)
-                                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
-                            }
-                            .foregroundColor(isActive ? BrutalTheme.accent : BrutalTheme.textTertiary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(isActive ? BrutalTheme.accentMuted : Color.clear)
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-
-                Spacer()
-            }
-
-            // Chart content
-            if chartMode == .calendar && !isCalendarExpanded {
-                AppleCalendarView(filters: filters, isExpanded: $isCalendarExpanded)
-                    .frame(minHeight: 520)
-            } else {
-                GlassCard {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(chartTitle)
-                            .font(BrutalTheme.headingFont)
-                            .foregroundColor(BrutalTheme.textSecondary)
-                            .tracking(1)
-
-                        topAppsChart
-                    }
+                    topAppsChart
                 }
             }
 
@@ -272,7 +311,7 @@ struct OverviewView: View {
                 y: .value("App", AppNameDisplay.displayName(for: app.appName, mode: appNameDisplayMode))
             )
             .foregroundStyle(BrutalTheme.accent)
-            .cornerRadius(0)
+            .cornerRadius(4)
             .annotation(position: .trailing, alignment: .leading, spacing: 6) {
                 Text(DurationFormatter.short(app.totalSeconds))
                     .font(BrutalTheme.captionMono)
@@ -363,8 +402,8 @@ struct OverviewView: View {
 
                     // Percentage bar
                     GeometryReader { geo in
-                        Rectangle()
-                            .fill(BrutalTheme.accentMuted)
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(BrutalTheme.accent.opacity(0.2))
                             .frame(width: geo.size.width * max(pct / 100, 0), height: 3)
                     }
                     .frame(height: 3)
@@ -400,13 +439,8 @@ struct OverviewView: View {
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .background(BrutalTheme.surface)
-                .overlay(
-                    Rectangle()
-                        .strokeBorder(BrutalTheme.border, lineWidth: BrutalTheme.borderWidth)
-                )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.glass)
             .popover(isPresented: $showStartDatePicker) {
                 DatePicker("From", selection: $bindableFilters.startDate, displayedComponents: .date)
                     .datePickerStyle(.graphical)
@@ -431,13 +465,8 @@ struct OverviewView: View {
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .background(BrutalTheme.surface)
-                .overlay(
-                    Rectangle()
-                        .strokeBorder(BrutalTheme.border, lineWidth: BrutalTheme.borderWidth)
-                )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.glass)
             .popover(isPresented: $showEndDatePicker) {
                 DatePicker("To", selection: $bindableFilters.endDate, displayedComponents: .date)
                     .datePickerStyle(.graphical)
@@ -447,22 +476,303 @@ struct OverviewView: View {
         }
     }
 
+    // MARK: - Insight Bar
+
+    private var insightBar: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("INSIGHTS")
+                    .font(BrutalTheme.headingFont)
+                    .foregroundColor(BrutalTheme.textSecondary)
+                    .tracking(1)
+
+                TickerScrollView(speed: 35, scrollMode: insightTickerAutoScroll ? .automatic : .manual) {
+                    HStack(spacing: 12) {
+                        ForEach(insights) { insight in
+                            HStack(spacing: 8) {
+                                Image(systemName: insight.icon)
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(insightColor(insight.sentiment))
+                                    .frame(width: 20, height: 20)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 5)
+                                            .fill(insightColor(insight.sentiment).opacity(0.12))
+                                    )
+                                Text(insight.text)
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(BrutalTheme.textPrimary)
+                                    .lineLimit(1)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(.ultraThinMaterial)
+                            )
+                        }
+                    }
+                    .padding(.trailing, insightTickerAutoScroll ? 40 : 0) // Gap for seamless loop (only needed for auto)
+                }
+                .frame(height: 36)
+            }
+        }
+    }
+
+    private func insightColor(_ sentiment: InsightSentiment) -> Color {
+        switch sentiment {
+        case .positive: .green
+        case .negative: .red
+        case .neutral: .gray
+        }
+    }
+
+    // MARK: - Weekday Patterns Card
+
+    private var weekdayPatternsCard: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("WEEKDAY PATTERNS")
+                    .font(BrutalTheme.headingFont)
+                    .foregroundColor(BrutalTheme.textSecondary)
+                    .tracking(1)
+
+                if weekdayAverages.isEmpty {
+                    Text("No data available")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(BrutalTheme.textTertiary)
+                } else {
+                    let dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+                    let maxAvg = weekdayAverages.map(\.averageSeconds).max() ?? 1
+
+                    ForEach(weekdayAverages.sorted(by: { $0.weekday < $1.weekday })) { avg in
+                        HStack(spacing: 8) {
+                            Text(avg.weekday < dayNames.count ? dayNames[avg.weekday] : "?")
+                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .foregroundColor(BrutalTheme.textPrimary)
+                                .frame(width: 32, alignment: .leading)
+
+                            GeometryReader { proxy in
+                                let width = proxy.size.width * CGFloat(avg.averageSeconds / maxAvg)
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(.teal.gradient)
+                                    .frame(width: max(width, 2), height: 14)
+                            }
+                            .frame(height: 14)
+
+                            Text(DurationFormatter.short(avg.averageSeconds))
+                                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                .foregroundColor(BrutalTheme.textTertiary)
+                                .frame(width: 48, alignment: .trailing)
+
+                            AppNameText(avg.topApp)
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(BrutalTheme.textSecondary)
+                                .lineLimit(1)
+                                .frame(width: 80, alignment: .leading)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - App Transitions Card
+
+    private var appTransitionsCard: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("APP TRANSITIONS")
+                    .font(BrutalTheme.headingFont)
+                    .foregroundColor(BrutalTheme.textSecondary)
+                    .tracking(1)
+
+                if appTransitions.isEmpty {
+                    Text("No transitions recorded")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(BrutalTheme.textTertiary)
+                } else {
+                    ForEach(Array(appTransitions.enumerated()), id: \.element.id) { idx, transition in
+                        HStack(spacing: 6) {
+                            Text(String(format: "%02d", idx + 1))
+                                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                .foregroundColor(BrutalTheme.textTertiary)
+                                .frame(width: 18)
+
+                            AppNameText(transition.fromApp)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(BrutalTheme.textPrimary)
+                                .lineLimit(1)
+
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(BrutalTheme.textTertiary)
+
+                            AppNameText(transition.toApp)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(BrutalTheme.textPrimary)
+                                .lineLimit(1)
+
+                            Spacer()
+
+                            Text("\(transition.count)×")
+                                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                .foregroundColor(.orange)
+                        }
+                        .padding(.vertical, 2)
+
+                        if idx < appTransitions.count - 1 {
+                            Rectangle()
+                                .fill(BrutalTheme.border)
+                                .frame(height: 0.5)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     // MARK: - Data loading
 
     private func load() async {
+        isLoading = true
+        defer {
+            isLoading = false
+            hasLoadedOnce = true
+        }
+        
         do {
             loadError = nil
             let snapshot = filters.snapshot
 
             async let fetchedSummary = appEnvironment.dataService.fetchDashboardSummary(filters: snapshot)
             async let fetchedApps = appEnvironment.dataService.fetchTopApps(filters: snapshot, limit: 30)
+            async let fetchedLongest = appEnvironment.dataService.fetchLongestSession(filters: snapshot)
 
             summary = try await fetchedSummary
             topApps = try await fetchedApps
+            longestSession = try await fetchedLongest
         } catch {
             loadError = error
             summary = DashboardSummary(totalSeconds: 0, averageDailySeconds: 0, focusBlocks: 0, currentStreakDays: 0)
             topApps = []
+            longestSession = nil
+        }
+    }
+
+    private func loadAnalytics() async {
+        do {
+            let snapshot = filters.snapshot
+            async let insightsFetch = appEnvironment.dataService.generateInsights(filters: snapshot)
+            async let weekdayFetch = appEnvironment.dataService.fetchWeekdayAverages(filters: snapshot)
+            async let transitionsFetch = appEnvironment.dataService.fetchAppTransitions(filters: snapshot, limit: 8)
+
+            insights = try await insightsFetch
+            weekdayAverages = try await weekdayFetch
+            appTransitions = try await transitionsFetch
+
+            // Period comparison: compare current range to the same-length prior range
+            let calendar = Calendar.current
+            let rangeDays = calendar.dateComponents([.day], from: snapshot.startDate, to: snapshot.endDate).day ?? 7
+            if let prevEnd = calendar.date(byAdding: .day, value: -1, to: snapshot.startDate),
+               let prevStart = calendar.date(byAdding: .day, value: -rangeDays, to: prevEnd) {
+                let previousSnapshot = FilterSnapshot(
+                    startDate: prevStart, endDate: prevEnd,
+                    granularity: snapshot.granularity,
+                    selectedApps: snapshot.selectedApps,
+                    selectedCategories: snapshot.selectedCategories,
+                    selectedHeatmapCells: snapshot.selectedHeatmapCells
+                )
+                periodDelta = try await appEnvironment.dataService.fetchPeriodComparison(
+                    current: snapshot, previous: previousSnapshot
+                )
+            }
+        } catch {
+            insights = []
+            weekdayAverages = []
+            appTransitions = []
+            periodDelta = nil
+        }
+    }
+
+    private func loadInsights() async {
+        // Now depends on filters — reloads when granularity changes
+        do {
+            let snapshot = filters.snapshot
+
+            async let periodFetch = appEnvironment.dataService.fetchPeriodSummary(filters: snapshot)
+            async let sparklineFetch = appEnvironment.dataService.fetchSparkline(filters: snapshot)
+            async let heatmapFetch = appEnvironment.dataService.fetchHeatmap(filters: snapshot)
+
+            periodSummary = try await periodFetch
+            sparklinePoints = try await sparklineFetch
+            let fetchedCells = try await heatmapFetch
+            heatmapCells = fetchedCells
+            heatmapMax = fetchedCells.map(\.totalSeconds).max() ?? 0
+
+            // Fetch hourly data when in Day granularity
+            if isHourlyMode {
+                let hourlyData = try await appEnvironment.dataService.fetchHourlyAppUsage(for: snapshot.startDate)
+                
+                // Aggregate by hour and convert to SparklinePoints
+                let calendar = Calendar.current
+                let dayStart = calendar.startOfDay(for: snapshot.startDate)
+                
+                var hourlyTotals: [Int: Double] = [:]
+                for entry in hourlyData {
+                    hourlyTotals[entry.hour, default: 0] += entry.totalSeconds
+                }
+                
+                // Create points for all 24 hours (fill missing hours with 0)
+                hourlyTrendPoints = (0..<24).compactMap { hour in
+                    guard let hourDate = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: dayStart) else { return nil }
+                    return SparklinePoint(date: hourDate, totalSeconds: hourlyTotals[hour, default: 0])
+                }
+            } else {
+                hourlyTrendPoints = []
+            }
+
+            // Also update todaySummary for backwards compatibility (if needed elsewhere)
+            todaySummary = TodaySummary(
+                todayTotalSeconds: periodSummary?.totalSeconds ?? 0,
+                yesterdayTotalSeconds: periodSummary?.previousTotalSeconds ?? 0,
+                peakHour: periodSummary?.peakHour ?? 0,
+                peakHourSeconds: periodSummary?.peakHourSeconds ?? 0,
+                appsUsedCount: periodSummary?.appsUsedCount ?? 0,
+                topAppName: periodSummary?.topAppName ?? "None",
+                topAppSeconds: periodSummary?.topAppSeconds ?? 0
+            )
+        } catch {
+            // Non-critical — insight cards gracefully show empty state
+            periodSummary = nil
+            todaySummary = nil
+            sparklinePoints = []
+            hourlyTrendPoints = []
+            heatmapCells = []
+            heatmapMax = 0
+        }
+    }
+    
+    private func loadSyncPayload() async {
+        guard let syncCoordinator = appEnvironment.syncCoordinator else {
+            // No sync service available
+            return
+        }
+        
+        isSyncing = true
+        defer { isSyncing = false }
+        
+        do {
+            // Perform sync to get latest data from all devices
+            try await syncCoordinator.performSync()
+            
+            // Fetch the updated payload
+            syncPayload = try await syncCoordinator.fetchPayload()
+            lastSyncDate = Date()
+        } catch {
+            // Sync failed - non-critical, just show local data
+            // Don't clear existing payload in case we had previous data
         }
     }
 }

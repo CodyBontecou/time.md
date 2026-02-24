@@ -39,18 +39,18 @@ struct BlockLayoutInfo {
     let totalColumns: Int
 }
 
-// MARK: - Calendar Theme (Apple Calendar colors)
+// MARK: - Calendar Theme (Adaptive Light/Dark Mode)
 
 enum CalendarColors {
     static let todayRed = Color.red
-    static let gridLine = Color(white: 0.88)
-    static let gridLineFaint = Color(white: 0.93)
-    static let hourText = Color(white: 0.55)
-    static let background = Color.white
-    static let headerBg = Color(white: 0.975)
+    static let gridLine = Color.primary.opacity(0.08)
+    static let gridLineFaint = Color.primary.opacity(0.05)
+    static let hourText = Color.secondary
+    static let background = Color(nsColor: .windowBackgroundColor)
+    static let headerBg = Color(nsColor: .controlBackgroundColor)
     static let dayNumberDefault = Color.primary
-    static let dayNumberMuted = Color(white: 0.72)
-    static let weekdayLabel = Color(white: 0.55)
+    static let dayNumberMuted = Color.secondary
+    static let weekdayLabel = Color.secondary
     static let currentTimeLine = Color.red
 }
 

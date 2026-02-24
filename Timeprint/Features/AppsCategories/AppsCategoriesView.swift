@@ -23,22 +23,19 @@ struct AppsCategoriesView: View {
     @State private var mappingSaveInFlight: Set<String> = []
     @State private var loadError: Error?
     @State private var mappingError: String?
+    @State private var hoveredApp: String?
+    @State private var hoveredCategory: String?
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: BrutalTheme.sectionSpacing) {
                 // ─── Title ───
-                Text("APPS & CATEGORIES.")
-                    .font(BrutalTheme.displayFont)
+                Text("Apps & Categories")
+                    .font(.system(size: 26, weight: .bold, design: .default))
                     .foregroundColor(BrutalTheme.textPrimary)
-                    .tracking(1)
 
-                Rectangle()
-                    .fill(BrutalTheme.borderStrong)
-                    .frame(height: 2)
-
-                // Mode toggle
-                HStack(spacing: 0) {
+                // Mode toggle — glass buttons
+                HStack(spacing: 6) {
                     ForEach(BreakdownMode.allCases) { m in
                         Button {
                             withAnimation(.easeInOut(duration: 0.15)) {
@@ -49,24 +46,13 @@ struct AppsCategoriesView: View {
                                 .font(BrutalTheme.captionMono)
                                 .tracking(1)
                                 .foregroundColor(mode == m ? .white : BrutalTheme.textSecondary)
-                                .frame(maxWidth: .infinity)
+                                .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
-                                .background(mode == m ? BrutalTheme.accent : Color.clear)
                         }
-                        .buttonStyle(.plain)
-
-                        if m != BreakdownMode.allCases.last {
-                            Rectangle()
-                                .fill(BrutalTheme.border)
-                                .frame(width: 1)
-                        }
+                        .buttonStyle(.glass)
+                        .tint(mode == m ? BrutalTheme.accent : .clear)
                     }
                 }
-                .frame(maxWidth: 300)
-                .overlay(
-                    Rectangle()
-                        .strokeBorder(BrutalTheme.border, lineWidth: BrutalTheme.borderWidth)
-                )
 
                 if let loadError {
                     DataLoadErrorView(error: loadError)
@@ -89,6 +75,8 @@ struct AppsCategoriesView: View {
                 mappingEditor
             }
         }
+        .scrollClipDisabled()
+        .scrollIndicators(.never)
         .task(id: reloadKey) {
             await load()
         }
@@ -97,7 +85,9 @@ struct AppsCategoriesView: View {
     // MARK: - Charts
 
     private var appChart: some View {
-        GlassCard {
+        let totalAppSeconds = apps.reduce(0.0) { $0 + $1.totalSeconds }
+
+        return GlassCard {
             VStack(alignment: .leading, spacing: 10) {
                 Text(BrutalTheme.sectionLabel(1, "APP BREAKDOWN"))
                     .font(BrutalTheme.headingFont)
@@ -105,12 +95,18 @@ struct AppsCategoriesView: View {
                     .tracking(1)
 
                 Chart(apps) { app in
+                    let displayName = AppNameDisplay.displayName(for: app.appName, mode: appNameDisplayMode)
                     BarMark(
                         x: .value("Duration", app.totalSeconds),
-                        y: .value("App", AppNameDisplay.displayName(for: app.appName, mode: appNameDisplayMode))
+                        y: .value("App", displayName)
                     )
-                    .foregroundStyle(appBarColor(for: app))
+                    .foregroundStyle(hoveredApp == displayName ? AnyShapeStyle(BrutalTheme.accent.opacity(0.7)) : appBarColor(for: app))
                     .cornerRadius(0)
+                    .annotation(position: .trailing, spacing: 6) {
+                        if displayName == hoveredApp {
+                            appTooltip(app: app, totalSeconds: totalAppSeconds)
+                        }
+                    }
                 }
                 .chartYAxis {
                     AxisMarks(position: .leading) { value in
@@ -125,6 +121,21 @@ struct AppsCategoriesView: View {
                     }
                 }
                 .chartXAxis(.hidden)
+                .chartOverlay { proxy in
+                    GeometryReader { geometry in
+                        Rectangle()
+                            .fill(.clear)
+                            .contentShape(Rectangle())
+                            .onContinuousHover { phase in
+                                switch phase {
+                                case .active(let location):
+                                    hoveredApp = proxy.value(atY: location.y, as: String.self)
+                                case .ended:
+                                    hoveredApp = nil
+                                }
+                            }
+                    }
+                }
                 .frame(height: 320)
 
                 Text("SELECT APPS BELOW TO CROSS-FILTER ALL VIEWS.")
@@ -136,7 +147,9 @@ struct AppsCategoriesView: View {
     }
 
     private var categoryChart: some View {
-        GlassCard {
+        let totalCategorySeconds = categories.reduce(0.0) { $0 + $1.totalSeconds }
+
+        return GlassCard {
             VStack(alignment: .leading, spacing: 10) {
                 Text(BrutalTheme.sectionLabel(1, "CATEGORY BREAKDOWN"))
                     .font(BrutalTheme.headingFont)
@@ -148,8 +161,13 @@ struct AppsCategoriesView: View {
                         x: .value("Duration", category.totalSeconds),
                         y: .value("Category", category.category)
                     )
-                    .foregroundStyle(categoryBarColor(for: category))
+                    .foregroundStyle(hoveredCategory == category.category ? AnyShapeStyle(BrutalTheme.accent.opacity(0.7)) : categoryBarColor(for: category))
                     .cornerRadius(0)
+                    .annotation(position: .trailing, spacing: 6) {
+                        if category.category == hoveredCategory {
+                            categoryTooltip(category: category, totalSeconds: totalCategorySeconds)
+                        }
+                    }
                 }
                 .chartYAxis {
                     AxisMarks(position: .leading) { value in
@@ -164,6 +182,21 @@ struct AppsCategoriesView: View {
                     }
                 }
                 .chartXAxis(.hidden)
+                .chartOverlay { proxy in
+                    GeometryReader { geometry in
+                        Rectangle()
+                            .fill(.clear)
+                            .contentShape(Rectangle())
+                            .onContinuousHover { phase in
+                                switch phase {
+                                case .active(let location):
+                                    hoveredCategory = proxy.value(atY: location.y, as: String.self)
+                                case .ended:
+                                    hoveredCategory = nil
+                                }
+                            }
+                    }
+                }
                 .frame(height: 320)
 
                 Text("SELECT CATEGORIES BELOW TO CROSS-FILTER ALL VIEWS.")
@@ -348,6 +381,61 @@ struct AppsCategoriesView: View {
         chipLayout(rawValues: values, selectedValues: selectedValues, onTap: onTap)
     }
 
+    // MARK: - Tooltips
+
+    @ViewBuilder
+    private func categoryTooltip(category: CategoryUsageSummary, totalSeconds: Double) -> some View {
+        let pct = totalSeconds > 0 ? (category.totalSeconds / totalSeconds) * 100 : 0
+
+        HStack(spacing: 6) {
+            Text(DurationFormatter.short(category.totalSeconds))
+                .font(BrutalTheme.captionMono)
+                .foregroundColor(BrutalTheme.textPrimary)
+            Text("·")
+                .foregroundColor(BrutalTheme.textTertiary)
+            Text(String(format: "%.0f%%", pct))
+                .font(BrutalTheme.captionMono)
+                .foregroundColor(BrutalTheme.textSecondary)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .strokeBorder(BrutalTheme.border, lineWidth: 0.5)
+        )
+    }
+
+    @ViewBuilder
+    private func appTooltip(app: AppUsageSummary, totalSeconds: Double) -> some View {
+        let pct = totalSeconds > 0 ? (app.totalSeconds / totalSeconds) * 100 : 0
+
+        HStack(spacing: 6) {
+            Text(DurationFormatter.short(app.totalSeconds))
+                .font(BrutalTheme.captionMono)
+                .foregroundColor(BrutalTheme.textPrimary)
+            Text("·")
+                .foregroundColor(BrutalTheme.textTertiary)
+            Text(String(format: "%.0f%%", pct))
+                .font(BrutalTheme.captionMono)
+                .foregroundColor(BrutalTheme.textSecondary)
+            Text("·")
+                .foregroundColor(BrutalTheme.textTertiary)
+            Text("\(app.sessionCount) sessions")
+                .font(BrutalTheme.captionMono)
+                .foregroundColor(BrutalTheme.textSecondary)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .strokeBorder(BrutalTheme.border, lineWidth: 0.5)
+        )
+    }
+
     // MARK: - Bar colors
 
     private func appBarColor(for app: AppUsageSummary) -> AnyShapeStyle {
@@ -433,8 +521,9 @@ struct AppsCategoriesView: View {
     // MARK: - Helpers
 
     private var reloadKey: String {
-        let selectedApps = filters.selectedApps.sorted().joined(separator: "|")
-        let selectedCategories = filters.selectedCategories.sorted().joined(separator: "|")
+        // NOTE: We intentionally exclude selectedApps and selectedCategories from the reload key.
+        // The cross-filter panel needs to show ALL available apps/categories regardless of selection.
+        // Selection state is reflected via bar colors, not by filtering the data.
         let selectedCells = filters.selectedHeatmapCells
             .sorted {
                 if $0.weekday == $1.weekday {
@@ -449,10 +538,20 @@ struct AppsCategoriesView: View {
             String(filters.startDate.timeIntervalSince1970),
             String(filters.endDate.timeIntervalSince1970),
             filters.granularity.rawValue,
-            selectedApps,
-            selectedCategories,
             selectedCells
         ].joined(separator: "::")
+    }
+    
+    /// A snapshot with app/category selections cleared, used for fetching the full list of available options.
+    private var baseSnapshot: FilterSnapshot {
+        FilterSnapshot(
+            startDate: filters.startDate,
+            endDate: filters.endDate,
+            granularity: filters.granularity,
+            selectedApps: [],
+            selectedCategories: [],
+            selectedHeatmapCells: filters.selectedHeatmapCells
+        )
     }
 
     private func draftBinding(for appName: String) -> Binding<String> {
@@ -482,7 +581,9 @@ struct AppsCategoriesView: View {
         do {
             loadError = nil
             mappingError = nil
-            let snapshot = filters.snapshot
+            // Use baseSnapshot (without app/category selections) so all apps/categories are shown
+            // in the cross-filter panel. Selection state is reflected via bar colors, not filtering.
+            let snapshot = baseSnapshot
 
             async let appFetch = appEnvironment.dataService.fetchTopApps(filters: snapshot, limit: 16)
             async let categoryFetch = appEnvironment.dataService.fetchTopCategories(filters: snapshot, limit: 12)
@@ -530,7 +631,7 @@ struct AppsCategoriesView: View {
                 categoryDraftByApp[appName] = category
             }
 
-            categories = try await appEnvironment.dataService.fetchTopCategories(filters: filters.snapshot, limit: 12)
+            categories = try await appEnvironment.dataService.fetchTopCategories(filters: baseSnapshot, limit: 12)
         } catch {
             mappingError = ScreenTimeDataError.message(for: error)
         }

@@ -38,6 +38,8 @@ struct CalendarYearGridView: View {
             }
             .padding(24)
         }
+        .scrollClipDisabled()
+        .scrollIndicators(.never)
         .task(id: year) {
             await loadYearData()
         }
@@ -59,7 +61,7 @@ struct CalendarYearGridView: View {
             .padding(10)
             .background(
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(Color.white)
+                    .fill(CalendarColors.headerBg)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 6)

@@ -119,6 +119,8 @@ struct BlockDetailSidebar: View {
                 .padding(16)
             }
         }
+        .scrollClipDisabled()
+        .scrollIndicators(.never)
         .background(CalendarColors.headerBg)
     }
 
@@ -162,7 +164,7 @@ struct BlockDetailSidebar: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.white)
+                .fill(CalendarColors.background)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8)

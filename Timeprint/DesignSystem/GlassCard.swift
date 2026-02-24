@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Brutalist card container — sharp corners, precise border, no shadows, no blur.
+/// Card container with padding only — no background to blend seamlessly with the window.
 struct GlassCard<Content: View>: View {
     private let content: Content
 
@@ -11,10 +11,21 @@ struct GlassCard<Content: View>: View {
     var body: some View {
         content
             .padding(BrutalTheme.cardPadding)
-            .background(BrutalTheme.surface)
-            .overlay(
-                Rectangle()
-                    .strokeBorder(BrutalTheme.border, lineWidth: BrutalTheme.borderWidth)
-            )
+    }
+}
+
+/// A tinted card variant — just padding, no background.
+struct TintedGlassCard<Content: View>: View {
+    private let tint: Color
+    private let content: Content
+
+    init(tint: Color = BrutalTheme.accent, @ViewBuilder content: () -> Content) {
+        self.tint = tint
+        self.content = content()
+    }
+
+    var body: some View {
+        content
+            .padding(BrutalTheme.cardPadding)
     }
 }

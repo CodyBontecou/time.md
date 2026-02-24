@@ -105,6 +105,9 @@ enum HistoryStore {
 
         // WAL mode for better concurrent-read performance
         sqlite3_exec(historyDB, "PRAGMA journal_mode=WAL", nil, nil, nil)
+        
+        // Set busy timeout so we wait for locks instead of failing immediately
+        sqlite3_busy_timeout(historyDB, 5000) // 5 seconds
 
         // Ensure schema (with migration support for pre-existing DBs)
         try ensureSchema(db: historyDB, path: historyURL.path)

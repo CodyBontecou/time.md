@@ -6,6 +6,9 @@ enum BrowserSource: String, CaseIterable, Identifiable, Sendable {
     case all = "All"
     case safari = "Safari"
     case chrome = "Chrome"
+    case arc = "Arc"
+    case brave = "Brave"
+    case edge = "Edge"
 
     var id: String { rawValue }
 
@@ -14,6 +17,17 @@ enum BrowserSource: String, CaseIterable, Identifiable, Sendable {
         case .all: return "globe"
         case .safari: return "safari"
         case .chrome: return "globe.americas"
+        case .arc: return "circle.hexagongrid"
+        case .brave: return "shield.lefthalf.filled"
+        case .edge: return "e.circle"
+        }
+    }
+    
+    /// Whether this browser uses Chromium's history schema
+    var isChromiumBased: Bool {
+        switch self {
+        case .chrome, .arc, .brave, .edge: return true
+        case .safari, .all: return false
         }
     }
 }

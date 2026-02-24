@@ -19,3 +19,6 @@ xcuserdata/
 
 # App icon generation artifacts
 app-icon-options/
+.vercel
+.env*.local
+node_modules/

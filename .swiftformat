@@ -1,0 +1,53 @@
+# SwiftFormat Configuration for Timeprint
+
+# File options
+--exclude DerivedData,.build,Pods
+
+# Format options
+--allman false
+--binarygrouping 4,8
+--closingparen balanced
+--commas always
+--decimalgrouping 3,6
+--elseposition same-line
+--empty void
+--exponentcase lowercase
+--exponentgrouping disabled
+--fractiongrouping disabled
+--header ignore
+--hexgrouping 4,8
+--hexliteralcase uppercase
+--ifdef indent
+--indent 4
+--indentcase false
+--importgrouping testable-bottom
+--linebreaks lf
+--maxwidth none
+--octalgrouping 4,8
+--operatorfunc spaced
+--patternlet hoist
+--ranges spaced
+--self remove
+--semicolons inline
+--stripunusedargs closure-only
+--swiftversion 5.9
+--tabwidth 4
+--trailingclosures
+--trimwhitespace always
+--wraparguments preserve
+--wrapcollections preserve
+--wrapparameters preserve
+
+# Enabled rules
+--enable isEmpty
+--enable redundantSelf
+--enable redundantType
+--enable sortedImports
+--enable trailingCommas
+--enable wrapEnumCases
+--enable wrapSwitchCases
+
+# Disabled rules
+--disable blankLinesAtEndOfScope
+--disable blankLinesAtStartOfScope
+--disable redundantBackticks

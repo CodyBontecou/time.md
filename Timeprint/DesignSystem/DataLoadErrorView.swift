@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Brutalist error banner — sharp, monospace, high-contrast.
+/// Error banner with Liquid Glass styling.
 struct DataLoadErrorView: View {
     let error: Error
 
@@ -42,18 +42,14 @@ struct DataLoadErrorView: View {
 
                 Spacer()
 
-                Text("→")
-                    .font(.system(size: 16, weight: .bold, design: .monospaced))
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(BrutalTheme.textSecondary)
             }
             .padding(12)
-            .background(BrutalTheme.warning.opacity(0.08))
-            .overlay(
-                Rectangle()
-                    .strokeBorder(BrutalTheme.warning.opacity(0.5), lineWidth: BrutalTheme.borderWidth)
-            )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.glass)
+        .tint(BrutalTheme.warning)
     }
 
     private var genericBanner: some View {
@@ -63,7 +59,7 @@ struct DataLoadErrorView: View {
                 .foregroundColor(.white)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(BrutalTheme.danger)
+                .background(BrutalTheme.danger, in: RoundedRectangle(cornerRadius: 4))
 
             Text(ScreenTimeDataError.message(for: error))
                 .font(BrutalTheme.captionMono)
@@ -73,11 +69,7 @@ struct DataLoadErrorView: View {
             Spacer()
         }
         .padding(12)
-        .background(BrutalTheme.danger.opacity(0.04))
-        .overlay(
-            Rectangle()
-                .strokeBorder(BrutalTheme.danger.opacity(0.3), lineWidth: BrutalTheme.borderWidth)
-        )
+        
     }
 
     private func openFullDiskAccessSettings() {

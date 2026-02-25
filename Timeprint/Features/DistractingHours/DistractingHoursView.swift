@@ -237,7 +237,7 @@ struct DistractingHoursView: View {
                 } label: {
                     Text(preset.rawValue)
                         .font(.system(size: 12, weight: isActive ? .bold : .medium, design: .monospaced))
-                        .foregroundColor(isActive ? .white : BrutalTheme.textTertiary)
+                        .foregroundColor(isActive ? .black : BrutalTheme.textTertiary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
                 }

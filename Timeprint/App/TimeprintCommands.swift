@@ -157,58 +157,20 @@ struct TimeprintCommands: Commands {
     }
     
     private func navigatePrevious() {
-        let calendar = Calendar.current
-        let component: Calendar.Component
-        
-        switch filters.granularity {
-        case .day:
-            component = .day
-        case .week:
-            component = .weekOfYear
-        case .month:
-            component = .month
-        case .year:
-            component = .year
-        }
-        
-        if let newStart = calendar.date(byAdding: component, value: -1, to: filters.startDate),
-           let newEnd = calendar.date(byAdding: component, value: -1, to: filters.endDate) {
-            withAnimation {
-                filters.startDate = newStart
-                filters.endDate = newEnd
-            }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            filters.stepBackward()
         }
     }
     
     private func navigateNext() {
-        let calendar = Calendar.current
-        let component: Calendar.Component
-        
-        switch filters.granularity {
-        case .day:
-            component = .day
-        case .week:
-            component = .weekOfYear
-        case .month:
-            component = .month
-        case .year:
-            component = .year
-        }
-        
-        if let newStart = calendar.date(byAdding: component, value: 1, to: filters.startDate),
-           let newEnd = calendar.date(byAdding: component, value: 1, to: filters.endDate) {
-            // Don't go past today
-            guard newEnd <= Date() else { return }
-            withAnimation {
-                filters.startDate = newStart
-                filters.endDate = newEnd
-            }
+        withAnimation(.easeInOut(duration: 0.2)) {
+            filters.stepForward()
         }
     }
     
     private func jumpToToday() {
-        withAnimation {
-            filters.adjustDateRange(for: filters.granularity)
+        withAnimation(.easeInOut(duration: 0.2)) {
+            filters.goToToday()
         }
     }
 }

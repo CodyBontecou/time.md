@@ -578,21 +578,79 @@ private struct GranularityPickerToolbar: View {
     let filters: GlobalFilterStore
 
     var body: some View {
-        HStack(spacing: 16) {
-            ForEach(TimeGranularity.allCases) { granularity in
-                let isActive = filters.granularity == granularity
-
+        HStack(spacing: 12) {
+            // Time Navigation
+            HStack(spacing: 4) {
+                // Previous period
                 Button {
                     withAnimation(.easeInOut(duration: 0.2)) {
-                        filters.granularity = granularity
+                        filters.stepBackward()
                     }
                 } label: {
-                    Text(granularity.title)
-                        .font(.system(size: 12, weight: isActive ? .semibold : .regular))
-                        .foregroundColor(isActive ? BrutalTheme.textPrimary : BrutalTheme.textTertiary)
-                        .padding(.horizontal, 8)
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(BrutalTheme.textSecondary)
+                        .frame(width: 24, height: 24)
                 }
                 .buttonStyle(.plain)
+                .help("Previous \(filters.granularity.title)")
+                
+                // Period label / Today button
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        filters.goToToday()
+                    }
+                } label: {
+                    Text(filters.periodLabel)
+                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                        .foregroundColor(filters.isCurrentPeriod ? BrutalTheme.textPrimary : BrutalTheme.accent)
+                        .frame(minWidth: 100)
+                }
+                .buttonStyle(.plain)
+                .help(filters.isCurrentPeriod ? "Viewing current period" : "Jump to today")
+                
+                // Next period
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        filters.stepForward()
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(filters.isCurrentPeriod ? BrutalTheme.textTertiary.opacity(0.5) : BrutalTheme.textSecondary)
+                        .frame(width: 24, height: 24)
+                }
+                .buttonStyle(.plain)
+                .disabled(filters.isCurrentPeriod)
+                .help(filters.isCurrentPeriod ? "Already at current period" : "Next \(filters.granularity.title)")
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(BrutalTheme.surface.opacity(0.5))
+            )
+            
+            Divider()
+                .frame(height: 20)
+            
+            // Granularity picker
+            HStack(spacing: 12) {
+                ForEach(TimeGranularity.allCases) { granularity in
+                    let isActive = filters.granularity == granularity
+
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            filters.granularity = granularity
+                        }
+                    } label: {
+                        Text(granularity.title)
+                            .font(.system(size: 12, weight: isActive ? .semibold : .regular))
+                            .foregroundColor(isActive ? BrutalTheme.textPrimary : BrutalTheme.textTertiary)
+                            .padding(.horizontal, 8)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
     }

@@ -698,6 +698,7 @@ struct CalendarPreviewCard: View {
     let startDate: Date
     let sparklinePoints: [SparklinePoint]
     let hourlyPoints: [SparklinePoint]
+    var periodLabel: String? = nil  // Optional override from GlobalFilterStore
     
     private let cal = Calendar.current
     
@@ -728,7 +729,7 @@ struct CalendarPreviewCard: View {
             }
             .frame(height: 56)
             
-            Text(granularityLabel)
+            Text(periodLabel ?? granularityLabel)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(BrutalTheme.textTertiary)
         }
@@ -736,7 +737,7 @@ struct CalendarPreviewCard: View {
         .padding(14)
         .hoverScale()
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Calendar preview: \(granularityLabel)")
+        .accessibilityLabel("Calendar preview: \(periodLabel ?? granularityLabel)")
     }
     
     private var granularityLabel: String {
@@ -746,7 +747,16 @@ struct CalendarPreviewCard: View {
             formatter.dateFormat = "EEEE, MMM d"
             return formatter.string(from: startDate)
         case .week:
-            return "This Week"
+            // Calculate week range
+            let formatter = DateFormatter()
+            let weekEnd = cal.date(byAdding: .day, value: 6, to: startDate) ?? startDate
+            if cal.isDate(startDate, equalTo: Date(), toGranularity: .year) {
+                formatter.dateFormat = "MMM d"
+                return "\(formatter.string(from: startDate)) – \(formatter.string(from: weekEnd))"
+            } else {
+                formatter.dateFormat = "MMM d, yyyy"
+                return "\(formatter.string(from: startDate)) – \(formatter.string(from: weekEnd))"
+            }
         case .month:
             let formatter = DateFormatter()
             formatter.dateFormat = "MMMM yyyy"

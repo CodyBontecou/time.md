@@ -61,6 +61,80 @@ struct OverviewView: View {
         case .year: return "Yearly Trend"
         }
     }
+    
+    /// Dynamic comparison label based on current period (e.g., "vs day before", "vs previous week")
+    private var comparisonLabelForCurrentPeriod: String {
+        let calendar = Calendar.current
+        
+        switch filters.granularity {
+        case .day:
+            if calendar.isDateInToday(filters.startDate) {
+                return "vs yesterday"
+            } else if calendar.isDateInYesterday(filters.startDate) {
+                return "vs day before"
+            } else {
+                return "vs previous day"
+            }
+        case .week:
+            if filters.isCurrentPeriod {
+                return "vs last week"
+            } else {
+                return "vs previous week"
+            }
+        case .month:
+            if filters.isCurrentPeriod {
+                return "vs last month"
+            } else {
+                return "vs previous month"
+            }
+        case .year:
+            if filters.isCurrentPeriod {
+                return "vs last year"
+            } else {
+                return "vs previous year"
+            }
+        }
+    }
+    
+    /// Dynamic context label based on current period (e.g., "yesterday", "that week")
+    private var contextLabelForCurrentPeriod: String {
+        let calendar = Calendar.current
+        
+        switch filters.granularity {
+        case .day:
+            if calendar.isDateInToday(filters.startDate) {
+                return "today"
+            } else if calendar.isDateInYesterday(filters.startDate) {
+                return "yesterday"
+            } else {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "MMM d"
+                return "on \(formatter.string(from: filters.startDate))"
+            }
+        case .week:
+            if filters.isCurrentPeriod {
+                return "this week"
+            } else {
+                return "that week"
+            }
+        case .month:
+            if filters.isCurrentPeriod {
+                return "this month"
+            } else {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "MMM"
+                return "in \(formatter.string(from: filters.startDate))"
+            }
+        case .year:
+            if filters.isCurrentPeriod {
+                return "this year"
+            } else {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy"
+                return "in \(formatter.string(from: filters.startDate))"
+            }
+        }
+    }
 
     // MARK: Body
 
@@ -174,8 +248,8 @@ struct OverviewView: View {
                     TodayDeltaCard(
                         todaySeconds: periodSummary?.totalSeconds ?? 0,
                         deltaPercent: periodSummary?.deltaPercent ?? 0,
-                        periodLabel: periodSummary?.periodLabel ?? "TODAY",
-                        comparisonLabel: periodSummary?.comparisonLabel ?? "vs yesterday"
+                        periodLabel: filters.periodLabel.uppercased(),
+                        comparisonLabel: comparisonLabelForCurrentPeriod
                     )
                 }
 
@@ -204,7 +278,7 @@ struct OverviewView: View {
                 navCard(.appsCategories) {
                     AppsUsedCard(
                         count: periodSummary?.appsUsedCount ?? 0,
-                        contextLabel: periodSummary?.contextLabel ?? "today"
+                        contextLabel: contextLabelForCurrentPeriod
                     )
                 }
 
@@ -234,7 +308,8 @@ struct OverviewView: View {
                         granularity: filters.granularity,
                         startDate: filters.startDate,
                         sparklinePoints: sparklinePoints,
-                        hourlyPoints: hourlyTrendPoints
+                        hourlyPoints: hourlyTrendPoints,
+                        periodLabel: filters.periodLabel
                     )
                 }
                 

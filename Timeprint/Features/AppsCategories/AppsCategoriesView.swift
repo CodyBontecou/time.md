@@ -7,7 +7,7 @@ private enum BreakdownMode: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var title: String { rawValue.uppercased() }
+    var title: String { rawValue.capitalized }
 }
 
 struct AppsCategoriesView: View {
@@ -50,20 +50,20 @@ struct AppsCategoriesView: View {
                     // Mode toggle — glass buttons
                     HStack(spacing: 6) {
                         ForEach(BreakdownMode.allCases) { m in
+                            let isActive = mode == m
                             Button {
                                 withAnimation(.easeInOut(duration: 0.15)) {
                                     mode = m
                                 }
                             } label: {
                                 Text(m.title)
-                                    .font(BrutalTheme.captionMono)
-                                    .tracking(1)
-                                    .foregroundColor(mode == m ? .black : BrutalTheme.textSecondary)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
+                                    .font(.system(size: 12, weight: isActive ? .bold : .medium, design: .monospaced))
+                                    .foregroundColor(isActive ? .black : BrutalTheme.textTertiary)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
                             }
                             .buttonStyle(.bordered)
-                            .tint(mode == m ? BrutalTheme.accent : .clear)
+                            .tint(isActive ? BrutalTheme.accent : .clear)
                         }
                     }
 

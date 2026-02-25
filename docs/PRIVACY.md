@@ -1,28 +1,28 @@
 # Privacy Policy
 
-**Timeprint**  
+**time.md**  
 *Last updated: February 2026*
 
 ## Overview
 
-Timeprint is a privacy-first screen time analytics app. We believe your data belongs to you, and we've designed our app to keep it that way.
+time.md is a privacy-first screen time analytics app. We believe your data belongs to you, and we've designed our app to keep it that way.
 
 ## Data We Collect
 
 **We do not collect any personal data.**
 
-Timeprint operates entirely on your device. We have no servers, no analytics, and no way to see your screen time data.
+time.md operates entirely on your device. We have no servers, no analytics, and no way to see your screen time data.
 
-## How Timeprint Works
+## How time.md Works
 
 ### On macOS
-- Timeprint reads Apple's Screen Time database (`knowledgeC.db`) that's already stored locally on your Mac
-- This data was collected by Apple's Screen Time feature, not by Timeprint
-- Timeprint processes this data locally to show you analytics and visualizations
+- time.md reads Apple's Screen Time database (`knowledgeC.db`) that's already stored locally on your Mac
+- This data was collected by Apple's Screen Time feature, not by time.md
+- time.md processes this data locally to show you analytics and visualizations
 - No data is sent to us
 
 ### On iOS
-- Timeprint displays screen time data synced from your Mac via iCloud
+- time.md displays screen time data synced from your Mac via iCloud
 - This sync happens between your own devices through your personal iCloud account
 - We have no access to your iCloud data
 
@@ -45,7 +45,7 @@ If you enable iCloud sync:
 
 ## Third-Party Services
 
-Timeprint uses the following Apple services:
+time.md uses the following Apple services:
 - **iCloud Documents** — For optional cross-device sync
 - **Screen Time (macOS)** — Source of usage data
 
@@ -53,15 +53,15 @@ We do not use any third-party analytics, advertising, or tracking services.
 
 ## Data Deletion
 
-You can delete your Timeprint data at any time:
+You can delete your time.md data at any time:
 
-1. **Delete app data**: Remove Timeprint from your device
-2. **Delete sync data**: Go to Settings → Apple ID → iCloud → Manage Storage → Timeprint
-3. **Delete preferences**: Remove `~/Library/Application Support/Timeprint/` on macOS
+1. **Delete app data**: Remove time.md from your device
+2. **Delete sync data**: Go to Settings → Apple ID → iCloud → Manage Storage → time.md
+3. **Delete preferences**: Remove `~/Library/Application Support/time.md/` on macOS
 
 ## Children's Privacy
 
-Timeprint does not knowingly collect data from children under 13. The app displays data that Apple's Screen Time has already collected through iOS/macOS parental controls.
+time.md does not knowingly collect data from children under 13. The app displays data that Apple's Screen Time has already collected through iOS/macOS parental controls.
 
 ## Changes to This Policy
 
@@ -81,10 +81,10 @@ If you have questions about this privacy policy, please contact:
 For the App Store privacy "nutrition label":
 
 ### Data Not Collected
-Timeprint does not collect any data from users.
+time.md does not collect any data from users.
 
 ### Data Not Linked to You
 N/A — No data is collected.
 
 ### Tracking
-Timeprint does not track users across apps or websites owned by other companies.
+time.md does not track users across apps or websites owned by other companies.

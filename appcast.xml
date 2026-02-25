@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
     <channel>
-        <title>Timeprint Updates</title>
-        <link>https://github.com/codybontecou/Timeprint/releases</link>
-        <description>Timeprint macOS App Updates</description>
+        <title>time.md Updates</title>
+        <link>https://github.com/codybontecou/time.md/releases</link>
+        <description>time.md macOS App Updates</description>
         <language>en</language>
         
         <item>
@@ -39,7 +39,7 @@
                 ]]>
             </description>
             <enclosure
-                url="https://github.com/codybontecou/Timeprint/releases/download/v1.1/Timeprint-v1.1-macOS.zip"
+                url="https://github.com/codybontecou/time.md/releases/download/v1.1/time.md-v1.1-macOS.zip"
                 length="5952004"
                 type="application/octet-stream"
                 sparkle:edSignature="7AkZ6JrbSDGqVuxzYTJ+e014z7nLwN/hxigr9CAX3ycMU+JVBeadQSV11EksDKUi3Mry3tqpj8rHEBJpPic3Bw=="
@@ -65,7 +65,7 @@
                 ]]>
             </description>
             <enclosure
-                url="https://github.com/codybontecou/Timeprint/releases/download/v1.0/Timeprint-v1.0-macOS.zip"
+                url="https://github.com/codybontecou/time.md/releases/download/v1.0/time.md-v1.0-macOS.zip"
                 length="5347178"
                 type="application/octet-stream"
                 sparkle:edSignature="PLACEHOLDER_SIGN_WITH_SPARKLE_GENERATE_KEYS"

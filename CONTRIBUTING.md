@@ -1,6 +1,6 @@
-# Contributing to Timeprint
+# Contributing to time.md
 
-Thank you for your interest in contributing to Timeprint! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to time.md! This document provides guidelines and information for contributors.
 
 ## Code of Conduct
 
@@ -20,12 +20,12 @@ Please be respectful and constructive in all interactions. We're building someth
 1. Fork the repository on GitHub
 2. Clone your fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/Timeprint.git
-   cd Timeprint
+   git clone https://github.com/YOUR_USERNAME/time.md.git
+   cd time.md
    ```
 3. Open in Xcode:
    ```bash
-   open Timeprint.xcodeproj
+   open time.md.xcodeproj
    ```
 4. Build and run to verify setup:
    ```bash
@@ -91,7 +91,7 @@ Please be respectful and constructive in all interactions. We're building someth
 ### Project Structure
 
 ```
-Timeprint/
+time.md/
 ├── App/           # App entry, navigation
 ├── Data/          # Data services, models
 ├── Features/      # Feature modules (Overview, Calendar, etc.)
@@ -120,7 +120,7 @@ make test
 
 ### Writing Tests
 
-- Place tests in `TimeprintTests/`
+- Place tests in `time.mdTests/`
 - Name test files with `Tests` suffix
 - Use descriptive test method names
 - Test both success and error cases
@@ -156,7 +156,7 @@ Include:
 
 Include:
 - macOS/iOS version
-- Timeprint version
+- time.md version
 - Steps to reproduce
 - Expected behavior
 - Actual behavior

@@ -8,7 +8,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in Timeprint, please report it responsibly.
+If you discover a security vulnerability in time.md, please report it responsibly.
 
 ### How to Report
 
@@ -31,7 +31,7 @@ If you discover a security vulnerability in Timeprint, please report it responsi
 
 ### Data Privacy
 
-Timeprint is designed with privacy as a core principle:
+time.md is designed with privacy as a core principle:
 
 - **Local-first**: All raw Screen Time data stays on your device
 - **No analytics**: We don't collect usage data

@@ -1,7 +1,7 @@
 default_platform(:ios)
 
-IOS_APP_ID = "bontecou.TimeprintIOS"
-MAC_APP_ID = "com.bontecou.Timeprint"
+IOS_APP_ID = "bontecou.time.mdIOS"
+MAC_APP_ID = "com.bontecou.time.md"
 API_KEY_ID = "T7KGDK4Y4V"
 API_ISSUER_ID = "6c3b3640-c6bf-40a9-b6e5-57cda2c7776e"
 API_KEY_PATH = "/Users/codybontecou/dev/AuthKey_T7KGDK4Y4V.p8"
@@ -54,13 +54,13 @@ platform :ios do
   lane :build do
     connect_api_key
     build_app(
-      project: "Timeprint.xcodeproj",
-      scheme: "TimeprintIOS",
+      project: "time.md.xcodeproj",
+      scheme: "time.mdIOS",
       configuration: "Release",
       destination: "generic/platform=iOS",
       export_method: "app-store",
       output_directory: "build/ios",
-      output_name: "TimeprintIOS.ipa",
+      output_name: "time.mdIOS.ipa",
       export_options: {
         signingStyle: "automatic",
         teamID: "67KC823C9A"
@@ -73,7 +73,7 @@ platform :ios do
     connect_api_key
     upload_to_app_store(
       api_key: connect_api_key,
-      ipa: "build/ios/TimeprintIOS.ipa",
+      ipa: "build/ios/time.mdIOS.ipa",
       skip_metadata: true,
       skip_screenshots: true,
       force: true,
@@ -189,12 +189,12 @@ platform :mac do
   lane :build do
     connect_api_key
     build_app(
-      project: "Timeprint.xcodeproj",
-      scheme: "Timeprint",
+      project: "time.md.xcodeproj",
+      scheme: "time.md",
       configuration: "Release",
       export_method: "app-store",
       output_directory: "build/mac",
-      output_name: "Timeprint.pkg",
+      output_name: "time.md.pkg",
       export_options: {
         signingStyle: "automatic",
         teamID: "67KC823C9A"
@@ -207,7 +207,7 @@ platform :mac do
     connect_api_key
     upload_to_app_store(
       api_key: connect_api_key,
-      pkg: "build/mac/Timeprint.pkg",
+      pkg: "build/mac/time.md.pkg",
       skip_metadata: true,
       skip_screenshots: true,
       force: true,

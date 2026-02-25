@@ -1,17 +1,17 @@
 # Cross-Device Sync Test Plan
 
-This document outlines test scenarios for verifying the Timeprint cross-device sync functionality.
+This document outlines test scenarios for verifying the time.md cross-device sync functionality.
 
 ## Test Environment Requirements
 
 ### Devices Needed
-- [ ] Mac with macOS 14+ (for Timeprint Mac app)
-- [ ] iPhone with iOS 16+ (for Timeprint iOS app)
+- [ ] Mac with macOS 14+ (for time.md Mac app)
+- [ ] iPhone with iOS 16+ (for time.md iOS app)
 - [ ] Both devices signed into same iCloud account
 
 ### Pre-Test Setup
-1. Install Timeprint on Mac
-2. Install TimeprintIOS on iPhone
+1. Install time.md on Mac
+2. Install time.mdIOS on iPhone
 3. Ensure iCloud Drive is enabled on both devices
 4. Verify iCloud sync is working (check Files app)
 
@@ -24,9 +24,9 @@ This document outlines test scenarios for verifying the Timeprint cross-device s
 
 **Steps:**
 1. Use Mac normally for 30+ minutes
-2. Open Timeprint Mac app
+2. Open time.md Mac app
 3. Wait for sync to complete (check sync indicator)
-4. Open Files app on iPhone → iCloud Drive → Timeprint
+4. Open Files app on iPhone → iCloud Drive → time.md
 
 **Expected:**
 - [ ] `timeprint-sync.json` file exists
@@ -40,7 +40,7 @@ This document outlines test scenarios for verifying the Timeprint cross-device s
 
 **Steps:**
 1. Use iPhone for 30+ minutes
-2. Open TimeprintIOS app
+2. Open time.mdIOS app
 3. Pull to refresh / tap Sync Now
 4. Check iCloud Drive for updated sync file
 
@@ -54,7 +54,7 @@ This document outlines test scenarios for verifying the Timeprint cross-device s
 
 **Steps:**
 1. Ensure iPhone has synced (Test 1.2)
-2. Open Timeprint Mac app
+2. Open time.md Mac app
 3. Navigate to Overview
 4. Check for Device Breakdown card
 
@@ -68,7 +68,7 @@ This document outlines test scenarios for verifying the Timeprint cross-device s
 
 **Steps:**
 1. Ensure Mac has synced (Test 1.1)
-2. Open TimeprintIOS app
+2. Open time.mdIOS app
 3. Pull to refresh
 4. Check All Devices view
 
@@ -207,7 +207,7 @@ This document outlines test scenarios for verifying the Timeprint cross-device s
 **Steps:**
 1. Have Mac and iPhone syncing
 2. Add iPad to same iCloud account
-3. Install and open Timeprint on iPad
+3. Install and open time.md on iPad
 
 **Expected:**
 - [ ] iPad sees Mac + iPhone data
@@ -261,7 +261,7 @@ After any sync-related changes, verify:
 
 **View sync activity on Mac:**
 ```bash
-log stream --predicate 'subsystem == "com.codybontecou.Timeprint"' --info
+log stream --predicate 'subsystem == "com.codybontecou.time.md"' --info
 ```
 
 **View sync activity on iPhone:**
@@ -270,7 +270,7 @@ Connect via Xcode → Window → Devices and Simulators → Open Console
 **Check iCloud sync file:**
 ```bash
 # On Mac
-cat ~/Library/Mobile\ Documents/iCloud~com~codybontecou~Timeprint/Documents/timeprint-sync.json | jq .
+cat ~/Library/Mobile\ Documents/iCloud~com~codybontecou~time.md/Documents/timeprint-sync.json | jq .
 ```
 
 ---

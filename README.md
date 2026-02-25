@@ -1,10 +1,10 @@
-# Timeprint
+# time.md
 
 **Personal Screen Time Analytics for macOS and iOS**
 
-Timeprint is a privacy-first screen time analytics app that gives you beautiful, detailed insights into your digital habits across all your Apple devices.
+time.md is a privacy-first screen time analytics app that gives you beautiful, detailed insights into your digital habits across all your Apple devices.
 
-[![CI](https://github.com/codybontecou/Timeprint/actions/workflows/ci.yml/badge.svg)](https://github.com/codybontecou/Timeprint/actions/workflows/ci.yml)
+[![CI](https://github.com/codybontecou/time.md/actions/workflows/ci.yml/badge.svg)](https://github.com/codybontecou/time.md/actions/workflows/ci.yml)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20iOS-blue)
 ![Swift](https://img.shields.io/badge/swift-5.9-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -57,37 +57,37 @@ Timeprint is a privacy-first screen time analytics app that gives you beautiful,
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/codybontecou/Timeprint.git
-   cd Timeprint
+   git clone https://github.com/codybontecou/time.md.git
+   cd time.md
    ```
 
 2. Open in Xcode:
    ```bash
-   open Timeprint.xcodeproj
+   open time.md.xcodeproj
    ```
 
 3. Select target:
-   - **Timeprint** — macOS app
-   - **TimeprintIOS** — iOS app
+   - **time.md** — macOS app
+   - **time.mdIOS** — iOS app
 
 4. Build and run (⌘R)
 
 ### macOS Setup
 
-The first time you run Timeprint on macOS, you'll need to grant Full Disk Access:
+The first time you run time.md on macOS, you'll need to grant Full Disk Access:
 
 1. Open **System Settings → Privacy & Security → Full Disk Access**
 2. Click the **+** button
-3. Navigate to `/Applications/Timeprint.app` and add it
-4. Restart Timeprint
+3. Navigate to `/Applications/time.md.app` and add it
+4. Restart time.md
 
-This allows Timeprint to read Apple's Screen Time database (`knowledgeC.db`).
+This allows time.md to read Apple's Screen Time database (`knowledgeC.db`).
 
 ## Architecture
 
 ```
-Timeprint/
-├── Timeprint/                 # macOS app
+time.md/
+├── time.md/                 # macOS app
 │   ├── App/                   # App entry, navigation, state
 │   ├── Data/                  # SQLite services, analytics models
 │   ├── Features/              # Views (Overview, Calendar, Trends, etc.)
@@ -98,11 +98,11 @@ Timeprint/
 │       ├── Protocols/         # ScreenTimeProviding
 │       ├── Formatting/        # TimeFormatters
 │       └── Sync/              # iCloudSyncService
-├── TimeprintIOS/              # iOS app
-│   ├── App/                   # TimeprintIOSApp, IOSAppState
+├── time.mdIOS/              # iOS app
+│   ├── App/                   # time.mdIOSApp, IOSAppState
 │   ├── Views/                 # CompactOverviewView, AllDevicesView, AppsListView
 │   └── Assets.xcassets/       # iOS-specific assets
-└── Timeprint.xcodeproj/       # Xcode project with both targets
+└── time.md.xcodeproj/       # Xcode project with both targets
 ```
 
 ### Data Flow
@@ -127,17 +127,17 @@ iOS:                            IOSAppState ← iCloudSyncService ← iCloud Doc
 
 ### macOS
 ```bash
-xcodebuild -scheme Timeprint -destination 'platform=macOS' build
+xcodebuild -scheme time.md -destination 'platform=macOS' build
 ```
 
 ### iOS Simulator
 ```bash
-xcodebuild -scheme TimeprintIOS -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
+xcodebuild -scheme time.mdIOS -destination 'platform=iOS Simulator,name=iPhone 16 Pro' build
 ```
 
 ### iOS Device
 ```bash
-xcodebuild -scheme TimeprintIOS -destination 'generic/platform=iOS' archive
+xcodebuild -scheme time.mdIOS -destination 'generic/platform=iOS' archive
 ```
 
 ## iOS Screen Time Integration
@@ -154,10 +154,10 @@ See [`docs/iOS-ScreenTime-Setup.md`](docs/iOS-ScreenTime-Setup.md) for detailed 
 
 | Extension | Purpose |
 |-----------|---------|
-| `TimeprintDeviceActivityReport` | Displays Screen Time data in SwiftUI views |
-| `TimeprintDeviceActivityMonitor` | Captures usage data in background |
+| `time.mdDeviceActivityReport` | Displays Screen Time data in SwiftUI views |
+| `time.mdDeviceActivityMonitor` | Captures usage data in background |
 
-Source files are in `TimeprintDeviceActivityReport/` and `TimeprintDeviceActivityMonitor/`. See their respective READMEs for Xcode setup.
+Source files are in `time.mdDeviceActivityReport/` and `time.mdDeviceActivityMonitor/`. See their respective READMEs for Xcode setup.
 
 ## Configuration
 
@@ -171,15 +171,15 @@ Source files are in `TimeprintDeviceActivityReport/` and `TimeprintDeviceActivit
 
 | Setting | macOS | iOS |
 |---------|-------|-----|
-| Bundle ID | `bontecou.Timeprint` | `bontecou.TimeprintIOS` |
+| Bundle ID | `bontecou.time.md` | `bontecou.time.mdIOS` |
 | Team ID | `67KC823C9A` | `67KC823C9A` |
-| iCloud Container | `iCloud.com.codybontecou.Timeprint` | `iCloud.com.codybontecou.Timeprint` |
+| iCloud Container | `iCloud.com.codybontecou.time.md` | `iCloud.com.codybontecou.time.md` |
 
 ## Privacy
 
-Timeprint is designed with privacy as a core principle:
+time.md is designed with privacy as a core principle:
 
-- **No Analytics** — We don't track how you use Timeprint
+- **No Analytics** — We don't track how you use time.md
 - **No Server** — There's no backend server; iCloud is the only network service
 - **Local-First** — All raw data stays on your device
 - **Sync is Optional** — You can use macOS-only without iCloud
@@ -208,8 +208,8 @@ What **doesn't** sync:
 | [`SECURITY.md`](SECURITY.md) | Security policy and reporting |
 | [`docs/iOS-ScreenTime-Setup.md`](docs/iOS-ScreenTime-Setup.md) | iOS Screen Time integration setup guide |
 | [`docs/Sync-Test-Plan.md`](docs/Sync-Test-Plan.md) | Cross-device sync testing procedures |
-| [`TimeprintDeviceActivityReport/README.md`](TimeprintDeviceActivityReport/README.md) | Report extension setup |
-| [`TimeprintDeviceActivityMonitor/README.md`](TimeprintDeviceActivityMonitor/README.md) | Monitor extension setup |
+| [`time.mdDeviceActivityReport/README.md`](time.mdDeviceActivityReport/README.md) | Report extension setup |
+| [`time.mdDeviceActivityMonitor/README.md`](time.mdDeviceActivityMonitor/README.md) | Monitor extension setup |
 
 ## Contributing
 

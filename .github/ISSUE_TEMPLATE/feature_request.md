@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a new feature for Timeprint
+about: Suggest a new feature for time.md
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''

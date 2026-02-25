@@ -5,7 +5,7 @@ This document shows example outputs from the new Markdown and Obsidian export fo
 ## Standard Markdown Export
 
 ```markdown
-# 📊 Timeprint Data Export
+# 📊 time.md Data Export
 
 **Generated:** 2026-02-25T09:30:00-04:00
 **Date Range:** 2026-02-18 → 2026-02-25
@@ -42,14 +42,14 @@ This document shows example outputs from the new Markdown and Obsidian export fo
 
 ---
 
-*⏱️ Exported by [Timeprint](https://timeprint.app)*
+*⏱️ Exported by [time.md](https://timeprint.app)*
 ```
 
 ## Obsidian Export (with Frontmatter)
 
 ```markdown
 ---
-title: "Timeprint Data Export"
+title: "time.md Data Export"
 date: 2026-02-25
 type: screentime-export
 total_hours: 7.00
@@ -68,7 +68,7 @@ tags:
 filters: "date_range=2026-02-18..2026-02-25; granularity=day"
 ---
 
-# 📊 Timeprint Data Export
+# 📊 time.md Data Export
 
 | Property | Value |
 |----------|-------|
@@ -115,7 +115,7 @@ filters: "date_range=2026-02-18..2026-02-25; granularity=day"
   - [[Apps/Slack|Slack]]
   - [[Apps/Figma|Figma]]
 
-*⏱️ Exported by [Timeprint](https://timeprint.app)*
+*⏱️ Exported by [time.md](https://timeprint.app)*
 ```
 
 ## Features

@@ -1,9 +1,9 @@
 # App Store Metadata
 
-## iOS App: TimeprintIOS
+## iOS App: time.mdIOS
 
 ### Basic Info
-- **Bundle ID**: `bontecou.TimeprintIOS`
+- **Bundle ID**: `bontecou.time.mdIOS`
 - **SKU**: `timeprint-ios-001`
 - **Primary Language**: English (US)
 - **Category**: Productivity
@@ -12,7 +12,7 @@
 ---
 
 ### App Name
-**Timeprint - Screen Time**
+**time.md - Screen Time**
 
 (30 characters max)
 
@@ -36,7 +36,7 @@ Beautiful screen time analytics synced from your Mac. See your daily usage, top 
 
 **Understand your screen time like never before.**
 
-Timeprint brings your Mac's detailed screen time data to your iPhone and iPad. See beautiful visualizations of how you spend your digital time — all while keeping your data private.
+time.md brings your Mac's detailed screen time data to your iPhone and iPad. See beautiful visualizations of how you spend your digital time — all while keeping your data private.
 
 **📊 BEAUTIFUL ANALYTICS**
 • Today's total screen time at a glance
@@ -63,13 +63,13 @@ Timeprint brings your Mac's detailed screen time data to your iPhone and iPad. S
 • Search and filter your apps
 
 **HOW IT WORKS**
-1. Install Timeprint on your Mac (companion app required)
+1. Install time.md on your Mac (companion app required)
 2. Your Mac reads Apple's Screen Time data
 3. Daily summaries sync via iCloud
 4. View your combined usage on any device
 
 **REQUIREMENTS**
-• Timeprint for Mac (free companion app)
+• time.md for Mac (free companion app)
 • iCloud account signed in on all devices
 • iOS 18.0 or later
 
@@ -118,10 +118,10 @@ https://codybontecou.com/timeprint/privacy
 **Demo Account**: Not required (no login needed)
 
 **Notes for Review**:
-> Timeprint is a companion app for the Mac version of Timeprint. It displays screen time data that has been synced from the user's Mac via iCloud.
+> time.md is a companion app for the Mac version of time.md. It displays screen time data that has been synced from the user's Mac via iCloud.
 >
 > To test the app fully:
-> 1. Install Timeprint on a Mac with Screen Time enabled
+> 1. Install time.md on a Mac with Screen Time enabled
 > 2. Wait for the Mac app to sync data to iCloud
 > 3. Open the iOS app and pull to refresh
 >
@@ -170,11 +170,11 @@ https://codybontecou.com/timeprint/privacy
 
 **Data Not Collected**
 
-Timeprint does not collect any data from users. All screen time data is stored locally on user devices and synced via the user's personal iCloud account.
+time.md does not collect any data from users. All screen time data is stored locally on user devices and synced via the user's personal iCloud account.
 
 ---
 
-## macOS App: Timeprint
+## macOS App: time.md
 
 *(Similar metadata structure for Mac App Store if submitting there)*
 

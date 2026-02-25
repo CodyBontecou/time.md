@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Build an iOS companion app for Timeprint that displays Screen Time data from iPhone/iPad, with the ability to see a unified view across all Apple devices.
+Build an iOS companion app for time.md that displays Screen Time data from iPhone/iPad, with the ability to see a unified view across all Apple devices.
 
 ---
 
@@ -93,7 +93,7 @@ Combine both:
 Extract platform-agnostic code into shared module:
 
 ```
-Timeprint/
+time.md/
 ├── Shared/                          # NEW - Shared between macOS & iOS
 │   ├── Models/
 │   │   ├── AnalyticsModels.swift    # Moved from Data/
@@ -114,8 +114,8 @@ Timeprint/
 ### 7.2 — iOS App Target
 Add new target to Xcode project:
 
-- **Target name:** `Timeprint iOS`
-- **Bundle ID:** `com.codybontecou.Timeprint.iOS`
+- **Target name:** `time.md iOS`
+- **Bundle ID:** `com.codybontecou.time.md.iOS`
 - **Minimum iOS:** 17.0 (DeviceActivity API)
 - **Capabilities:**
   - Family Controls (entitlement)
@@ -124,7 +124,7 @@ Add new target to Xcode project:
 ### 7.3 — DeviceActivityReport Extension
 Create report extension:
 
-- **Extension name:** `TimeprintReportExtension`
+- **Extension name:** `time.mdReportExtension`
 - **Purpose:** Render Screen Time reports in-app
 - **Customization:** Header with TIMEPRINT branding
 
@@ -144,7 +144,7 @@ iCloud-based sync architecture:
 ```
 ┌─────────────┐     ┌──────────────┐     ┌─────────────┐
 │  iPhone     │     │   iCloud     │     │   Mac       │
-│  Timeprint  │◄───►│   Drive      │◄───►│  Timeprint  │
+│  time.md  │◄───►│   Drive      │◄───►│  time.md  │
 │             │     │  sync.json   │     │             │
 └─────────────┘     └──────────────┘     └─────────────┘
 ```
@@ -171,23 +171,23 @@ Sync file format:
 ## Files to Create/Modify
 
 ### New Files
-1. `Timeprint/Shared/Models/DeviceInfo.swift` - Device identification
-2. `Timeprint/Shared/Models/SyncPayload.swift` - Cross-device sync format
-3. `Timeprint/Shared/Protocols/ScreenTimeProviding.swift` - Abstract protocol
-4. `TimeprintIOS/` - iOS app folder
-5. `TimeprintIOS/TimeprintIOSApp.swift` - iOS app entry
-6. `TimeprintIOS/Views/CompactOverviewView.swift` - Mobile dashboard
-7. `TimeprintReportExtension/` - DeviceActivity report extension
+1. `time.md/Shared/Models/DeviceInfo.swift` - Device identification
+2. `time.md/Shared/Models/SyncPayload.swift` - Cross-device sync format
+3. `time.md/Shared/Protocols/ScreenTimeProviding.swift` - Abstract protocol
+4. `time.mdIOS/` - iOS app folder
+5. `time.mdIOS/time.mdIOSApp.swift` - iOS app entry
+6. `time.mdIOS/Views/CompactOverviewView.swift` - Mobile dashboard
+7. `time.mdReportExtension/` - DeviceActivity report extension
 
 ### Modified Files
-1. `Timeprint.xcodeproj/project.pbxproj` - Add iOS target + extension
-2. `Timeprint/Data/AnalyticsModels.swift` - Move to Shared/
+1. `time.md.xcodeproj/project.pbxproj` - Add iOS target + extension
+2. `time.md/Data/AnalyticsModels.swift` - Move to Shared/
 
 ---
 
 ## Entitlements Required
 
-### iOS App (`Timeprint.iOS.entitlements`)
+### iOS App (`time.md.iOS.entitlements`)
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "...">
@@ -197,7 +197,7 @@ Sync file format:
     <true/>
     <key>com.apple.developer.icloud-container-identifiers</key>
     <array>
-        <string>iCloud.com.codybontecou.Timeprint</string>
+        <string>iCloud.com.codybontecou.time.md</string>
     </array>
 </dict>
 </plist>
@@ -210,7 +210,7 @@ Sync file format:
     <key>NSExtensionPointIdentifier</key>
     <string>com.apple.deviceactivityui.report</string>
     <key>NSExtensionPrincipalClass</key>
-    <string>TimeprintReportExtension.ReportExtension</string>
+    <string>time.mdReportExtension.ReportExtension</string>
 </dict>
 ```
 

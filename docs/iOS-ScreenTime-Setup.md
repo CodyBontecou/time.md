@@ -1,6 +1,6 @@
 # iOS Screen Time Integration Setup Guide
 
-This guide covers the remaining setup steps to enable iPhone Screen Time tracking in Timeprint.
+This guide covers the remaining setup steps to enable iPhone Screen Time tracking in time.md.
 
 ## Table of Contents
 1. [Add Extension Targets in Xcode](#1-add-extension-targets-in-xcode)
@@ -17,47 +17,47 @@ The source files for both extensions are ready. You need to create the targets i
 
 ### DeviceActivityReport Extension
 
-1. Open `Timeprint.xcodeproj` in Xcode
+1. Open `time.md.xcodeproj` in Xcode
 2. File → New → Target
 3. Search for "Device Activity Report Extension"
-4. Name it: `TimeprintDeviceActivityReport`
-5. Bundle ID: `com.codybontecou.TimeprintIOS.DeviceActivityReport`
-6. Embed in: `TimeprintIOS`
+4. Name it: `time.mdDeviceActivityReport`
+5. Bundle ID: `com.codybontecou.time.mdIOS.DeviceActivityReport`
+6. Embed in: `time.mdIOS`
 7. Click Finish
 
 **After creation:**
 - Delete the auto-generated Swift files
-- Add existing files from `TimeprintDeviceActivityReport/`:
+- Add existing files from `time.mdDeviceActivityReport/`:
   - `DeviceActivityReportExtension.swift`
   - `TotalActivityReport.swift`
   - `TotalActivityView.swift`
   - `TopAppsReport.swift`
   - `TopAppsView.swift`
-- Replace the generated `Info.plist` with `TimeprintDeviceActivityReport/Info.plist`
-- Replace entitlements with `TimeprintDeviceActivityReport/TimeprintDeviceActivityReport.entitlements`
+- Replace the generated `Info.plist` with `time.mdDeviceActivityReport/Info.plist`
+- Replace entitlements with `time.mdDeviceActivityReport/time.mdDeviceActivityReport.entitlements`
 
 ### DeviceActivityMonitor Extension
 
 1. File → New → Target
 2. Search for "Device Activity Monitor Extension"
-3. Name it: `TimeprintDeviceActivityMonitor`
-4. Bundle ID: `com.codybontecou.TimeprintIOS.DeviceActivityMonitor`
-5. Embed in: `TimeprintIOS`
+3. Name it: `time.mdDeviceActivityMonitor`
+4. Bundle ID: `com.codybontecou.time.mdIOS.DeviceActivityMonitor`
+5. Embed in: `time.mdIOS`
 6. Click Finish
 
 **After creation:**
 - Delete the auto-generated Swift files
-- Add existing file from `TimeprintDeviceActivityMonitor/`:
+- Add existing file from `time.mdDeviceActivityMonitor/`:
   - `DeviceActivityMonitorExtension.swift`
-- Replace the generated `Info.plist` with `TimeprintDeviceActivityMonitor/Info.plist`
-- Replace entitlements with `TimeprintDeviceActivityMonitor/TimeprintDeviceActivityMonitor.entitlements`
+- Replace the generated `Info.plist` with `time.mdDeviceActivityMonitor/Info.plist`
+- Replace entitlements with `time.mdDeviceActivityMonitor/time.mdDeviceActivityMonitor.entitlements`
 
 ### Verify Extension Setup
 
 After adding both extensions:
 1. Build the iOS scheme: `⌘B`
 2. Check that both extensions appear under "Products" in the navigator
-3. Verify extensions are embedded in TimeprintIOS (Target → Build Phases → Embed App Extensions)
+3. Verify extensions are embedded in time.mdIOS (Target → Build Phases → Embed App Extensions)
 
 ---
 
@@ -76,13 +76,13 @@ Before requesting, ensure you have:
 
 1. Go to [Apple Developer Account](https://developer.apple.com/account)
 2. Navigate to: Certificates, Identifiers & Profiles → Identifiers
-3. Select your App ID: `com.codybontecou.TimeprintIOS`
+3. Select your App ID: `com.codybontecou.time.mdIOS`
 4. Enable "Family Controls" capability
 5. If prompted, submit a request explaining:
 
 **Sample Request Text:**
 ```
-Timeprint is a privacy-first screen time analytics app that helps users understand 
+time.md is a privacy-first screen time analytics app that helps users understand 
 their digital habits. We need FamilyControls access to:
 
 1. Display users' own screen time data in our app
@@ -120,17 +120,17 @@ App Groups are required for the main app and extensions to share data.
 
 ### Verify App Group Configuration
 
-The App Group `group.com.codybontecou.Timeprint` should be configured in:
-- [ ] `TimeprintIOS.entitlements`
-- [ ] `TimeprintDeviceActivityReport.entitlements`
-- [ ] `TimeprintDeviceActivityMonitor.entitlements`
+The App Group `group.com.codybontecou.time.md` should be configured in:
+- [ ] `time.mdIOS.entitlements`
+- [ ] `time.mdDeviceActivityReport.entitlements`
+- [ ] `time.mdDeviceActivityMonitor.entitlements`
 
 ### Register App Group (if not already done)
 
 1. Apple Developer Portal → Identifiers → App Groups
 2. Click "+" to register new App Group
-3. Description: "Timeprint Data Sharing"
-4. Identifier: `group.com.codybontecou.Timeprint`
+3. Description: "time.md Data Sharing"
+4. Identifier: `group.com.codybontecou.time.md`
 5. Click Continue → Register
 
 ### Add to App IDs
@@ -138,7 +138,7 @@ The App Group `group.com.codybontecou.Timeprint` should be configured in:
 For each App ID (main app + both extensions):
 1. Edit the App ID
 2. Enable "App Groups" capability
-3. Select `group.com.codybontecou.Timeprint`
+3. Select `group.com.codybontecou.time.md`
 4. Save
 
 ---
@@ -164,7 +164,7 @@ For each App ID (main app + both extensions):
 - [ ] Check App Group container for data:
   ```bash
   # On device via Xcode
-  # Window → Devices and Simulators → [Device] → Timeprint → Download Container
+  # Window → Devices and Simulators → [Device] → time.md → Download Container
   ```
 
 #### Sync Flow
@@ -187,14 +187,14 @@ print(AuthorizationCenter.shared.authorizationStatus)
 
 **Check App Group data:**
 ```swift
-let defaults = UserDefaults(suiteName: "group.com.codybontecou.Timeprint")
+let defaults = UserDefaults(suiteName: "group.com.codybontecou.time.md")
 print(defaults?.dictionaryRepresentation())
 ```
 
 **Monitor extension logs:**
 ```bash
 # In Terminal while device connected
-log stream --predicate 'subsystem == "com.codybontecou.Timeprint.Monitor"'
+log stream --predicate 'subsystem == "com.codybontecou.time.md.Monitor"'
 ```
 
 ---
@@ -219,14 +219,14 @@ log stream --predicate 'subsystem == "com.codybontecou.Timeprint.Monitor"'
 
 ```bash
 # Archive the app
-xcodebuild -scheme TimeprintIOS \
+xcodebuild -scheme time.mdIOS \
   -destination 'generic/platform=iOS' \
-  -archivePath build/TimeprintIOS.xcarchive \
+  -archivePath build/time.mdIOS.xcarchive \
   archive
 
 # Export for App Store
 xcodebuild -exportArchive \
-  -archivePath build/TimeprintIOS.xcarchive \
+  -archivePath build/time.mdIOS.xcarchive \
   -exportPath build/export \
   -exportOptionsPlist ExportOptions.plist
 ```
@@ -279,7 +279,7 @@ Apple may review FamilyControls usage more carefully. Include:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      TimeprintIOS                            │
+│                      time.mdIOS                            │
 │  ┌──────────────────┐  ┌──────────────────┐                 │
 │  │ AuthorizationSvc │  │ IOSScreenTimeSvc │                 │
 │  └────────┬─────────┘  └────────┬─────────┘                 │
@@ -308,6 +308,6 @@ Apple may review FamilyControls usage more carefully. Include:
                       │
                       ▼
               ┌───────────────┐
-              │ Timeprint Mac │
+              │ time.md Mac │
               └───────────────┘
 ```

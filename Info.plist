@@ -8,7 +8,7 @@
 	<string>AppIcon</string>
 	<!-- Sparkle Auto-Update Configuration -->
 	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/codybontecou/Timeprint/main/appcast.xml</string>
+	<string>https://raw.githubusercontent.com/codybontecou/time.md/main/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>2XiB94uURfV+rZ4RdbaoAxkPYgvEcj8T8x8HsdCZxSk=</string>
 	<key>SUEnableAutomaticChecks</key>

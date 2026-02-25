@@ -6,30 +6,45 @@
         <description>Timeprint macOS App Updates</description>
         <language>en</language>
         
-        <!-- Add new <item> blocks here for each release, newest first -->
-        <!--
         <item>
             <title>Version 1.1</title>
-            <pubDate>Mon, 25 Feb 2026 12:00:00 +0000</pubDate>
-            <sparkle:version>2</sparkle:version>
+            <pubDate>Tue, 25 Feb 2026 13:10:00 +0000</pubDate>
+            <sparkle:version>3</sparkle:version>
             <sparkle:shortVersionString>1.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
             <description>
                 <![CDATA[
                     <h2>What's New in 1.1</h2>
+                    <h3>iOS Companion App</h3>
                     <ul>
-                        <li>Bug fixes and improvements</li>
+                        <li>iPhone Screen Time tracking via DeviceActivity framework</li>
+                        <li>iCloud sync for viewing combined usage across all Apple devices</li>
+                        <li>Home Screen widgets (small, medium, lock screen)</li>
+                        <li>Siri Shortcuts integration ("How much screen time do I have?")</li>
+                    </ul>
+                    <h3>New Features</h3>
+                    <ul>
+                        <li>Device breakdown cards showing usage per device</li>
+                        <li>Sync status indicators</li>
+                        <li>Export to CSV, JSON, and PDF formats</li>
+                        <li>Focus streak tracking</li>
+                    </ul>
+                    <h3>Improvements</h3>
+                    <ul>
+                        <li>Improved overview dashboard with cleaner design</li>
+                        <li>Enhanced trend charts with Swift Charts</li>
+                        <li>Better category mapping for apps</li>
+                        <li>Various UI polish and accessibility improvements</li>
                     </ul>
                 ]]>
             </description>
             <enclosure
                 url="https://github.com/codybontecou/Timeprint/releases/download/v1.1/Timeprint-v1.1-macOS.zip"
-                length="5500000"
+                length="5952004"
                 type="application/octet-stream"
-                sparkle:edSignature="YOUR_ED_SIGNATURE_HERE"
+                sparkle:edSignature="7AkZ6JrbSDGqVuxzYTJ+e014z7nLwN/hxigr9CAX3ycMU+JVBeadQSV11EksDKUi3Mry3tqpj8rHEBJpPic3Bw=="
             />
         </item>
-        -->
         
         <item>
             <title>Version 1.0</title>

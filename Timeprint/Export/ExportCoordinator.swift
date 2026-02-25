@@ -103,10 +103,16 @@ protocol ExportCoordinating: Sendable {
 
 struct ExportCoordinator: ExportCoordinating {
     private let dataService: any ScreenTimeDataServing
+    private let browsingService: any BrowsingHistoryServing
     private let outputDirectoryOverride: URL?
 
-    init(dataService: any ScreenTimeDataServing = SQLiteScreenTimeDataService(), outputDirectoryOverride: URL? = nil) {
+    init(
+        dataService: any ScreenTimeDataServing = SQLiteScreenTimeDataService(),
+        browsingService: any BrowsingHistoryServing = SQLiteBrowsingHistoryService(),
+        outputDirectoryOverride: URL? = nil
+    ) {
         self.dataService = dataService
+        self.browsingService = browsingService
         self.outputDirectoryOverride = outputDirectoryOverride
     }
 
@@ -167,7 +173,16 @@ struct ExportCoordinator: ExportCoordinating {
         case .calendar:
             let focusDays = try await dataService.fetchFocusDays(filters: filters)
             rowCount = focusDays.count
-        case .webHistory, .exports, .settings:
+        case .webHistory:
+            let visits = try await browsingService.fetchVisits(
+                browser: .all,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                searchText: "",
+                limit: 10000
+            )
+            rowCount = visits.count
+        case .exports, .settings:
             rowCount = 0
         }
 
@@ -256,6 +271,25 @@ struct ExportCoordinator: ExportCoordinating {
                 totalRows += 7 * 24
             case .rawSessions:
                 totalRows += try await dataService.fetchRawSessionCount(filters: filters)
+                
+            // Web browsing sections
+            case .webHistory:
+                let visits = try await browsingService.fetchVisits(
+                    browser: .all,
+                    startDate: filters.startDate,
+                    endDate: filters.endDate,
+                    searchText: "",
+                    limit: 10000
+                )
+                totalRows += visits.count
+            case .topDomains:
+                let domains = try await browsingService.fetchTopDomains(
+                    browser: .all,
+                    startDate: filters.startDate,
+                    endDate: filters.endDate,
+                    limit: 100
+                )
+                totalRows += domains.count
                 
             // Analytics sections
             case .contextSwitches:
@@ -477,6 +511,62 @@ struct ExportCoordinator: ExportCoordinating {
                         title: "Period Comparison",
                         headers: ["metric", "value"],
                         rows: rows
+                    )
+                ]
+            )
+            
+        // ── Web Browsing Sections ──
+            
+        case .webHistory:
+            let visits = try await browsingService.fetchVisits(
+                browser: .all,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                searchText: "",
+                limit: 10000
+            )
+            return ExportReport(
+                title: "Web History",
+                destination: .webHistory,
+                generatedAt: generatedAt,
+                filterSummary: filterSummary,
+                sections: [
+                    ExportSectionData(
+                        title: "Browsing History",
+                        headers: ["visit_time", "url", "title", "domain", "browser"],
+                        rows: visits.map { [
+                            settings.timestampFormat.format($0.visitTime),
+                            $0.url,
+                            $0.title,
+                            $0.domain,
+                            $0.browser.rawValue
+                        ] }
+                    )
+                ]
+            )
+            
+        case .topDomains:
+            let domains = try await browsingService.fetchTopDomains(
+                browser: .all,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                limit: 100
+            )
+            return ExportReport(
+                title: "Top Domains",
+                destination: .webHistory,
+                generatedAt: generatedAt,
+                filterSummary: filterSummary,
+                sections: [
+                    ExportSectionData(
+                        title: "Top Domains",
+                        headers: ["domain", "visit_count", "total_duration_seconds", "last_visit_time"],
+                        rows: domains.map { [
+                            $0.domain,
+                            String($0.visitCount),
+                            $0.totalDurationSeconds.map { formatSeconds($0) } ?? "",
+                            settings.timestampFormat.format($0.lastVisitTime)
+                        ] }
                     )
                 ]
             )
@@ -967,7 +1057,50 @@ private extension ExportCoordinator {
                 ]
             )
 
-        case .webHistory, .exports, .settings:
+        case .webHistory:
+            let visits = try await browsingService.fetchVisits(
+                browser: .all,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                searchText: "",
+                limit: 10000
+            )
+            let domains = try await browsingService.fetchTopDomains(
+                browser: .all,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                limit: 50
+            )
+            return ExportReport(
+                title: "Web History Export",
+                destination: destination,
+                generatedAt: generatedAt,
+                filterSummary: filterSummary,
+                sections: [
+                    ExportSectionData(
+                        title: "Browsing History",
+                        headers: ["visit_time", "url", "title", "domain", "browser"],
+                        rows: visits.map { [
+                            settings.timestampFormat.format($0.visitTime),
+                            $0.url,
+                            $0.title,
+                            $0.domain,
+                            $0.browser.rawValue
+                        ] }
+                    ),
+                    ExportSectionData(
+                        title: "Top Domains",
+                        headers: ["domain", "visit_count", "last_visit_time"],
+                        rows: domains.map { [
+                            $0.domain,
+                            String($0.visitCount),
+                            settings.timestampFormat.format($0.lastVisitTime)
+                        ] }
+                    )
+                ]
+            )
+
+        case .exports, .settings:
             throw ExportError.unsupportedDestination
         }
     }

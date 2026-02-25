@@ -7,13 +7,6 @@
 	<key>teamID</key>
 	<string>67KC823C9A</string>
 	<key>signingStyle</key>
-	<string>manual</string>
-	<key>signingCertificate</key>
-	<string>Developer ID Application</string>
-	<key>provisioningProfiles</key>
-	<dict>
-		<key>com.bontecou.Timeprint</key>
-		<string>Timeprint Developer ID</string>
-	</dict>
+	<string>automatic</string>
 </dict>
 </plist>

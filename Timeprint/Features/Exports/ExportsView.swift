@@ -16,6 +16,11 @@ struct ExportsView: View {
     @State private var selectedPresetId: UUID?
     @State private var editingPreset: ExportFilterPreset?
     @State private var availableApps: [String] = []
+    
+    // Custom date range for export
+    @State private var showDatePicker = false
+    @State private var customStartDate: Date?
+    @State private var customEndDate: Date?
 
     var body: some View {
         ScrollView {
@@ -64,6 +69,28 @@ struct ExportsView: View {
     }
 
     // MARK: - Header
+    
+    /// The effective start date for export (custom or from global filters)
+    private var effectiveStartDate: Date {
+        customStartDate ?? filters.startDate
+    }
+    
+    /// The effective end date for export (custom or from global filters)
+    private var effectiveEndDate: Date {
+        customEndDate ?? filters.endDate
+    }
+    
+    /// Whether a custom date range is active
+    private var hasCustomDateRange: Bool {
+        customStartDate != nil || customEndDate != nil
+    }
+    
+    /// Formatted date range label for display
+    private var dateRangeLabel: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return "\(formatter.string(from: effectiveStartDate)) – \(formatter.string(from: effectiveEndDate))"
+    }
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -74,20 +101,61 @@ struct ExportsView: View {
 
                 Spacer()
 
-                // Date range badge
-                HStack(spacing: 6) {
-                    Image(systemName: "calendar")
-                        .font(.system(size: 11, weight: .semibold))
-                    Text(filters.rangeLabel)
-                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                // Tappable date range badge
+                Button {
+                    // Initialize custom dates from current effective dates if not already set
+                    if customStartDate == nil {
+                        customStartDate = filters.startDate
+                    }
+                    if customEndDate == nil {
+                        customEndDate = filters.endDate
+                    }
+                    showDatePicker = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text(dateRangeLabel)
+                            .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        
+                        if hasCustomDateRange {
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(BrutalTheme.accent)
+                        }
+                    }
+                    .foregroundColor(hasCustomDateRange ? BrutalTheme.accent : BrutalTheme.textSecondary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(hasCustomDateRange ? BrutalTheme.accent.opacity(0.1) : Color.clear)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(.ultraThinMaterial)
+                            )
+                    )
                 }
-                .foregroundColor(BrutalTheme.textSecondary)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(.ultraThinMaterial)
-                )
+                .buttonStyle(.plain)
+                .popover(isPresented: $showDatePicker, arrowEdge: .bottom) {
+                    ExportDateRangePicker(
+                        startDate: Binding(
+                            get: { customStartDate ?? filters.startDate },
+                            set: { customStartDate = $0 }
+                        ),
+                        endDate: Binding(
+                            get: { customEndDate ?? filters.endDate },
+                            set: { customEndDate = $0 }
+                        ),
+                        onReset: {
+                            customStartDate = nil
+                            customEndDate = nil
+                        },
+                        onDone: {
+                            showDatePicker = false
+                        }
+                    )
+                }
             }
 
             Text("Export your screen time data with granular filtering options.")
@@ -489,6 +557,10 @@ struct ExportsView: View {
         do {
             var snapshot = filters.snapshot
             
+            // Apply custom date range if set
+            snapshot.startDate = effectiveStartDate
+            snapshot.endDate = effectiveEndDate
+            
             // Apply the selected preset's filters
             if let preset = selectedPreset {
                 preset.apply(to: &snapshot)
@@ -514,5 +586,166 @@ struct ExportsView: View {
         }
 
         isExporting = false
+    }
+}
+
+// MARK: - Export Date Range Picker
+
+struct ExportDateRangePicker: View {
+    @Binding var startDate: Date
+    @Binding var endDate: Date
+    let onReset: () -> Void
+    let onDone: () -> Void
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Header
+            HStack {
+                Text("Export Date Range")
+                    .font(.system(size: 14, weight: .semibold))
+                
+                Spacer()
+                
+                Button {
+                    onReset()
+                } label: {
+                    Text("Reset")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(BrutalTheme.textTertiary)
+                }
+                .buttonStyle(.plain)
+            }
+            
+            Divider()
+            
+            // Start Date
+            VStack(alignment: .leading, spacing: 6) {
+                Text("START DATE")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(BrutalTheme.textTertiary)
+                    .tracking(0.5)
+                
+                DatePicker(
+                    "",
+                    selection: $startDate,
+                    in: ...endDate,
+                    displayedComponents: [.date]
+                )
+                .datePickerStyle(.field)
+                .labelsHidden()
+            }
+            
+            // End Date
+            VStack(alignment: .leading, spacing: 6) {
+                Text("END DATE")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(BrutalTheme.textTertiary)
+                    .tracking(0.5)
+                
+                DatePicker(
+                    "",
+                    selection: $endDate,
+                    in: startDate...,
+                    displayedComponents: [.date]
+                )
+                .datePickerStyle(.field)
+                .labelsHidden()
+            }
+            
+            Divider()
+            
+            // Quick presets
+            VStack(alignment: .leading, spacing: 8) {
+                Text("QUICK SELECT")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(BrutalTheme.textTertiary)
+                    .tracking(0.5)
+                
+                HStack(spacing: 8) {
+                    quickPresetButton("Today") {
+                        let today = Calendar.current.startOfDay(for: .now)
+                        startDate = today
+                        endDate = .now
+                    }
+                    
+                    quickPresetButton("This Week") {
+                        let calendar = Calendar.current
+                        if let weekStart = calendar.dateInterval(of: .weekOfYear, for: .now)?.start {
+                            startDate = weekStart
+                        }
+                        endDate = .now
+                    }
+                    
+                    quickPresetButton("This Month") {
+                        let calendar = Calendar.current
+                        if let monthStart = calendar.dateInterval(of: .month, for: .now)?.start {
+                            startDate = monthStart
+                        }
+                        endDate = .now
+                    }
+                }
+                
+                HStack(spacing: 8) {
+                    quickPresetButton("Last 7 Days") {
+                        let calendar = Calendar.current
+                        startDate = calendar.date(byAdding: .day, value: -6, to: calendar.startOfDay(for: .now)) ?? .now
+                        endDate = .now
+                    }
+                    
+                    quickPresetButton("Last 30 Days") {
+                        let calendar = Calendar.current
+                        startDate = calendar.date(byAdding: .day, value: -29, to: calendar.startOfDay(for: .now)) ?? .now
+                        endDate = .now
+                    }
+                    
+                    quickPresetButton("This Year") {
+                        let calendar = Calendar.current
+                        if let yearStart = calendar.dateInterval(of: .year, for: .now)?.start {
+                            startDate = yearStart
+                        }
+                        endDate = .now
+                    }
+                }
+            }
+            
+            Divider()
+            
+            // Done button
+            HStack {
+                Spacer()
+                
+                Button {
+                    onDone()
+                } label: {
+                    Text("Done")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6)
+                                .fill(BrutalTheme.accent)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(16)
+        .frame(width: 280)
+    }
+    
+    private func quickPresetButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(BrutalTheme.textSecondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color(NSColor.controlBackgroundColor))
+                )
+        }
+        .buttonStyle(.plain)
     }
 }

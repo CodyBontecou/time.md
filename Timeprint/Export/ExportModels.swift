@@ -398,6 +398,10 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
     case heatmap = "heatmap"
     case rawSessions = "raw_sessions"
     
+    // Web browsing sections
+    case webHistory = "web_history"
+    case topDomains = "top_domains"
+    
     // Analytics sections
     case contextSwitches = "context_switches"
     case appTransitions = "app_transitions"
@@ -414,6 +418,8 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
         case .sessions: return "Session Distribution"
         case .heatmap: return "Heatmap"
         case .rawSessions: return "Raw Sessions"
+        case .webHistory: return "Web History"
+        case .topDomains: return "Top Domains"
         case .contextSwitches: return "Context Switches"
         case .appTransitions: return "App Transitions"
         case .periodComparison: return "Period Comparison"
@@ -429,6 +435,8 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
         case .sessions: return "clock"
         case .heatmap: return "square.grid.3x3"
         case .rawSessions: return "list.bullet"
+        case .webHistory: return "globe"
+        case .topDomains: return "link"
         case .contextSwitches: return "arrow.triangle.swap"
         case .appTransitions: return "arrow.right.arrow.left"
         case .periodComparison: return "chart.bar.xaxis.ascending"
@@ -444,6 +452,8 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
         case .sessions: return "Session length distribution"
         case .heatmap: return "Usage by weekday and hour"
         case .rawSessions: return "Individual session records"
+        case .webHistory: return "Browser history visits"
+        case .topDomains: return "Most visited domains"
         case .contextSwitches: return "App switching frequency by hour"
         case .appTransitions: return "Most common app-to-app switches"
         case .periodComparison: return "Current vs previous period delta"
@@ -460,6 +470,8 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
         case .sessions: return 6
         case .heatmap: return 168  // 7 days * 24 hours
         case .rawSessions: return 1000  // Can be very large
+        case .webHistory: return 500  // Can be large
+        case .topDomains: return 50
         case .contextSwitches: return 100
         case .appTransitions: return 50
         case .periodComparison: return 20
@@ -484,9 +496,24 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
         }
     }
     
+    /// Whether this is a web browsing section
+    var isWebBrowsing: Bool {
+        switch self {
+        case .webHistory, .topDomains:
+            return true
+        default:
+            return false
+        }
+    }
+    
     /// Basic data sections only
     static let basicSections: [ExportSection] = [
         .summary, .apps, .categories, .trends, .sessions, .heatmap, .rawSessions
+    ]
+    
+    /// Web browsing sections only
+    static let webBrowsingSections: [ExportSection] = [
+        .webHistory, .topDomains
     ]
     
     /// Analytics sections only
@@ -539,6 +566,11 @@ struct ExportSectionSelection: Codable, Equatable {
         sections: ExportSection.basicSections
     )
     
+    /// Web browsing sections only
+    static let webBrowsingOnly = ExportSectionSelection(
+        sections: ExportSection.webBrowsingSections
+    )
+    
     /// Analytics sections only
     static let analyticsOnly = ExportSectionSelection(
         sections: ExportSection.analyticsSections
@@ -547,6 +579,11 @@ struct ExportSectionSelection: Codable, Equatable {
     /// Standard data + analytics (no raw sessions)
     static let withAnalytics = ExportSectionSelection(
         sections: ExportSection.basicSections.filter { $0 != .rawSessions } + ExportSection.analyticsSections
+    )
+    
+    /// Full export with web browsing
+    static let withWebBrowsing = ExportSectionSelection(
+        sections: ExportSection.basicSections.filter { $0 != .rawSessions } + ExportSection.webBrowsingSections
     )
 }
 
@@ -1008,13 +1045,25 @@ struct ExportPreset: Identifiable, Codable {
         description: "Full export with frontmatter and wiki links"
     )
     
+    static let webBrowsingExport = ExportPreset(
+        id: UUID(uuidString: "00000000-0000-0000-0000-000000000007")!,
+        name: "Web Browsing History",
+        format: .csv,
+        sections: .webBrowsingOnly,
+        dateRangeType: .relative,
+        relativeDateRange: .last7Days,
+        isBuiltIn: true,
+        description: "Browser history visits and top domains"
+    )
+    
     static let builtInPresets: [ExportPreset] = [
         .fullDataDump,
         .weeklySummary,
         .rawSessionsExport,
         .analyticsReport,
         .markdownExport,
-        .obsidianExport
+        .obsidianExport,
+        .webBrowsingExport
     ]
 }
 

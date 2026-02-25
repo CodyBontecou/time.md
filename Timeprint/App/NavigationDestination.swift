@@ -63,9 +63,9 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
     /// Whether this destination can be exported
     var isExportable: Bool {
         switch self {
-        case .overview, .calendar, .appsCategories, .trends, .sessions, .heatmap, .rawSessions:
+        case .overview, .calendar, .appsCategories, .trends, .sessions, .heatmap, .rawSessions, .webHistory:
             return true
-        case .webHistory, .exports, .settings:
+        case .exports, .settings:
             return false
         }
     }

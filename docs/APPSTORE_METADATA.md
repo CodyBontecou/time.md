@@ -183,5 +183,5 @@ Timeprint does not collect any data from users. All screen time data is stored l
 - **Secondary**: Utilities
 
 ### System Requirements
-- macOS 26.1 or later
+- macOS 14.0 or later (Sonoma)
 - Full Disk Access permission required

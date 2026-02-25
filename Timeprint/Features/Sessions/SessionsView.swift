@@ -4,9 +4,10 @@ import SwiftUI
 // MARK: - Session sub-page mode
 
 private enum SessionChartMode: String, CaseIterable, Identifiable {
-    case distribution = "Distribution"
     case typicalDay = "Typical Day"
+    case distribution = "Distribution"
     case contextSwitching = "Context Switching"
+    case transitions = "Transitions"
 
     var id: String { rawValue }
 }
@@ -21,10 +22,11 @@ struct SessionsView: View {
     @State private var buckets: [SessionBucket] = []
     @State private var hourlyUsage: [HourlyAppUsage] = []
     @State private var contextSwitches: [ContextSwitchPoint] = []
+    @State private var appTransitions: [AppTransition] = []
     @State private var loadError: Error?
     @State private var hoveredBucketLabel: String?
     @State private var selectedBucketLabel: String?
-    @State private var chartMode: SessionChartMode = .distribution
+    @State private var chartMode: SessionChartMode = .typicalDay
 
     // Aggregated hourly totals for "typical day"
     private var hourlyTotals: [(hour: Int, totalSeconds: Double)] {
@@ -80,7 +82,7 @@ struct SessionsView: View {
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 6)
                         }
-                        .buttonStyle(.glass)
+                        .buttonStyle(.bordered)
                         .tint(isActive ? BrutalTheme.accent : .clear)
                     }
                     Spacer()
@@ -94,10 +96,9 @@ struct SessionsView: View {
                     typicalDaySection
                 case .contextSwitching:
                     contextSwitchingSection
+                case .transitions:
+                    transitionsSection
                 }
-
-                // Summary stats
-                summaryStats
             }
         }
         .scrollClipDisabled()
@@ -116,6 +117,10 @@ struct SessionsView: View {
                     .font(BrutalTheme.headingFont)
                     .foregroundColor(BrutalTheme.textSecondary)
                     .tracking(1)
+
+                Text("Number of sessions grouped by how long each lasted")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(BrutalTheme.textTertiary)
 
                 Chart(buckets) { bucket in
                     BarMark(
@@ -198,7 +203,7 @@ struct SessionsView: View {
                             Button("Clear") {
                                 selectedBucketLabel = nil
                             }
-                            .buttonStyle(.glass)
+                            .buttonStyle(.bordered)
                             .tint(BrutalTheme.danger)
                         }
                     }
@@ -218,6 +223,10 @@ struct SessionsView: View {
                         .font(BrutalTheme.headingFont)
                         .foregroundColor(BrutalTheme.textSecondary)
                         .tracking(1)
+
+                    Text("Total screen time per hour, averaged across selected days")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(BrutalTheme.textTertiary)
 
                     Chart(hourlyTotals, id: \.hour) { entry in
                         BarMark(
@@ -269,6 +278,10 @@ struct SessionsView: View {
                             .font(BrutalTheme.headingFont)
                             .foregroundColor(BrutalTheme.textSecondary)
                             .tracking(1)
+
+                        Text("Time spent in each app per hour of day")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(BrutalTheme.textTertiary)
 
                         let filtered = hourlyUsage.filter { top5HourlyApps.contains($0.appName) }
 
@@ -416,19 +429,80 @@ struct SessionsView: View {
         }
     }
 
-    // MARK: - Summary Stats
+    // MARK: - App Transitions
 
-    private var summaryStats: some View {
-        let totalSessions = buckets.reduce(0) { $0 + $1.sessionCount }
+    private var transitionsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            GlassCard {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("APP TRANSITIONS")
+                        .font(BrutalTheme.headingFont)
+                        .foregroundColor(BrutalTheme.textSecondary)
+                        .tracking(1)
 
-        return GlassCard {
-            HStack(spacing: 24) {
-                statPill(icon: "number", label: "Total Sessions", value: "\(totalSessions)", tint: .orange)
-                statPill(icon: "chart.bar.fill", label: "Buckets", value: "\(buckets.count)", tint: .teal)
-                if let peak = buckets.max(by: { $0.sessionCount < $1.sessionCount }) {
-                    statPill(icon: "arrow.up", label: "Most Common", value: peak.label, tint: .purple)
+                    Text("Most frequent app switches in this period")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(BrutalTheme.textTertiary)
+
+                    if appTransitions.isEmpty {
+                        Text("No transitions recorded")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(BrutalTheme.textTertiary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.vertical, 20)
+                    } else {
+                        ForEach(Array(appTransitions.enumerated()), id: \.element.id) { idx, transition in
+                            HStack(spacing: 6) {
+                                Text(String(format: "%02d", idx + 1))
+                                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                    .foregroundColor(BrutalTheme.textTertiary)
+                                    .frame(width: 18)
+
+                                AppNameText(transition.fromApp)
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(BrutalTheme.textPrimary)
+                                    .lineLimit(1)
+
+                                Image(systemName: "arrow.right")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundColor(BrutalTheme.textTertiary)
+
+                                AppNameText(transition.toApp)
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(BrutalTheme.textPrimary)
+                                    .lineLimit(1)
+
+                                Spacer()
+
+                                Text("\(transition.count)×")
+                                    .font(.system(size: 11, weight: .bold, design: .monospaced))
+                                    .foregroundColor(.orange)
+                            }
+                            .padding(.vertical, 2)
+
+                            if idx < appTransitions.count - 1 {
+                                Rectangle()
+                                    .fill(BrutalTheme.border)
+                                    .frame(height: 0.5)
+                            }
+                        }
+                    }
                 }
-                Spacer()
+            }
+
+            // Summary stats for transitions
+            let totalTransitions = appTransitions.reduce(0) { $0 + $1.count }
+            let topTransition = appTransitions.first
+
+            GlassCard {
+                HStack(spacing: 24) {
+                    statPill(icon: "arrow.triangle.swap", label: "Total Transitions", value: "\(totalTransitions)", tint: .orange)
+                    statPill(icon: "list.number", label: "Unique Pairs", value: "\(appTransitions.count)", tint: .teal)
+                    if let top = topTransition {
+                        statPill(icon: "arrow.up", label: "Most Frequent", value: "\(top.count)×", tint: .purple)
+                    }
+                    Spacer()
+                }
             }
         }
     }
@@ -503,15 +577,18 @@ struct SessionsView: View {
             async let bucketsFetch = appEnvironment.dataService.fetchSessionBuckets(filters: snapshot)
             async let hourlyFetch = appEnvironment.dataService.fetchHourlyAppUsage(for: Date())
             async let switchesFetch = appEnvironment.dataService.fetchContextSwitchRate(filters: snapshot)
+            async let transitionsFetch = appEnvironment.dataService.fetchAppTransitions(filters: snapshot, limit: 15)
 
             buckets = try await bucketsFetch
             hourlyUsage = try await hourlyFetch
             contextSwitches = try await switchesFetch
+            appTransitions = try await transitionsFetch
         } catch {
             loadError = error
             buckets = []
             hourlyUsage = []
             contextSwitches = []
+            appTransitions = []
         }
     }
 }

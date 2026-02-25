@@ -125,13 +125,13 @@ struct TrendsView: View {
                                 Button("Apply to Date Range") {
                                     applyBrushToGlobalFilters(brushedRange)
                                 }
-                                .buttonStyle(.glass)
+                                .buttonStyle(.bordered)
                                 .tint(BrutalTheme.accent)
 
                                 Button("Clear") {
                                     self.brushedRange = nil
                                 }
-                                .buttonStyle(.glass)
+                                .buttonStyle(.bordered)
                                 .tint(BrutalTheme.danger)
                             }
                         }
@@ -189,7 +189,7 @@ struct TrendsView: View {
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
                     }
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
                     .tint(isActive ? BrutalTheme.accent : .clear)
                 }
             }

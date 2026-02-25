@@ -10,7 +10,7 @@ struct OverviewView: View {
     @Environment(\.appNameDisplayMode) private var appNameDisplayMode
     @Environment(NavigationCoordinator.self) private var navigation
     @AppStorage("insightTickerAutoScroll") private var insightTickerAutoScroll: Bool = true
-    @State private var summary = DashboardSummary(totalSeconds: 0, averageDailySeconds: 0, focusBlocks: 0, currentStreakDays: 0)
+    @State private var summary = DashboardSummary(totalSeconds: 0, averageDailySeconds: 0, focusBlocks: 0)
     @State private var topApps: [AppUsageSummary] = []
     @State private var loadError: Error?
     @State private var showStartDatePicker = false
@@ -27,8 +27,6 @@ struct OverviewView: View {
 
     // Phase 4 — analytics insights
     @State private var insights: [Insight] = []
-    @State private var weekdayAverages: [WeekdayAverage] = []
-    @State private var appTransitions: [AppTransition] = []
     @State private var periodDelta: PeriodDelta?
     
     // Phase 7 — cross-device sync
@@ -36,12 +34,14 @@ struct OverviewView: View {
     @State private var lastSyncDate: Date?
     @State private var isSyncing: Bool = false
     
-    // Loading state
-    @State private var isLoading: Bool = false
-    @State private var hasLoadedOnce: Bool = false
+    // Loading state - progressive loading phases
+    @State private var isLoadingPrimary: Bool = false
+    @State private var isLoadingSecondary: Bool = false
+    @State private var hasLoadedPrimary: Bool = false
+    @State private var hasLoadedSecondary: Bool = false
     
     private var showSkeleton: Bool {
-        isLoading && !hasLoadedOnce
+        isLoadingPrimary && !hasLoadedPrimary
     }
 
     // MARK: Computed helpers
@@ -85,12 +85,6 @@ struct OverviewView: View {
 
                     // ─── Content Area with integrated mode picker ───
                     contentSection
-
-                    // ─── Weekday Patterns + App Transitions ───
-                    HStack(alignment: .top, spacing: 16) {
-                        weekdayPatternsCard
-                        appTransitionsCard
-                    }
                 }
             }
             .animation(.easeInOut(duration: 0.25), value: showSkeleton)
@@ -98,15 +92,21 @@ struct OverviewView: View {
         .scrollIndicators(.never)
         .scrollClipDisabled()
         .task(id: filters.rangeLabel + filters.granularity.rawValue) {
-            await load()
+            // Phase 1: Load primary data first (essential for initial render)
+            await loadPrimary()
+            
+            // Phase 2: Load secondary data after primary completes
+            await loadSecondary()
         }
-        .task(id: filters.rangeLabel) {
+        .task(id: filters.rangeLabel + "analytics") {
+            // Phase 3: Load analytics in background (lowest priority)
+            // Small delay to let primary/secondary load first
+            try? await Task.sleep(for: .milliseconds(100))
             await loadAnalytics()
         }
-        .task(id: filters.rangeLabel + filters.granularity.rawValue + "insights") {
-            await loadInsights()
-        }
         .task {
+            // Phase 4: Load sync payload only once on appear (not on filter changes)
+            try? await Task.sleep(for: .milliseconds(200))
             await loadSyncPayload()
         }
     }
@@ -204,18 +204,11 @@ struct OverviewView: View {
                     )
                 }
 
-                // Row 2: Top app, focus streak, longest session, mini heatmap
+                // Row 2: Top app, longest session, mini heatmap
                 navCard(.appsCategories) {
                     TopAppSpotlightCard(
                         appName: periodSummary?.topAppName ?? "None",
                         seconds: periodSummary?.topAppSeconds ?? 0
-                    )
-                }
-
-                navCard(.focus) {
-                    FocusStreakCard(
-                        streakDays: summary.currentStreakDays,
-                        focusBlocks: summary.focusBlocks
                     )
                 }
 
@@ -440,7 +433,7 @@ struct OverviewView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
             }
-            .buttonStyle(.glass)
+            .buttonStyle(.bordered)
             .popover(isPresented: $showStartDatePicker) {
                 DatePicker("From", selection: $bindableFilters.startDate, displayedComponents: .date)
                     .datePickerStyle(.graphical)
@@ -466,7 +459,7 @@ struct OverviewView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
             }
-            .buttonStyle(.glass)
+            .buttonStyle(.bordered)
             .popover(isPresented: $showEndDatePicker) {
                 DatePicker("To", selection: $bindableFilters.endDate, displayedComponents: .date)
                     .datePickerStyle(.graphical)
@@ -526,181 +519,48 @@ struct OverviewView: View {
         }
     }
 
-    // MARK: - Weekday Patterns Card
+    // MARK: - Data loading (Progressive)
 
-    private var weekdayPatternsCard: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("WEEKDAY PATTERNS")
-                    .font(BrutalTheme.headingFont)
-                    .foregroundColor(BrutalTheme.textSecondary)
-                    .tracking(1)
-
-                if weekdayAverages.isEmpty {
-                    Text("No data available")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(BrutalTheme.textTertiary)
-                } else {
-                    let dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-                    let maxAvg = weekdayAverages.map(\.averageSeconds).max() ?? 1
-
-                    ForEach(weekdayAverages.sorted(by: { $0.weekday < $1.weekday })) { avg in
-                        HStack(spacing: 8) {
-                            Text(avg.weekday < dayNames.count ? dayNames[avg.weekday] : "?")
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
-                                .foregroundColor(BrutalTheme.textPrimary)
-                                .frame(width: 32, alignment: .leading)
-
-                            GeometryReader { proxy in
-                                let width = proxy.size.width * CGFloat(avg.averageSeconds / maxAvg)
-                                RoundedRectangle(cornerRadius: 3)
-                                    .fill(.teal.gradient)
-                                    .frame(width: max(width, 2), height: 14)
-                            }
-                            .frame(height: 14)
-
-                            Text(DurationFormatter.short(avg.averageSeconds))
-                                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                .foregroundColor(BrutalTheme.textTertiary)
-                                .frame(width: 48, alignment: .trailing)
-
-                            AppNameText(avg.topApp)
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(BrutalTheme.textSecondary)
-                                .lineLimit(1)
-                                .frame(width: 80, alignment: .leading)
-                        }
-                    }
-                }
-            }
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    // MARK: - App Transitions Card
-
-    private var appTransitionsCard: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("APP TRANSITIONS")
-                    .font(BrutalTheme.headingFont)
-                    .foregroundColor(BrutalTheme.textSecondary)
-                    .tracking(1)
-
-                if appTransitions.isEmpty {
-                    Text("No transitions recorded")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(BrutalTheme.textTertiary)
-                } else {
-                    ForEach(Array(appTransitions.enumerated()), id: \.element.id) { idx, transition in
-                        HStack(spacing: 6) {
-                            Text(String(format: "%02d", idx + 1))
-                                .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                .foregroundColor(BrutalTheme.textTertiary)
-                                .frame(width: 18)
-
-                            AppNameText(transition.fromApp)
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(BrutalTheme.textPrimary)
-                                .lineLimit(1)
-
-                            Image(systemName: "arrow.right")
-                                .font(.system(size: 9, weight: .bold))
-                                .foregroundColor(BrutalTheme.textTertiary)
-
-                            AppNameText(transition.toApp)
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(BrutalTheme.textPrimary)
-                                .lineLimit(1)
-
-                            Spacer()
-
-                            Text("\(transition.count)×")
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
-                                .foregroundColor(.orange)
-                        }
-                        .padding(.vertical, 2)
-
-                        if idx < appTransitions.count - 1 {
-                            Rectangle()
-                                .fill(BrutalTheme.border)
-                                .frame(height: 0.5)
-                        }
-                    }
-                }
-            }
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    // MARK: - Data loading
-
-    private func load() async {
-        isLoading = true
+    /// Phase 1: Load essential data for initial render (summary + top apps)
+    private func loadPrimary() async {
+        isLoadingPrimary = true
         defer {
-            isLoading = false
-            hasLoadedOnce = true
+            isLoadingPrimary = false
+            hasLoadedPrimary = true
         }
         
         do {
             loadError = nil
             let snapshot = filters.snapshot
 
+            // Load summary and top apps in parallel - these are essential for initial render
             async let fetchedSummary = appEnvironment.dataService.fetchDashboardSummary(filters: snapshot)
             async let fetchedApps = appEnvironment.dataService.fetchTopApps(filters: snapshot, limit: 30)
-            async let fetchedLongest = appEnvironment.dataService.fetchLongestSession(filters: snapshot)
 
             summary = try await fetchedSummary
             topApps = try await fetchedApps
-            longestSession = try await fetchedLongest
         } catch {
             loadError = error
-            summary = DashboardSummary(totalSeconds: 0, averageDailySeconds: 0, focusBlocks: 0, currentStreakDays: 0)
+            summary = DashboardSummary(totalSeconds: 0, averageDailySeconds: 0, focusBlocks: 0)
             topApps = []
-            longestSession = nil
         }
     }
-
-    private func loadAnalytics() async {
-        do {
-            let snapshot = filters.snapshot
-            async let insightsFetch = appEnvironment.dataService.generateInsights(filters: snapshot)
-            async let weekdayFetch = appEnvironment.dataService.fetchWeekdayAverages(filters: snapshot)
-            async let transitionsFetch = appEnvironment.dataService.fetchAppTransitions(filters: snapshot, limit: 8)
-
-            insights = try await insightsFetch
-            weekdayAverages = try await weekdayFetch
-            appTransitions = try await transitionsFetch
-
-            // Period comparison: compare current range to the same-length prior range
-            let calendar = Calendar.current
-            let rangeDays = calendar.dateComponents([.day], from: snapshot.startDate, to: snapshot.endDate).day ?? 7
-            if let prevEnd = calendar.date(byAdding: .day, value: -1, to: snapshot.startDate),
-               let prevStart = calendar.date(byAdding: .day, value: -rangeDays, to: prevEnd) {
-                let previousSnapshot = FilterSnapshot(
-                    startDate: prevStart, endDate: prevEnd,
-                    granularity: snapshot.granularity,
-                    selectedApps: snapshot.selectedApps,
-                    selectedCategories: snapshot.selectedCategories,
-                    selectedHeatmapCells: snapshot.selectedHeatmapCells
-                )
-                periodDelta = try await appEnvironment.dataService.fetchPeriodComparison(
-                    current: snapshot, previous: previousSnapshot
-                )
-            }
-        } catch {
-            insights = []
-            weekdayAverages = []
-            appTransitions = []
-            periodDelta = nil
+    
+    /// Phase 2: Load secondary data (longest session, insights cards data)
+    private func loadSecondary() async {
+        isLoadingSecondary = true
+        defer {
+            isLoadingSecondary = false
+            hasLoadedSecondary = true
         }
-    }
-
-    private func loadInsights() async {
-        // Now depends on filters — reloads when granularity changes
+        
         do {
             let snapshot = filters.snapshot
 
+            // Load longest session
+            longestSession = try await appEnvironment.dataService.fetchLongestSession(filters: snapshot)
+            
+            // Load insight card data
             async let periodFetch = appEnvironment.dataService.fetchPeriodSummary(filters: snapshot)
             async let sparklineFetch = appEnvironment.dataService.fetchSparkline(filters: snapshot)
             async let heatmapFetch = appEnvironment.dataService.fetchHeatmap(filters: snapshot)
@@ -745,12 +605,46 @@ struct OverviewView: View {
             )
         } catch {
             // Non-critical — insight cards gracefully show empty state
+            longestSession = nil
             periodSummary = nil
             todaySummary = nil
             sparklinePoints = []
             hourlyTrendPoints = []
             heatmapCells = []
             heatmapMax = 0
+        }
+    }
+
+    /// Phase 3: Load analytics data (insights, period comparison) - lowest priority
+    private func loadAnalytics() async {
+        // Wait for primary data to be available before generating insights
+        guard hasLoadedPrimary else { return }
+        
+        do {
+            let snapshot = filters.snapshot
+            
+            // Generate insights (this uses data from other queries)
+            insights = try await appEnvironment.dataService.generateInsights(filters: snapshot)
+
+            // Period comparison: compare current range to the same-length prior range
+            let calendar = Calendar.current
+            let rangeDays = calendar.dateComponents([.day], from: snapshot.startDate, to: snapshot.endDate).day ?? 7
+            if let prevEnd = calendar.date(byAdding: .day, value: -1, to: snapshot.startDate),
+               let prevStart = calendar.date(byAdding: .day, value: -rangeDays, to: prevEnd) {
+                let previousSnapshot = FilterSnapshot(
+                    startDate: prevStart, endDate: prevEnd,
+                    granularity: snapshot.granularity,
+                    selectedApps: snapshot.selectedApps,
+                    selectedCategories: snapshot.selectedCategories,
+                    selectedHeatmapCells: snapshot.selectedHeatmapCells
+                )
+                periodDelta = try await appEnvironment.dataService.fetchPeriodComparison(
+                    current: snapshot, previous: previousSnapshot
+                )
+            }
+        } catch {
+            insights = []
+            periodDelta = nil
         }
     }
     

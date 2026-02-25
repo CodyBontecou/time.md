@@ -214,13 +214,11 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
     case trends = "trends"
     case sessions = "sessions"
     case heatmap = "heatmap"
-    case focus = "focus"
     case rawSessions = "raw_sessions"
     
     // Analytics sections
     case contextSwitches = "context_switches"
     case appTransitions = "app_transitions"
-    case weekdayPatterns = "weekday_patterns"
     case periodComparison = "period_comparison"
     
     var id: String { rawValue }
@@ -233,11 +231,9 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
         case .trends: return "Trends"
         case .sessions: return "Session Distribution"
         case .heatmap: return "Heatmap"
-        case .focus: return "Focus & Streaks"
         case .rawSessions: return "Raw Sessions"
         case .contextSwitches: return "Context Switches"
         case .appTransitions: return "App Transitions"
-        case .weekdayPatterns: return "Weekday Patterns"
         case .periodComparison: return "Period Comparison"
         }
     }
@@ -250,28 +246,24 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
         case .trends: return "chart.line.uptrend.xyaxis"
         case .sessions: return "clock"
         case .heatmap: return "square.grid.3x3"
-        case .focus: return "target"
         case .rawSessions: return "list.bullet"
         case .contextSwitches: return "arrow.triangle.swap"
         case .appTransitions: return "arrow.right.arrow.left"
-        case .weekdayPatterns: return "calendar.badge.clock"
         case .periodComparison: return "chart.bar.xaxis.ascending"
         }
     }
     
     var description: String {
         switch self {
-        case .summary: return "Total time, averages, streaks"
+        case .summary: return "Total time and averages"
         case .apps: return "Usage time per application"
         case .categories: return "Usage time by category"
         case .trends: return "Daily/weekly usage over time"
         case .sessions: return "Session length distribution"
         case .heatmap: return "Usage by weekday and hour"
-        case .focus: return "Focus blocks and streak data"
         case .rawSessions: return "Individual session records"
         case .contextSwitches: return "App switching frequency by hour"
         case .appTransitions: return "Most common app-to-app switches"
-        case .weekdayPatterns: return "Usage averages by day of week"
         case .periodComparison: return "Current vs previous period delta"
         }
     }
@@ -285,11 +277,9 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
         case .trends: return 30
         case .sessions: return 6
         case .heatmap: return 168  // 7 days * 24 hours
-        case .focus: return 30
         case .rawSessions: return 1000  // Can be very large
         case .contextSwitches: return 100
         case .appTransitions: return 50
-        case .weekdayPatterns: return 7
         case .periodComparison: return 20
         }
     }
@@ -305,7 +295,7 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
     /// Whether this is an analytics (computed) section
     var isAnalytics: Bool {
         switch self {
-        case .contextSwitches, .appTransitions, .weekdayPatterns, .periodComparison:
+        case .contextSwitches, .appTransitions, .periodComparison:
             return true
         default:
             return false
@@ -314,12 +304,12 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
     
     /// Basic data sections only
     static let basicSections: [ExportSection] = [
-        .summary, .apps, .categories, .trends, .sessions, .heatmap, .focus, .rawSessions
+        .summary, .apps, .categories, .trends, .sessions, .heatmap, .rawSessions
     ]
     
     /// Analytics sections only
     static let analyticsSections: [ExportSection] = [
-        .contextSwitches, .appTransitions, .weekdayPatterns, .periodComparison
+        .contextSwitches, .appTransitions, .periodComparison
     ]
 }
 
@@ -608,8 +598,6 @@ struct ExportSettings: Codable {
             return ExportField.sessionBucketFields
         case .heatmap:
             return ExportField.heatmapFields
-        case .focus:
-            return ExportField.focusFields
         case .overview:
             return ExportField.overviewFields + ExportField.trendFields
         case .calendar:

@@ -7,7 +7,6 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
     case appsCategories
     case sessions
     case heatmap
-    case focus
     case rawSessions   // Export-only: individual session records
     case webHistory
     case exports
@@ -23,7 +22,6 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         case .appsCategories: "Apps & Categories"
         case .sessions: "Sessions"
         case .heatmap: "Heatmap"
-        case .focus: "Focus & Streaks"
         case .rawSessions: "Raw Sessions"
         case .webHistory: "Web History"
         case .exports: "Exports"
@@ -39,7 +37,6 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         case .appsCategories: "chart.bar.doc.horizontal"
         case .sessions: "timer"
         case .heatmap: "square.grid.3x3.fill"
-        case .focus: "flame.fill"
         case .rawSessions: "list.bullet.rectangle"
         case .webHistory: "globe"
         case .exports: "square.and.arrow.up"
@@ -56,7 +53,6 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         case .appsCategories: .analytics
         case .sessions: .analytics
         case .heatmap: .analytics
-        case .focus: .analytics
         case .rawSessions: .hidden  // Not shown in sidebar, only in export scope
         case .webHistory: .data
         case .exports: .data
@@ -67,7 +63,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
     /// Whether this destination can be exported
     var isExportable: Bool {
         switch self {
-        case .overview, .calendar, .appsCategories, .trends, .sessions, .heatmap, .focus, .rawSessions:
+        case .overview, .calendar, .appsCategories, .trends, .sessions, .heatmap, .rawSessions:
             return true
         case .webHistory, .exports, .settings:
             return false

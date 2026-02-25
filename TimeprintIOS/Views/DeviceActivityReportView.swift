@@ -50,14 +50,13 @@ private struct AuthorizedContent: View {
                             .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 150)
+                    .frame(minHeight: 120)
                 }
                 
                 DeviceActivityReport(
                     DeviceActivityReport.Context(rawValue: "TotalActivity"),
                     filter: todayFilter
                 )
-                .frame(minHeight: 150)
                 .onAppear {
                     // Give the extension time to load, then hide loading indicator
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {

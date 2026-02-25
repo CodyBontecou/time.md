@@ -116,7 +116,7 @@ private extension ExportCoordinatorTests {
 
 private struct MockDataService: ScreenTimeDataServing, @unchecked Sendable {
     static let sample = MockDataService(
-        summary: DashboardSummary(totalSeconds: 3_600, averageDailySeconds: 900, focusBlocks: 2, currentStreakDays: 3),
+        summary: DashboardSummary(totalSeconds: 3_600, averageDailySeconds: 900, focusBlocks: 2),
         trend: [
             TrendPoint(date: Date(timeIntervalSince1970: 1_735_776_000), totalSeconds: 1200),
             TrendPoint(date: Date(timeIntervalSince1970: 1_735_862_400), totalSeconds: 2400)

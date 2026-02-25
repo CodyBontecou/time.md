@@ -37,7 +37,6 @@ struct DashboardSummary: Sendable {
     let totalSeconds: Double
     let averageDailySeconds: Double
     let focusBlocks: Int
-    let currentStreakDays: Int
 }
 
 /// Trend point for charts

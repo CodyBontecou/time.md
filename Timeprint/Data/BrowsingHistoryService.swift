@@ -30,6 +30,14 @@ protocol BrowsingHistoryServing: Sendable {
         startDate: Date,
         endDate: Date
     ) async throws -> [HourlyVisitCount]
+    
+    func fetchPagesForDomain(
+        domain: String,
+        browser: BrowserSource,
+        startDate: Date,
+        endDate: Date,
+        limit: Int
+    ) async throws -> [PageSummary]
 
     func availableBrowsers() -> [BrowserSource]
 }
@@ -301,6 +309,55 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
             HourlyVisitCount(hour: hour, visitCount: merged[hour] ?? 0)
         }
     }
+    
+    // MARK: - Fetch pages for domain
+    
+    func fetchPagesForDomain(
+        domain: String,
+        browser: BrowserSource,
+        startDate: Date,
+        endDate: Date,
+        limit: Int
+    ) async throws -> [PageSummary] {
+        var allPageVisits: [PageVisit] = []
+        let browsers = resolveBrowsers(browser)
+        
+        for b in browsers {
+            let visits = try await fetchPageVisitsFromBrowser(
+                b, domain: domain, startDate: startDate, endDate: endDate
+            )
+            allPageVisits.append(contentsOf: visits)
+        }
+        
+        // Group by path
+        var pathGroups: [String: [PageVisit]] = [:]
+        for visit in allPageVisits {
+            pathGroups[visit.path, default: []].append(visit)
+        }
+        
+        // Build summaries
+        var summaries: [PageSummary] = []
+        for (path, visits) in pathGroups {
+            let sortedVisits = visits.sorted { $0.visitTime > $1.visitTime }
+            let latestTitle = sortedVisits.first?.title ?? path
+            let lastVisit = sortedVisits.first?.visitTime ?? Date.distantPast
+            let totalDuration = sortedVisits.compactMap(\.durationSeconds).reduce(0, +)
+            
+            summaries.append(PageSummary(
+                path: path,
+                title: latestTitle,
+                visitCount: visits.count,
+                visits: sortedVisits,
+                lastVisitTime: lastVisit,
+                totalDurationSeconds: totalDuration > 0 ? totalDuration : nil
+            ))
+        }
+        
+        return summaries
+            .sorted { $0.visitCount > $1.visitCount }
+            .prefix(limit)
+            .map { $0 }
+    }
 
     // MARK: - Helpers
 
@@ -343,6 +400,24 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
             return String(host.dropFirst(4))
         }
         return host
+    }
+    
+    // MARK: - Path extraction
+    
+    private static func extractPath(from urlString: String) -> String {
+        guard let comps = URLComponents(string: urlString) else {
+            return "/"
+        }
+        let path = comps.path.isEmpty ? "/" : comps.path
+        // Normalize trailing slashes and return a clean path
+        return path == "/" ? "/" : path.trimmingCharacters(in: CharacterSet(charactersIn: "/")).isEmpty ? "/" : path
+    }
+    
+    private static func matchesDomain(_ urlString: String, domain: String) -> Bool {
+        let extracted = extractDomain(from: urlString)
+        // Match exact or with www. prefix
+        return extracted.lowercased() == domain.lowercased() ||
+               extracted.lowercased() == "www.\(domain.lowercased())"
     }
 
     // MARK: - Open database (with caching to avoid repeated copies)
@@ -960,6 +1035,132 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
                 return []
             }
         }.value
+    }
+    
+    private func fetchPageVisitsFromBrowser(
+        _ browser: BrowserSource, domain: String, startDate: Date, endDate: Date
+    ) async throws -> [PageVisit] {
+        try await Task.detached(priority: .userInitiated) { [self] in
+            switch browser {
+            case .safari:
+                return try fetchPageVisitsFromSafari(domain: domain, startDate: startDate, endDate: endDate)
+            case .chrome, .arc, .brave, .edge:
+                return try fetchPageVisitsFromChromium(browser: browser, domain: domain, startDate: startDate, endDate: endDate)
+            case .all:
+                return []
+            }
+        }.value
+    }
+    
+    // MARK: - Safari page visits for domain
+    
+    private func fetchPageVisitsFromSafari(
+        domain: String, startDate: Date, endDate: Date
+    ) throws -> [PageVisit] {
+        let db = try getCachedDatabase(for: .safari)
+        
+        let startApple = startDate.timeIntervalSince1970 - Self.appleEpochOffset
+        let endApple = endDate.timeIntervalSince1970 - Self.appleEpochOffset
+        
+        // Safari stores domain_expansion which we can use to filter
+        let sql = """
+        SELECT hi.url, hv.title, hv.visit_time
+        FROM history_visits hv
+        JOIN history_items hi ON hi.id = hv.history_item
+        WHERE hv.visit_time >= ?1 AND hv.visit_time <= ?2
+          AND hv.load_successful = 1
+        ORDER BY hv.visit_time DESC
+        """
+        
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK, let statement = stmt else {
+            let msg = String(cString: sqlite3_errmsg(db))
+            throw BrowsingHistoryError.sqlite(path: "Safari", message: msg)
+        }
+        defer { sqlite3_finalize(statement) }
+        
+        sqlite3_bind_double(statement, 1, startApple)
+        sqlite3_bind_double(statement, 2, endApple)
+        
+        var visits: [PageVisit] = []
+        while sqlite3_step(statement) == SQLITE_ROW {
+            let url = Self.columnText(statement, 0) ?? ""
+            let title = Self.columnText(statement, 1) ?? ""
+            let visitTime = sqlite3_column_double(statement, 2)
+            
+            // Filter by domain in Swift
+            guard Self.matchesDomain(url, domain: domain) else { continue }
+            
+            let date = Date(timeIntervalSince1970: visitTime + Self.appleEpochOffset)
+            let path = Self.extractPath(from: url)
+            
+            visits.append(PageVisit(
+                id: "safari-page-\(visitTime)-\(url.hashValue)",
+                url: url,
+                path: path,
+                title: title.isEmpty ? path : title,
+                visitTime: date,
+                durationSeconds: nil,
+                browser: .safari
+            ))
+        }
+        return visits
+    }
+    
+    // MARK: - Chromium page visits for domain
+    
+    private func fetchPageVisitsFromChromium(
+        browser: BrowserSource, domain: String, startDate: Date, endDate: Date
+    ) throws -> [PageVisit] {
+        let db = try getCachedDatabase(for: browser)
+        
+        let startChrome = (startDate.timeIntervalSince1970 + Self.chromiumEpochOffset) * Self.chromiumMicrosPerSecond
+        let endChrome = (endDate.timeIntervalSince1970 + Self.chromiumEpochOffset) * Self.chromiumMicrosPerSecond
+        
+        let sql = """
+        SELECT u.url, u.title, v.visit_time, v.visit_duration
+        FROM visits v
+        JOIN urls u ON u.id = v.url
+        WHERE v.visit_time >= ?1 AND v.visit_time <= ?2
+        ORDER BY v.visit_time DESC
+        """
+        
+        var stmt: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK, let statement = stmt else {
+            let msg = String(cString: sqlite3_errmsg(db))
+            throw BrowsingHistoryError.sqlite(path: browser.rawValue, message: msg)
+        }
+        defer { sqlite3_finalize(statement) }
+        
+        sqlite3_bind_double(statement, 1, startChrome)
+        sqlite3_bind_double(statement, 2, endChrome)
+        
+        var visits: [PageVisit] = []
+        while sqlite3_step(statement) == SQLITE_ROW {
+            let url = Self.columnText(statement, 0) ?? ""
+            let title = Self.columnText(statement, 1) ?? ""
+            let visitTimeMicros = sqlite3_column_int64(statement, 2)
+            let durationMicros = sqlite3_column_int64(statement, 3)
+            
+            // Filter by domain in Swift
+            guard Self.matchesDomain(url, domain: domain) else { continue }
+            
+            let unixTimestamp = (Double(visitTimeMicros) / Self.chromiumMicrosPerSecond) - Self.chromiumEpochOffset
+            let date = Date(timeIntervalSince1970: unixTimestamp)
+            let duration = durationMicros > 0 ? Double(durationMicros) / Self.chromiumMicrosPerSecond : nil
+            let path = Self.extractPath(from: url)
+            
+            visits.append(PageVisit(
+                id: "\(browser.rawValue.lowercased())-page-\(visitTimeMicros)-\(url.hashValue)",
+                url: url,
+                path: path,
+                title: title.isEmpty ? path : title,
+                visitTime: date,
+                durationSeconds: duration,
+                browser: browser
+            ))
+        }
+        return visits
     }
 
     // MARK: - SQLite helpers

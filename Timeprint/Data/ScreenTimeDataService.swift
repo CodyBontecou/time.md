@@ -105,13 +105,11 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
         let totalSeconds = focusDays.reduce(0) { $0 + $1.totalSeconds }
         let averageDailySeconds = focusDays.isEmpty ? 0 : totalSeconds / Double(focusDays.count)
         let focusBlocks = focusDays.reduce(0) { $0 + $1.focusBlocks }
-        let currentStreakDays = focusDays.reversed().prefix { $0.focusBlocks > 0 }.count
 
         return DashboardSummary(
             totalSeconds: totalSeconds,
             averageDailySeconds: averageDailySeconds,
-            focusBlocks: focusBlocks,
-            currentStreakDays: currentStreakDays
+            focusBlocks: focusBlocks
         )
     }
 
@@ -553,16 +551,7 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
             ))
         }
 
-        // 7. Focus streak
-        if summary.currentStreakDays > 0 {
-            insights.append(Insight(
-                icon: "flame.fill",
-                text: "You're on a \(summary.currentStreakDays)-day focus streak!",
-                sentiment: .positive
-            ))
-        }
-
-        // 8. Busiest weekday
+        // 7. Busiest weekday
         if let busiest = weekdayAvgs.max(by: { $0.averageSeconds < $1.averageSeconds }) {
             let dayNames = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"]
             let dayName = busiest.weekday < dayNames.count ? dayNames[busiest.weekday] : "Day \(busiest.weekday)"
@@ -651,12 +640,10 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
         let overridePath = self.overridePath
 
         return try await Task.detached(priority: .userInitiated) {
-            // Sync system Screen Time data into the persistent history store
-            // before querying, so we accumulate data beyond Apple's ~7-day window.
-            if overridePath == nil {
-                HistoryStore.syncIfNeeded()
-            }
-
+            // Note: HistoryStore.syncIfNeeded() is now called at app startup and on a
+            // 15-minute timer (see TimeprintApp), so we don't need to check before every
+            // query. This reduces lock contention when multiple queries run in parallel.
+            
             let context = try Self.openConnectionContext(pathOverride: overridePath)
             defer { context.close() }
             return try operation(context)
@@ -1352,34 +1339,15 @@ private extension SQLiteScreenTimeDataService {
         let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
         let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
 
-        // Step 1: get total seconds per weekday and count of distinct days
+        // Get top app per weekday along with its total seconds and the count of distinct days
+        // This ensures the displayed time matches the displayed app name
         let sql = """
-        SELECT
-            CAST(strftime('%w', u.start_time) AS INTEGER) AS weekday,
-            SUM(u.duration_seconds) AS total_seconds,
-            COUNT(DISTINCT date(u.start_time)) AS day_count
-        FROM usage u
-        \(join)
-        WHERE \(filter.whereClause)
-        GROUP BY weekday
-        ORDER BY weekday
-        """
-
-        let weekdayTotals = try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
-            (
-                weekday: Int(SQLiteRunner.columnInt(statement, index: 0)),
-                totalSeconds: SQLiteRunner.columnDouble(statement, index: 1),
-                dayCount: Int(SQLiteRunner.columnInt(statement, index: 2))
-            )
-        }
-
-        // Step 2: get top app per weekday
-        let topAppSQL = """
-        SELECT weekday, app_name FROM (
+        SELECT weekday, app_name, total_seconds, day_count FROM (
             SELECT
                 CAST(strftime('%w', u.start_time) AS INTEGER) AS weekday,
                 u.app_name,
                 SUM(u.duration_seconds) AS total_seconds,
+                COUNT(DISTINCT date(u.start_time)) AS day_count,
                 ROW_NUMBER() OVER (PARTITION BY CAST(strftime('%w', u.start_time) AS INTEGER) ORDER BY SUM(u.duration_seconds) DESC) AS rn
             FROM usage u
             \(join)
@@ -1387,22 +1355,19 @@ private extension SQLiteScreenTimeDataService {
             GROUP BY weekday, u.app_name
         ) t
         WHERE rn = 1
+        ORDER BY weekday
         """
 
-        let topAppsPerWeekday = try SQLiteRunner.query(db: db, sql: topAppSQL, parameters: filter.parameters) { statement in
-            (
-                weekday: Int(SQLiteRunner.columnInt(statement, index: 0)),
-                appName: SQLiteRunner.columnText(statement, index: 1) ?? "Unknown"
-            )
-        }
-
-        let topAppMap = Dictionary(uniqueKeysWithValues: topAppsPerWeekday.map { ($0.weekday, $0.appName) })
-
-        return weekdayTotals.map { row in
-            WeekdayAverage(
-                weekday: row.weekday,
-                averageSeconds: row.dayCount > 0 ? row.totalSeconds / Double(row.dayCount) : 0,
-                topApp: topAppMap[row.weekday] ?? "Unknown"
+        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+            let weekday = Int(SQLiteRunner.columnInt(statement, index: 0))
+            let appName = SQLiteRunner.columnText(statement, index: 1) ?? "Unknown"
+            let totalSeconds = SQLiteRunner.columnDouble(statement, index: 2)
+            let dayCount = Int(SQLiteRunner.columnInt(statement, index: 3))
+            
+            return WeekdayAverage(
+                weekday: weekday,
+                averageSeconds: dayCount > 0 ? totalSeconds / Double(dayCount) : 0,
+                topApp: appName
             )
         }
     }
@@ -1412,56 +1377,37 @@ private extension SQLiteScreenTimeDataService {
         let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
 
         let localDateExpr = "datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')"
+        let durationExpr = "CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END"
 
+        // Get top app per weekday along with its total seconds and the count of distinct days
+        // This ensures the displayed time matches the displayed app name
         let sql = """
-        SELECT
-            CAST(strftime('%w', \(localDateExpr)) AS INTEGER) AS weekday,
-            SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds,
-            COUNT(DISTINCT date(\(localDateExpr))) AS day_count
-        FROM ZOBJECT o
-        \(join)
-        WHERE \(filter.whereClause)
-        GROUP BY weekday
-        ORDER BY weekday
-        """
-
-        let weekdayTotals = try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
-            (
-                weekday: Int(SQLiteRunner.columnInt(statement, index: 0)),
-                totalSeconds: SQLiteRunner.columnDouble(statement, index: 1),
-                dayCount: Int(SQLiteRunner.columnInt(statement, index: 2))
-            )
-        }
-
-        let topAppSQL = """
-        SELECT weekday, app_name FROM (
+        SELECT weekday, app_name, total_seconds, day_count FROM (
             SELECT
                 CAST(strftime('%w', \(localDateExpr)) AS INTEGER) AS weekday,
                 o.ZVALUESTRING AS app_name,
-                SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds,
-                ROW_NUMBER() OVER (PARTITION BY CAST(strftime('%w', \(localDateExpr)) AS INTEGER) ORDER BY SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) DESC) AS rn
+                SUM(\(durationExpr)) AS total_seconds,
+                COUNT(DISTINCT date(\(localDateExpr))) AS day_count,
+                ROW_NUMBER() OVER (PARTITION BY CAST(strftime('%w', \(localDateExpr)) AS INTEGER) ORDER BY SUM(\(durationExpr)) DESC) AS rn
             FROM ZOBJECT o
             \(join)
             WHERE \(filter.whereClause)
             GROUP BY weekday, app_name
         ) t
         WHERE rn = 1
+        ORDER BY weekday
         """
 
-        let topAppsPerWeekday = try SQLiteRunner.query(db: db, sql: topAppSQL, parameters: filter.parameters) { statement in
-            (
-                weekday: Int(SQLiteRunner.columnInt(statement, index: 0)),
-                appName: SQLiteRunner.columnText(statement, index: 1) ?? "Unknown"
-            )
-        }
-
-        let topAppMap = Dictionary(uniqueKeysWithValues: topAppsPerWeekday.map { ($0.weekday, $0.appName) })
-
-        return weekdayTotals.map { row in
-            WeekdayAverage(
-                weekday: row.weekday,
-                averageSeconds: row.dayCount > 0 ? row.totalSeconds / Double(row.dayCount) : 0,
-                topApp: topAppMap[row.weekday] ?? "Unknown"
+        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+            let weekday = Int(SQLiteRunner.columnInt(statement, index: 0))
+            let appName = SQLiteRunner.columnText(statement, index: 1) ?? "Unknown"
+            let totalSeconds = SQLiteRunner.columnDouble(statement, index: 2)
+            let dayCount = Int(SQLiteRunner.columnInt(statement, index: 3))
+            
+            return WeekdayAverage(
+                weekday: weekday,
+                averageSeconds: dayCount > 0 ? totalSeconds / Double(dayCount) : 0,
+                topApp: appName
             )
         }
     }

@@ -110,7 +110,7 @@ struct ContentView: View {
             switch selectedDestination {
             case .overview:
                 CompactOverviewView()
-                    .navigationTitle("Overview")
+                    .navigationBarHidden(true)
             case .apps:
                 AppsListView()
                     .navigationTitle("Apps")
@@ -125,7 +125,7 @@ struct ContentView: View {
                     .navigationTitle("Settings")
             case .none:
                 CompactOverviewView()
-                    .navigationTitle("Overview")
+                    .navigationBarHidden(true)
             }
         }
     }
@@ -147,7 +147,7 @@ struct OverviewTab: View {
     var body: some View {
         NavigationStack {
             CompactOverviewView()
-                .navigationTitle("Overview")
+                .navigationBarHidden(true)
         }
     }
 }

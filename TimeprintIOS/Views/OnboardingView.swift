@@ -45,7 +45,7 @@ struct OnboardingView: View {
             features: [
                 Feature(icon: "calendar", text: "Daily and weekly trends"),
                 Feature(icon: "square.grid.2x2", text: "App-by-app breakdown"),
-                Feature(icon: "flame.fill", text: "Track your streaks")
+                Feature(icon: "chart.bar", text: "Session insights")
             ]
         ),
         OnboardingPage(

@@ -9,6 +9,8 @@ struct TotalActivityContext {
 }
 
 /// Report scene that computes total activity from DeviceActivityResults
+/// Note: Due to iOS sandbox restrictions, this data can only be displayed visually
+/// via DeviceActivityReport - it cannot be exported to the host app programmatically.
 struct TotalActivityReport: DeviceActivityReportScene {
     
     let context: DeviceActivityReport.Context = .init(rawValue: "TotalActivity")
@@ -39,38 +41,10 @@ struct TotalActivityReport: DeviceActivityReportScene {
             .map { (name: $0.key, duration: $0.value) }
             .sorted { $0.duration > $1.duration }
         
-        // Write to shared data store for sync
-        await recordToSharedStore(
-            totalDuration: totalDuration,
-            categoryDurations: sortedCategories
-        )
-        
         return TotalActivityContext(
             totalDuration: totalDuration,
             categoryDurations: sortedCategories,
             date: Date()
         )
-    }
-    
-    private func recordToSharedStore(totalDuration: TimeInterval, categoryDurations: [(name: String, duration: TimeInterval)]) async {
-        // Write to App Group UserDefaults for quick access
-        guard let userDefaults = UserDefaults(suiteName: "group.com.codybontecou.Timeprint") else {
-            print("[TotalActivityReport] Failed to access App Group UserDefaults")
-            return
-        }
-        
-        print("[TotalActivityReport] Recording totalDuration: \(totalDuration), categories: \(categoryDurations.count)")
-        
-        userDefaults.set(totalDuration, forKey: "todayTotalDuration")
-        userDefaults.set(Date(), forKey: "lastReportUpdate")
-        
-        // Store category breakdown
-        let categoryData = categoryDurations.map { ["name": $0.name, "duration": $0.duration] }
-        userDefaults.set(categoryData, forKey: "categoryDurations")
-        
-        // Force synchronize to ensure data is persisted immediately
-        userDefaults.synchronize()
-        
-        print("[TotalActivityReport] Data saved to App Group UserDefaults")
     }
 }

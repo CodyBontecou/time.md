@@ -49,7 +49,7 @@ struct AppsCategoriesView: View {
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
                         }
-                        .buttonStyle(.glass)
+                        .buttonStyle(.bordered)
                         .tint(mode == m ? BrutalTheme.accent : .clear)
                     }
                 }

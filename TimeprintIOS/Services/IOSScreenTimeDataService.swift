@@ -48,14 +48,10 @@ actor IOSScreenTimeDataService: ScreenTimeProviding {
             total + Int(record.totalSeconds / 1500) // 25 minutes
         }
         
-        // Calculate streak
-        let streak = await calculateStreak(from: records)
-        
         return DashboardSummary(
             totalSeconds: totalSeconds,
             averageDailySeconds: averageDaily,
-            focusBlocks: focusBlocks,
-            currentStreakDays: streak
+            focusBlocks: focusBlocks
         )
     }
     
@@ -236,34 +232,6 @@ actor IOSScreenTimeDataService: ScreenTimeProviding {
         }
         
         return minDate...maxDate
-    }
-    
-    // MARK: - Private Methods
-    
-    private func calculateStreak(from records: [StoredDailyUsage]) async -> Int {
-        let calendar = Calendar.current
-        let sortedRecords = records.sorted { $0.date > $1.date }
-        
-        var streak = 0
-        var expectedDate = calendar.startOfDay(for: Date())
-        
-        for record in sortedRecords {
-            let recordDate = calendar.startOfDay(for: record.date)
-            
-            if calendar.isDate(recordDate, inSameDayAs: expectedDate) {
-                if record.totalSeconds >= 300 { // At least 5 minutes to count
-                    streak += 1
-                    expectedDate = calendar.date(byAdding: .day, value: -1, to: expectedDate) ?? expectedDate
-                } else {
-                    break
-                }
-            } else if recordDate < expectedDate {
-                // Gap in data
-                break
-            }
-        }
-        
-        return streak
     }
 }
 

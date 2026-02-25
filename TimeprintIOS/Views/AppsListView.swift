@@ -3,8 +3,10 @@ import SwiftUI
 /// Apps list view showing synced app usage from Mac
 struct AppsListView: View {
     @EnvironmentObject private var appState: IOSAppState
+    @StateObject private var filterStore = IOSFilterStore()
     @State private var searchText = ""
     @State private var sortOrder: SortOrder = .mostUsed
+    @State private var showFilters = false
     
     enum SortOrder: String, CaseIterable {
         case mostUsed = "Most Used"
@@ -27,19 +29,38 @@ struct AppsListView: View {
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                sortMenu
+                HStack(spacing: 12) {
+                    filterButton
+                    sortMenu
+                }
             }
+        }
+        .sheet(isPresented: $showFilters) {
+            IOSTimeFiltersView(filterStore: filterStore)
+        }
+    }
+    
+    private var filterButton: some View {
+        Button {
+            showFilters = true
+        } label: {
+            Image(systemName: filterStore.hasActiveFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
         }
     }
     
     // MARK: - Computed Properties
     
-    /// Aggregated apps from all devices
+    /// Aggregated apps from selected devices only
     private var allApps: [AggregatedAppUsage] {
-        // Collect all app usage from all devices
+        // Collect all app usage from selected devices only
         var appMap: [String: AggregatedAppUsage] = [:]
         
-        for device in appState.syncPayload.devices {
+        // Only include devices that are selected, EXCLUDING current device (handled separately with live data)
+        let selectedDevices = appState.syncPayload.devices.filter {
+            appState.selectedDeviceIds.contains($0.id) && $0.id != appState.currentDevice.id
+        }
+        
+        for device in selectedDevices {
             for usage in device.appUsage {
                 let key = usage.bundleId
                 if var existing = appMap[key] {
@@ -60,7 +81,34 @@ struct AppsListView: View {
             }
         }
         
+        // Include local iPhone apps if selected (always use live data for current device)
+        if appState.includeLocalIPhoneData {
+            for app in appState.topApps {
+                let key = app.appName
+                if var existing = appMap[key] {
+                    existing.totalSeconds += app.totalSeconds
+                    existing.sessionCount += app.sessionCount
+                    existing.deviceCount += 1
+                    appMap[key] = existing
+                } else {
+                    appMap[key] = AggregatedAppUsage(
+                        bundleId: app.appName,
+                        displayName: app.appName,
+                        category: nil,
+                        totalSeconds: app.totalSeconds,
+                        sessionCount: app.sessionCount,
+                        deviceCount: 1
+                    )
+                }
+            }
+        }
+        
         return Array(appMap.values)
+    }
+    
+    /// Number of selected devices
+    private var selectedDeviceCount: Int {
+        appState.selectedDeviceCount
     }
     
     /// Total screen time across all apps
@@ -108,27 +156,31 @@ struct AppsListView: View {
     
     private var emptyStateView: some View {
         VStack(spacing: 20) {
-            Image(systemName: "square.grid.2x2.slash")
+            Image(systemName: appState.selectedDeviceIds.isEmpty ? "checkmark.circle.badge.questionmark" : "square.grid.2x2.slash")
                 .font(.system(size: 60))
                 .foregroundStyle(.tertiary)
             
-            Text("No App Data")
+            Text(appState.selectedDeviceIds.isEmpty ? "No Devices Selected" : "No App Data")
                 .font(.title2)
                 .fontWeight(.semibold)
             
-            Text("Sync from your Mac to see app usage here")
+            Text(appState.selectedDeviceIds.isEmpty 
+                 ? "Select devices in the Devices tab to see app usage"
+                 : "Sync from your Mac to see app usage here")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
             
-            Button {
-                Task { await appState.refreshFromCloud() }
-            } label: {
-                Label("Refresh", systemImage: "arrow.clockwise")
-                    .font(.headline)
+            if !appState.selectedDeviceIds.isEmpty {
+                Button {
+                    Task { await appState.refreshFromCloud() }
+                } label: {
+                    Label("Refresh", systemImage: "arrow.clockwise")
+                        .font(.headline)
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.top, 8)
             }
-            .buttonStyle(.borderedProminent)
-            .padding(.top, 8)
         }
         .padding(40)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -168,12 +220,62 @@ struct AppsListView: View {
     
     private var summarySection: some View {
         Section {
+            // Date range row
+            HStack {
+                Menu {
+                    ForEach(TimeGranularity.allCases) { granularity in
+                        Button {
+                            filterStore.granularity = granularity
+                        } label: {
+                            HStack {
+                                Text(granularity.title)
+                                if filterStore.granularity == granularity {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "calendar")
+                            .font(.subheadline)
+                        Text(filterStore.dateRangeLabel)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.caption2)
+                    }
+                    .foregroundStyle(.tint)
+                }
+                .buttonStyle(.plain)
+                
+                Spacer()
+                
+                // Active filters indicator
+                if filterStore.hasActiveFilters {
+                    Button {
+                        showFilters = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "line.3.horizontal.decrease")
+                                .font(.caption)
+                            Text("Filtered")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundStyle(.orange)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            
+            // Summary stats row
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(filteredApps.count) Apps")
                         .font(.headline)
                     
-                    Text("Across \(appState.syncPayload.devices.count) device\(appState.syncPayload.devices.count == 1 ? "" : "s")")
+                    Text("Across \(selectedDeviceCount) selected device\(selectedDeviceCount == 1 ? "" : "s")")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

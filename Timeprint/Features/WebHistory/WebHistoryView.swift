@@ -35,6 +35,9 @@ struct WebHistoryView: View {
     @State private var isLoading = false
     @State private var hasLoadedOnce = false
     @State private var availableBrowsers: [BrowserSource] = [.all]
+    @State private var expandedDomains: Set<String> = []
+    @State private var domainPages: [String: [PageSummary]] = [:]
+    @State private var loadingDomains: Set<String> = []
 
     private let service: BrowsingHistoryServing = SQLiteBrowsingHistoryService()
     
@@ -79,9 +82,21 @@ struct WebHistoryView: View {
             }
             await loadAll()
         }
-        .onChange(of: filters.startDate) { _, _ in Task { await loadAll() } }
-        .onChange(of: filters.endDate) { _, _ in Task { await loadAll() } }
-        .onChange(of: browserFilter) { _, _ in Task { await loadAll() } }
+        .onChange(of: filters.startDate) { _, _ in 
+            domainPages.removeAll()
+            expandedDomains.removeAll()
+            Task { await loadAll() } 
+        }
+        .onChange(of: filters.endDate) { _, _ in 
+            domainPages.removeAll()
+            expandedDomains.removeAll()
+            Task { await loadAll() } 
+        }
+        .onChange(of: browserFilter) { _, _ in 
+            domainPages.removeAll()
+            expandedDomains.removeAll()
+            Task { await loadAll() } 
+        }
     }
 
     // MARK: - Header
@@ -122,11 +137,11 @@ struct WebHistoryView: View {
                         Text(source.rawValue)
                             .font(.system(size: 12, weight: isActive ? .bold : .medium, design: .monospaced))
                     }
-                    .foregroundColor(isActive ? .white : BrutalTheme.textSecondary)
+                    .foregroundColor(isActive ? .black : BrutalTheme.textSecondary)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 7)
                 }
-                .buttonStyle(.glass)
+                .buttonStyle(.bordered)
                 .tint(isActive ? BrutalTheme.accent : .clear)
             }
         }
@@ -247,11 +262,11 @@ struct WebHistoryView: View {
                             Text(t.rawValue)
                                 .font(.system(size: 12, weight: .semibold, design: .monospaced))
                         }
-                        .foregroundColor(isActive ? .white : BrutalTheme.textTertiary)
+                        .foregroundColor(isActive ? .black : BrutalTheme.textTertiary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
                     }
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
                     .tint(isActive ? BrutalTheme.accent : .clear)
                 }
                 Spacer()
@@ -493,6 +508,8 @@ struct WebHistoryView: View {
         return VStack(spacing: 0) {
             // Header
             HStack {
+                Text("")
+                    .frame(width: 20, alignment: .leading)
                 Text("#")
                     .frame(width: 28, alignment: .leading)
                 Text("DOMAIN")
@@ -516,39 +533,56 @@ struct WebHistoryView: View {
 
             ForEach(Array(topDomains.enumerated()), id: \.element.id) { index, domain in
                 let pct = totalVisits > 0 ? Double(domain.visitCount) / Double(totalVisits) * 100 : 0
+                let isExpanded = expandedDomains.contains(domain.domain)
+                let isLoadingPages = loadingDomains.contains(domain.domain)
 
                 VStack(spacing: 0) {
-                    HStack(spacing: 0) {
-                        Text(String(format: "%02d", index + 1))
-                            .font(BrutalTheme.tableBody)
-                            .foregroundColor(BrutalTheme.textTertiary)
-                            .frame(width: 28, alignment: .leading)
+                    // Main domain row (clickable)
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            toggleDomainExpansion(domain.domain)
+                        }
+                    } label: {
+                        HStack(spacing: 0) {
+                            // Expand/collapse indicator
+                            Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(BrutalTheme.textTertiary)
+                                .frame(width: 20, alignment: .leading)
+                            
+                            Text(String(format: "%02d", index + 1))
+                                .font(BrutalTheme.tableBody)
+                                .foregroundColor(BrutalTheme.textTertiary)
+                                .frame(width: 28, alignment: .leading)
 
-                        Text(domain.domain)
-                            .font(BrutalTheme.tableBody)
-                            .foregroundColor(BrutalTheme.textPrimary)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
+                            Text(domain.domain)
+                                .font(BrutalTheme.tableBody)
+                                .foregroundColor(BrutalTheme.textPrimary)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
 
-                        Spacer(minLength: 8)
+                            Spacer(minLength: 8)
 
-                        Text("\(domain.visitCount)")
-                            .font(BrutalTheme.tableBody)
-                            .foregroundColor(BrutalTheme.textPrimary)
-                            .frame(width: 64, alignment: .trailing)
+                            Text("\(domain.visitCount)")
+                                .font(BrutalTheme.tableBody)
+                                .foregroundColor(BrutalTheme.textPrimary)
+                                .frame(width: 64, alignment: .trailing)
 
-                        Text(String(format: "%.1f%%", pct))
-                            .font(BrutalTheme.tableBody)
-                            .foregroundColor(BrutalTheme.textTertiary)
-                            .frame(width: 52, alignment: .trailing)
+                            Text(String(format: "%.1f%%", pct))
+                                .font(BrutalTheme.tableBody)
+                                .foregroundColor(BrutalTheme.textTertiary)
+                                .frame(width: 52, alignment: .trailing)
 
-                        Text(Self.shortDateFormatter.string(from: domain.lastVisitTime))
-                            .font(BrutalTheme.tableBody)
-                            .foregroundColor(BrutalTheme.textTertiary)
-                            .frame(width: 90, alignment: .trailing)
+                            Text(Self.shortDateFormatter.string(from: domain.lastVisitTime))
+                                .font(BrutalTheme.tableBody)
+                                .foregroundColor(BrutalTheme.textTertiary)
+                                .frame(width: 90, alignment: .trailing)
+                        }
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 8)
+                        .contentShape(Rectangle())
                     }
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 8)
+                    .buttonStyle(.plain)
 
                     // Percentage bar
                     GeometryReader { geo in
@@ -557,6 +591,31 @@ struct WebHistoryView: View {
                             .frame(width: geo.size.width * max(CGFloat(pct) / 100, 0), height: 3)
                     }
                     .frame(height: 3)
+                    
+                    // Expanded pages section
+                    if isExpanded {
+                        if isLoadingPages {
+                            HStack(spacing: 8) {
+                                ProgressView()
+                                    .scaleEffect(0.7)
+                                Text("Loading pages...")
+                                    .font(BrutalTheme.captionMono)
+                                    .foregroundColor(BrutalTheme.textTertiary)
+                            }
+                            .padding(.vertical, 12)
+                            .padding(.leading, 48)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        } else if let pages = domainPages[domain.domain], !pages.isEmpty {
+                            domainPagesSection(pages: pages)
+                        } else {
+                            Text("No page details available")
+                                .font(BrutalTheme.captionMono)
+                                .foregroundColor(BrutalTheme.textTertiary)
+                                .padding(.vertical, 12)
+                                .padding(.leading, 48)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
 
                     if index < topDomains.count - 1 {
                         Rectangle()
@@ -565,6 +624,133 @@ struct WebHistoryView: View {
                     }
                 }
             }
+        }
+    }
+    
+    // MARK: - Domain pages detail section
+    
+    private func domainPagesSection(pages: [PageSummary]) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Pages header
+            HStack {
+                Text("PAGE")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("VISITS")
+                    .frame(width: 50, alignment: .trailing)
+            }
+            .font(.system(size: 9, weight: .semibold, design: .monospaced))
+            .foregroundColor(BrutalTheme.textTertiary)
+            .tracking(0.5)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .padding(.leading, 36)
+            .background(BrutalTheme.surfaceAlt.opacity(0.5))
+            
+            ForEach(pages) { page in
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(alignment: .top, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(page.title)
+                                .font(BrutalTheme.captionMono)
+                                .foregroundColor(BrutalTheme.textPrimary)
+                                .lineLimit(1)
+                            
+                            Text(page.path)
+                                .font(.system(size: 9, weight: .regular, design: .monospaced))
+                                .foregroundColor(BrutalTheme.textTertiary)
+                                .lineLimit(1)
+                        }
+                        
+                        Spacer(minLength: 8)
+                        
+                        Text("\(page.visitCount)")
+                            .font(BrutalTheme.captionMono)
+                            .foregroundColor(BrutalTheme.textSecondary)
+                            .frame(width: 50, alignment: .trailing)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .padding(.leading, 36)
+                    
+                    // Visit times for this page
+                    if !page.visits.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 6) {
+                                ForEach(page.visits.prefix(10)) { visit in
+                                    visitTimeChip(visit)
+                                }
+                                if page.visits.count > 10 {
+                                    Text("+\(page.visits.count - 10) more")
+                                        .font(.system(size: 9, weight: .medium, design: .monospaced))
+                                        .foregroundColor(BrutalTheme.textTertiary)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                }
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.leading, 36)
+                            .padding(.bottom, 6)
+                        }
+                    }
+                    
+                    Rectangle()
+                        .fill(BrutalTheme.border.opacity(0.5))
+                        .frame(height: 0.5)
+                        .padding(.leading, 48)
+                }
+            }
+        }
+        .background(BrutalTheme.surface.opacity(0.3))
+    }
+    
+    private func visitTimeChip(_ visit: PageVisit) -> some View {
+        HStack(spacing: 4) {
+            Text(Self.chipDateFormatter.string(from: visit.visitTime))
+                .font(.system(size: 9, weight: .medium, design: .monospaced))
+                .foregroundColor(BrutalTheme.textSecondary)
+            
+            Text(Self.timeFormatter.string(from: visit.visitTime))
+                .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                .foregroundColor(BrutalTheme.textPrimary)
+            
+            browserIcon(visit.browser)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(
+            RoundedRectangle(cornerRadius: 4)
+                .fill(BrutalTheme.surfaceAlt)
+        )
+    }
+    
+    private func toggleDomainExpansion(_ domain: String) {
+        if expandedDomains.contains(domain) {
+            expandedDomains.remove(domain)
+        } else {
+            expandedDomains.insert(domain)
+            // Load pages if not already loaded
+            if domainPages[domain] == nil {
+                Task { await loadPagesForDomain(domain) }
+            }
+        }
+    }
+    
+    private func loadPagesForDomain(_ domain: String) async {
+        loadingDomains.insert(domain)
+        defer { loadingDomains.remove(domain) }
+        
+        do {
+            let pages = try await service.fetchPagesForDomain(
+                domain: domain,
+                browser: browserFilter,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                limit: 50
+            )
+            domainPages[domain] = pages
+        } catch {
+            // Silently fail - user will see "No page details available"
+            domainPages[domain] = []
         }
     }
 
@@ -767,6 +953,13 @@ struct WebHistoryView: View {
         let f = DateFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "M/d"
+        return f
+    }()
+    
+    private static let chipDateFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.dateFormat = "MMM d"
         return f
     }()
 }

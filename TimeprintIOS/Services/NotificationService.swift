@@ -126,26 +126,6 @@ final class NotificationService: NSObject, @unchecked Sendable {
         try? await center.add(request)
     }
     
-    /// Send a streak notification
-    func sendStreakNotification(days: Int) async {
-        let status = await checkAuthorizationStatus()
-        guard status == .authorized else { return }
-        
-        let content = UNMutableNotificationContent()
-        content.title = "🔥 Streak Achievement!"
-        content.body = "You're on a \(days)-day tracking streak. Keep it up!"
-        content.sound = .default
-        
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
-        let request = UNNotificationRequest(
-            identifier: "streak-\(days)",
-            content: content,
-            trigger: trigger
-        )
-        
-        try? await center.add(request)
-    }
-    
     // MARK: - Badge
     
     /// Update app badge with hours of screen time
@@ -186,7 +166,6 @@ struct NotificationSettings: Codable {
     var dailySummaryHour: Int = 21
     var dailySummaryMinute: Int = 0
     var milestoneAlertsEnabled: Bool = false
-    var streakAlertsEnabled: Bool = true
     var badgeEnabled: Bool = false
     
     static let key = "notificationSettings"

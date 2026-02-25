@@ -69,3 +69,27 @@ struct HourlyVisitCount: Identifiable, Sendable {
     let hour: Int       // 0–23
     let visitCount: Int
 }
+
+// MARK: - Page visit within a domain (for drill-down view)
+
+struct PageVisit: Identifiable, Sendable {
+    let id: String
+    let url: String
+    let path: String           // URL path (e.g., "/docs/api")
+    let title: String
+    let visitTime: Date
+    let durationSeconds: Double?
+    let browser: BrowserSource
+}
+
+// MARK: - Page summary for domain drill-down
+
+struct PageSummary: Identifiable, Sendable {
+    var id: String { path }
+    let path: String           // URL path (e.g., "/docs/api")
+    let title: String          // Most recent title for this path
+    let visitCount: Int
+    let visits: [PageVisit]    // All visits to this path, sorted by time desc
+    let lastVisitTime: Date
+    let totalDurationSeconds: Double?
+}

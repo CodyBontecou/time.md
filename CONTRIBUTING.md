@@ -10,7 +10,7 @@ Please be respectful and constructive in all interactions. We're building someth
 
 ### Prerequisites
 
-- macOS 26.1+ (Sequoia)
+- macOS 14.0+ (Sonoma)
 - Xcode 26.2+
 - Swift 5.9+
 - Git

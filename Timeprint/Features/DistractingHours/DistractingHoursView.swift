@@ -226,7 +226,7 @@ struct DistractingHoursView: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
                 }
-                .buttonStyle(.glass)
+                .buttonStyle(.bordered)
                 .tint(isActive ? BrutalTheme.accent : .clear)
             }
 
@@ -243,7 +243,7 @@ struct DistractingHoursView: View {
                         selectedPreset = .all
                     }
                 }
-                .buttonStyle(.glass)
+                .buttonStyle(.bordered)
                 .tint(BrutalTheme.danger)
             }
         }

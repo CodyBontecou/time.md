@@ -198,7 +198,7 @@ struct AdvancedTimeFiltersView: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.bordered)
     }
     
     // MARK: - Weekday Section
@@ -258,7 +258,7 @@ struct AdvancedTimeFiltersView: View {
                 .foregroundColor(isSelected ? .white : (isEmpty ? BrutalTheme.textSecondary : BrutalTheme.textTertiary))
                 .frame(width: 36, height: 32)
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.bordered)
         .tint(isSelected ? BrutalTheme.accent : (isEmpty ? BrutalTheme.accent.opacity(0.3) : .clear))
     }
     
@@ -276,7 +276,7 @@ struct AdvancedTimeFiltersView: View {
                 .padding(.horizontal, 10)
                 .padding(.vertical, 4)
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.bordered)
         .tint(isActive ? BrutalTheme.accent : .clear)
     }
     
@@ -344,7 +344,7 @@ struct AdvancedTimeFiltersView: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.bordered)
         .tint(isSelected ? BrutalTheme.accent : .clear)
     }
     
@@ -362,7 +362,7 @@ struct AdvancedTimeFiltersView: View {
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.bordered)
         .tint(isSelected ? BrutalTheme.accent : .clear)
     }
     

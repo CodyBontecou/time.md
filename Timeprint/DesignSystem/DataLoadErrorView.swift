@@ -48,7 +48,7 @@ struct DataLoadErrorView: View {
             }
             .padding(12)
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.bordered)
         .tint(BrutalTheme.warning)
     }
 

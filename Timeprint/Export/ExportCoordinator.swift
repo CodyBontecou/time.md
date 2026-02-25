@@ -129,9 +129,6 @@ struct ExportCoordinator: ExportCoordinating {
             rowCount = buckets.count
         case .heatmap:
             rowCount = 7 * 24  // Full heatmap grid
-        case .focus:
-            let focusDays = try await dataService.fetchFocusDays(filters: filters)
-            rowCount = focusDays.count
         case .calendar:
             let focusDays = try await dataService.fetchFocusDays(filters: filters)
             rowCount = focusDays.count
@@ -220,9 +217,6 @@ struct ExportCoordinator: ExportCoordinating {
                 totalRows += buckets.count
             case .heatmap:
                 totalRows += 7 * 24
-            case .focus:
-                let focusDays = try await dataService.fetchFocusDays(filters: filters)
-                totalRows += focusDays.count
             case .rawSessions:
                 totalRows += try await dataService.fetchRawSessionCount(filters: filters)
                 
@@ -233,8 +227,6 @@ struct ExportCoordinator: ExportCoordinating {
             case .appTransitions:
                 let transitions = try await dataService.fetchAppTransitions(filters: filters, limit: 100)
                 totalRows += transitions.count
-            case .weekdayPatterns:
-                totalRows += 7  // One row per weekday
             case .periodComparison:
                 let comparison = try await dataService.fetchPeriodComparison(current: filters, previous: filters)
                 totalRows += 5 + min(comparison.appDeltas.count, 20)  // Base metrics + app deltas
@@ -263,8 +255,7 @@ struct ExportCoordinator: ExportCoordinating {
                         rows: [
                             ["total_seconds", formatSeconds(summaryData.totalSeconds)],
                             ["average_daily_seconds", formatSeconds(summaryData.averageDailySeconds)],
-                            ["focus_blocks", String(summaryData.focusBlocks)],
-                            ["current_streak_days", String(summaryData.currentStreakDays)]
+                            ["focus_blocks", String(summaryData.focusBlocks)]
                         ]
                     )
                 ]
@@ -350,22 +341,6 @@ struct ExportCoordinator: ExportCoordinating {
                 ]
             )
             
-        case .focus:
-            let focusDays = try await dataService.fetchFocusDays(filters: filters)
-            return ExportReport(
-                title: "Focus & Streaks",
-                destination: .focus,
-                generatedAt: generatedAt,
-                filterSummary: filterSummary,
-                sections: [
-                    ExportSectionData(
-                        title: "Focus Days",
-                        headers: ["date", "focus_blocks", "total_seconds"],
-                        rows: focusDays.map { [isoDate($0.date), String($0.focusBlocks), formatSeconds($0.totalSeconds)] }
-                    )
-                ]
-            )
-            
         case .rawSessions:
             let sessions = try await dataService.fetchRawSessions(filters: filters)
             return ExportReport(
@@ -422,28 +397,6 @@ struct ExportCoordinator: ExportCoordinating {
                             $0.toApp,
                             String($0.count),
                             totalCount > 0 ? String(format: "%.1f", Double($0.count) / Double(totalCount) * 100) : "0.0"
-                        ] }
-                    )
-                ]
-            )
-            
-        case .weekdayPatterns:
-            let weekdayData = try await dataService.fetchWeekdayAverages(filters: filters)
-            let weekdayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-            return ExportReport(
-                title: "Weekday Patterns",
-                destination: .overview,
-                generatedAt: generatedAt,
-                filterSummary: filterSummary,
-                sections: [
-                    ExportSectionData(
-                        title: "Weekday Averages",
-                        headers: ["weekday_num", "weekday_name", "average_seconds", "top_app"],
-                        rows: weekdayData.map { [
-                            String($0.weekday),
-                            weekdayNames[$0.weekday],
-                            formatSeconds($0.averageSeconds),
-                            $0.topApp
                         ] }
                     )
                 ]
@@ -799,8 +752,7 @@ private extension ExportCoordinator {
                 rows: [
                     ["total_seconds", formatSeconds(summary.totalSeconds)],
                     ["average_daily_seconds", formatSeconds(summary.averageDailySeconds)],
-                    ["focus_blocks", String(summary.focusBlocks)],
-                    ["current_streak_days", String(summary.currentStreakDays)]
+                    ["focus_blocks", String(summary.focusBlocks)]
                 ]
             )
 
@@ -888,22 +840,6 @@ private extension ExportCoordinator {
                         title: "Heatmap",
                         headers: ["weekday", "hour", "total_seconds"],
                         rows: cells.map { [String($0.weekday), String($0.hour), formatSeconds($0.totalSeconds)] }
-                    )
-                ]
-            )
-
-        case .focus:
-            let focusDays = try await dataService.fetchFocusDays(filters: filters)
-            return ExportReport(
-                title: "Focus & Streaks Export",
-                destination: destination,
-                generatedAt: generatedAt,
-                filterSummary: filterSummary,
-                sections: [
-                    ExportSectionData(
-                        title: "Focus Days",
-                        headers: ["date", "focus_blocks", "total_seconds"],
-                        rows: focusDays.map { [isoDate($0.date), String($0.focusBlocks), formatSeconds($0.totalSeconds)] }
                     )
                 ]
             )
@@ -1670,7 +1606,6 @@ private extension ExportCoordinator {
         lines.append("⏱️ Total: \(String(format: "%.1f", totalHours)) hours")
         lines.append("📈 Daily Avg: \(String(format: "%.1f", dailyAvgHours)) hours")
         lines.append("🎯 Focus Blocks: \(summary.focusBlocks)")
-        lines.append("🔥 Streak: \(summary.currentStreakDays) days")
         lines.append("")
 
         if !topApps.isEmpty {

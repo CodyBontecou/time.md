@@ -1,5 +1,13 @@
 import SwiftUI
 
+// PreferenceKey to pass screen time data up to the host app
+struct ScreenTimeDataPreferenceKey: PreferenceKey {
+    static var defaultValue: Double = 0
+    static func reduce(value: inout Double, nextValue: () -> Double) {
+        value = max(value, nextValue())
+    }
+}
+
 /// View displaying total screen time activity
 struct TotalActivityView: View {
     let totalActivity: TotalActivityContext
@@ -11,16 +19,10 @@ struct TotalActivityView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if hasData {
-                // Main total
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Screen Time Today")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    
-                    Text(formatDuration(totalActivity.totalDuration))
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(.primary)
-                }
+                // Main total - no header needed since parent provides it
+                Text(formatDuration(totalActivity.totalDuration))
+                    .font(.system(size: 34, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
                 
                 // Category breakdown
                 if !totalActivity.categoryDurations.isEmpty {
@@ -65,7 +67,6 @@ struct TotalActivityView: View {
                 .padding(.vertical, 20)
             }
         }
-        .padding()
     }
     
     private func formatDuration(_ duration: TimeInterval) -> String {

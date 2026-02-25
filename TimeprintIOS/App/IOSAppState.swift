@@ -22,14 +22,29 @@ final class IOSAppState: ObservableObject {
     
     // Local Screen Time
     @Published var hasLocalScreenTimeAccess = false
-    @Published var localScreenTimeTotal: Double = 0
+    
+    // Device Filtering
+    @Published var selectedDeviceIds: Set<String> = [] {
+        didSet {
+            // Persist selection
+            UserDefaults.standard.set(Array(selectedDeviceIds), forKey: "selectedDeviceIds")
+            // Recalculate filtered data
+            updateFilteredDashboardData()
+        }
+    }
+    
+    // Filtered Dashboard Data (based on selected synced devices only)
+    @Published var filteredTodayTotalSeconds: Double = 0
+    @Published var filteredWeekTotalSeconds: Double = 0
+    @Published var filteredDailyAverage: Double = 0
+    @Published var filteredRecentTrend: [SparklinePoint] = []
+    @Published var filteredTopApps: [AppUsageSummary] = []
     
     // Dashboard Data
     @Published var todayTotalSeconds: Double = 0
     @Published var weekTotalSeconds: Double = 0
     @Published var dailyAverage: Double = 0
     @Published var focusBlocks: Int = 0
-    @Published var currentStreak: Int = 0
     
     // Trend
     @Published var recentTrend: [SparklinePoint] = []
@@ -52,6 +67,11 @@ final class IOSAppState: ObservableObject {
         self.syncService = iCloudSyncService(containerIdentifier: "iCloud.com.codybontecou.Timeprint")
         self.localDataService = IOSScreenTimeDataService()
         
+        // Restore persisted device selection
+        if let savedIds = UserDefaults.standard.array(forKey: "selectedDeviceIds") as? [String] {
+            self.selectedDeviceIds = Set(savedIds)
+        }
+        
         // Prepare haptic generators
         hapticFeedback.prepare()
         impactFeedback.prepare()
@@ -61,46 +81,6 @@ final class IOSAppState: ObservableObject {
             await checkSyncAvailability()
             await checkLocalScreenTimeAccess()
         }
-        
-        // Observe app foreground to refresh local Screen Time data
-        NotificationCenter.default.addObserver(
-            forName: UIApplication.willEnterForegroundNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor in
-                self?.refreshLocalDeviceActivityData()
-            }
-        }
-        
-        // Observe Darwin notification from DeviceActivityMonitor extension
-        observeDeviceActivityUpdates()
-    }
-    
-    private func observeDeviceActivityUpdates() {
-        // Listen for Darwin notifications from the DeviceActivityMonitor extension
-        let notificationName = CFNotificationName("com.codybontecou.Timeprint.monitorEvent" as CFString)
-        
-        CFNotificationCenterAddObserver(
-            CFNotificationCenterGetDarwinNotifyCenter(),
-            Unmanaged.passUnretained(self).toOpaque(),
-            { _, observer, _, _, _ in
-                guard let observer = observer else { return }
-                let appState = Unmanaged<IOSAppState>.fromOpaque(observer).takeUnretainedValue()
-                Task { @MainActor in
-                    appState.refreshLocalDeviceActivityData()
-                }
-            },
-            notificationName.rawValue,
-            nil,
-            .deliverImmediately
-        )
-    }
-    
-    /// Refresh local device activity data (call when app becomes active or data updates)
-    func refreshLocalDeviceActivityData() {
-        guard hasLocalScreenTimeAccess else { return }
-        readLocalDeviceActivityData()
     }
     
     /// Call this after onboarding completes to re-check authorization and refresh data
@@ -108,10 +88,6 @@ final class IOSAppState: ObservableObject {
         print("[IOSAppState] Onboarding completed, re-checking authorization and refreshing data")
         await checkLocalScreenTimeAccess()
         await checkSyncAvailability()
-        
-        // Give DeviceActivityReport views time to render and populate data
-        try? await Task.sleep(for: .seconds(2))
-        readLocalDeviceActivityData()
     }
     
     // MARK: - Sync
@@ -128,95 +104,6 @@ final class IOSAppState: ObservableObject {
     private func checkLocalScreenTimeAccess() async {
         let status = AuthorizationCenter.shared.authorizationStatus
         hasLocalScreenTimeAccess = (status == .approved)
-        
-        if hasLocalScreenTimeAccess {
-            await refreshLocalScreenTime()
-            // Also read top apps from DeviceActivityReport data
-            readLocalDeviceActivityData()
-        }
-    }
-    
-    /// Read data that DeviceActivityReport extension has written to App Group UserDefaults
-    func readLocalDeviceActivityData() {
-        guard let appGroupDefaults = UserDefaults(suiteName: "group.com.codybontecou.Timeprint") else {
-            print("[IOSAppState] Failed to access App Group UserDefaults")
-            return
-        }
-        
-        // Check when the report was last updated
-        let lastUpdate = appGroupDefaults.object(forKey: "lastReportUpdate") as? Date
-        print("[IOSAppState] Last DeviceActivityReport update: \(lastUpdate?.description ?? "never")")
-        
-        // Read total duration
-        let reportTotal = appGroupDefaults.double(forKey: "todayTotalDuration")
-        print("[IOSAppState] DeviceActivityReport todayTotalDuration: \(reportTotal)")
-        
-        if reportTotal > 0 {
-            localScreenTimeTotal = reportTotal
-            // Update today's total to include local iPhone data
-            if hasLocalScreenTimeAccess {
-                // Combine with cloud data or use local if higher
-                let cloudToday = todayTotalSeconds
-                todayTotalSeconds = max(cloudToday, reportTotal)
-                print("[IOSAppState] Updated todayTotalSeconds to \(todayTotalSeconds) (cloud: \(cloudToday), local: \(reportTotal))")
-            }
-        }
-        
-        // Read top apps from DeviceActivityReport
-        if let topAppsData = appGroupDefaults.array(forKey: "topApps") as? [[String: Any]] {
-            print("[IOSAppState] Found \(topAppsData.count) apps from DeviceActivityReport")
-            var localApps: [AppUsageSummary] = []
-            for appDict in topAppsData {
-                if let name = appDict["name"] as? String,
-                   let duration = appDict["duration"] as? Double {
-                    let pickups = appDict["pickups"] as? Int ?? 0
-                    localApps.append(AppUsageSummary(
-                        appName: name,
-                        totalSeconds: duration,
-                        sessionCount: pickups
-                    ))
-                }
-            }
-            
-            // Merge with existing top apps (prioritize local data for iPhone)
-            if !localApps.isEmpty {
-                // For now, just use local apps if we have Screen Time access
-                // In the future, could merge with cloud data more intelligently
-                topApps = localApps
-                print("[IOSAppState] Updated topApps with \(localApps.count) local apps")
-            }
-        } else {
-            print("[IOSAppState] No topApps data found in UserDefaults")
-        }
-        
-        // Read category durations if needed
-        if let categoryData = appGroupDefaults.array(forKey: "categoryDurations") as? [[String: Any]] {
-            // Could use this for category breakdown view
-            print("[IOSAppState] Found \(categoryData.count) category durations from DeviceActivityReport")
-        }
-    }
-    
-    private func refreshLocalScreenTime() async {
-        // First, try to read from the App Group UserDefaults where DeviceActivityReport writes
-        if let appGroupDefaults = UserDefaults(suiteName: "group.com.codybontecou.Timeprint") {
-            let reportTotal = appGroupDefaults.double(forKey: "todayTotalDuration")
-            if reportTotal > 0 {
-                localScreenTimeTotal = reportTotal
-                // Also update today's total if it's higher than cloud data
-                if reportTotal > todayTotalSeconds {
-                    todayTotalSeconds = reportTotal
-                }
-                return
-            }
-        }
-        
-        // Fallback to SharedDataStore
-        do {
-            localScreenTimeTotal = try await localDataService.todayTotal()
-        } catch {
-            // Local data not available yet - this is expected initially
-            localScreenTimeTotal = 0
-        }
     }
     
     func refreshFromCloud() async {
@@ -370,9 +257,6 @@ final class IOSAppState: ObservableObject {
             .filter { calendar.isDate($0.date, inSameDayAs: today) }
             .reduce(0) { $0 + $1.focusBlocks }
         
-        // Calculate current streak (days with focus blocks)
-        currentStreak = calculateCurrentStreak()
-        
         // Build trend from sync data
         var trendPoints: [SparklinePoint] = []
         for dayOffset in (0..<7).reversed() {
@@ -384,33 +268,10 @@ final class IOSAppState: ObservableObject {
         
         // Update top apps
         updateTopApps()
-    }
-    
-    private func calculateCurrentStreak() -> Int {
-        let calendar = Calendar.current
-        var streak = 0
-        var checkDate = calendar.startOfDay(for: Date())
         
-        // Get all daily summaries sorted by date descending
-        let allSummaries = syncPayload.devices
-            .flatMap { $0.dailySummaries }
-            .sorted { $0.date > $1.date }
-        
-        while true {
-            let dayTotal = allSummaries
-                .filter { calendar.isDate($0.date, inSameDayAs: checkDate) }
-                .reduce(0) { $0 + $1.totalSeconds }
-            
-            // Consider a day "active" if there's at least 5 minutes of screen time
-            if dayTotal >= 300 {
-                streak += 1
-                checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
-            } else {
-                break
-            }
-        }
-        
-        return streak
+        // Initialize device selection and update filtered data
+        initializeDeviceSelectionIfNeeded()
+        updateFilteredDashboardData()
     }
     
     private func updateTopApps() {
@@ -442,6 +303,267 @@ final class IOSAppState: ObservableObject {
             .map { $0 }
     }
     
+    // MARK: - Device Filtering
+    
+    /// Initialize device selection when devices become available
+    func initializeDeviceSelectionIfNeeded() {
+        // If no devices are selected but we have devices, select all synced devices by default
+        if selectedDeviceIds.isEmpty && !syncPayload.devices.isEmpty {
+            selectedDeviceIds = Set(syncPayload.devices.map { $0.id })
+        }
+        // Also add current device (iPhone) if it has local screen time access
+        // This allows showing the DeviceActivityReport section
+        if hasLocalScreenTimeAccess {
+            selectedDeviceIds.insert(currentDevice.id)
+        }
+    }
+    
+    /// Toggle a device's selection
+    func toggleDevice(_ deviceId: String) {
+        if selectedDeviceIds.contains(deviceId) {
+            selectedDeviceIds.remove(deviceId)
+        } else {
+            selectedDeviceIds.insert(deviceId)
+        }
+    }
+    
+    /// Check if a device is selected
+    func isDeviceSelected(_ deviceId: String) -> Bool {
+        selectedDeviceIds.contains(deviceId)
+    }
+    
+    /// Select all devices
+    func selectAllDevices() {
+        var ids = Set(syncPayload.devices.map { $0.id })
+        if hasLocalScreenTimeAccess {
+            ids.insert(currentDevice.id)
+        }
+        selectedDeviceIds = ids
+    }
+    
+    /// Deselect all devices
+    func deselectAllDevices() {
+        selectedDeviceIds = []
+    }
+    
+    /// Get selected devices data (synced devices only, not including current iPhone)
+    var selectedDevices: [DeviceSyncData] {
+        syncPayload.devices.filter { selectedDeviceIds.contains($0.id) }
+    }
+    
+    /// Whether local iPhone is toggled on (for showing DeviceActivityReport)
+    var includeLocalIPhoneData: Bool {
+        hasLocalScreenTimeAccess && selectedDeviceIds.contains(currentDevice.id)
+    }
+    
+    /// Update dashboard data based on selected synced devices only
+    /// Note: iPhone data is NOT included in totals due to iOS sandbox restrictions
+    /// iPhone data is displayed separately via DeviceActivityReport
+    private func updateFilteredDashboardData() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let weekAgo = calendar.date(byAdding: .day, value: -7, to: today)!
+        
+        // Filter to only selected SYNCED devices (NOT including current iPhone)
+        // iPhone data cannot be exported programmatically due to iOS sandbox
+        let filteredDevices = syncPayload.devices.filter { 
+            selectedDeviceIds.contains($0.id) && $0.id != currentDevice.id
+        }
+        
+        // Calculate today's total from selected synced devices only
+        var todayTotal: Double = 0
+        for device in filteredDevices {
+            let deviceToday = device.dailySummaries
+                .filter { calendar.isDateInToday($0.date) }
+                .reduce(0) { $0 + $1.totalSeconds }
+            todayTotal += deviceToday
+        }
+        
+        filteredTodayTotalSeconds = todayTotal
+        
+        // Calculate week total from selected synced devices
+        var weekTotals: [Date: Double] = [:]
+        for device in filteredDevices {
+            for summary in device.dailySummaries {
+                let dayStart = calendar.startOfDay(for: summary.date)
+                guard dayStart >= weekAgo && dayStart <= today else { continue }
+                weekTotals[dayStart, default: 0] += summary.totalSeconds
+            }
+        }
+        
+        filteredWeekTotalSeconds = weekTotals.values.reduce(0, +)
+        
+        // Daily average
+        let daysWithData = weekTotals.count
+        filteredDailyAverage = daysWithData > 0 ? filteredWeekTotalSeconds / Double(daysWithData) : 0
+        
+        // Build trend from selected devices
+        var trendPoints: [SparklinePoint] = []
+        for dayOffset in (0..<7).reversed() {
+            let date = calendar.date(byAdding: .day, value: -dayOffset, to: today)!
+            let seconds = weekTotals[date] ?? 0
+            trendPoints.append(SparklinePoint(date: date, totalSeconds: seconds))
+        }
+        filteredRecentTrend = trendPoints
+        
+        // Update filtered top apps (from synced devices only)
+        updateFilteredTopApps(from: filteredDevices)
+    }
+    
+    // MARK: - Filter-Based Data Methods
+    
+    /// Get total screen time for a date range with optional time-of-day filtering
+    func getTotalSeconds(
+        startDate: Date,
+        endDate: Date,
+        timeOfDayRanges: [TimeOfDayRange] = [],
+        weekdayFilter: Set<Int> = []
+    ) -> Double {
+        let calendar = Calendar.current
+        let filteredDevices = syncPayload.devices.filter {
+            selectedDeviceIds.contains($0.id) && $0.id != currentDevice.id
+        }
+        
+        var total: Double = 0
+        
+        for device in filteredDevices {
+            for summary in device.dailySummaries {
+                let dayStart = calendar.startOfDay(for: summary.date)
+                
+                // Check date range
+                guard dayStart >= calendar.startOfDay(for: startDate) &&
+                      dayStart <= calendar.startOfDay(for: endDate) else { continue }
+                
+                // Check weekday filter
+                if !weekdayFilter.isEmpty {
+                    let weekday = calendar.component(.weekday, from: summary.date) - 1 // 0-indexed
+                    guard weekdayFilter.contains(weekday) else { continue }
+                }
+                
+                // Note: time-of-day filtering would require hourly data which we don't have in summaries
+                // For now, we include the full day's data if the day matches
+                total += summary.totalSeconds
+            }
+        }
+        
+        return total
+    }
+    
+    /// Get daily totals for a date range (for trend charts)
+    func getDailyTotals(
+        startDate: Date,
+        endDate: Date,
+        weekdayFilter: Set<Int> = []
+    ) -> [SparklinePoint] {
+        let calendar = Calendar.current
+        let filteredDevices = syncPayload.devices.filter {
+            selectedDeviceIds.contains($0.id) && $0.id != currentDevice.id
+        }
+        
+        // Build a map of date -> total seconds
+        var dailyTotals: [Date: Double] = [:]
+        
+        // Initialize all days in range
+        var currentDate = calendar.startOfDay(for: startDate)
+        let endDay = calendar.startOfDay(for: endDate)
+        while currentDate <= endDay {
+            // Check weekday filter
+            if weekdayFilter.isEmpty {
+                dailyTotals[currentDate] = 0
+            } else {
+                let weekday = calendar.component(.weekday, from: currentDate) - 1
+                if weekdayFilter.contains(weekday) {
+                    dailyTotals[currentDate] = 0
+                }
+            }
+            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+        }
+        
+        // Accumulate data from devices
+        for device in filteredDevices {
+            for summary in device.dailySummaries {
+                let dayStart = calendar.startOfDay(for: summary.date)
+                if dailyTotals.keys.contains(dayStart) {
+                    dailyTotals[dayStart, default: 0] += summary.totalSeconds
+                }
+            }
+        }
+        
+        // Convert to SparklinePoints sorted by date
+        return dailyTotals
+            .map { SparklinePoint(date: $0.key, totalSeconds: $0.value) }
+            .sorted { $0.date < $1.date }
+    }
+    
+    /// Get top apps for a date range
+    func getTopApps(
+        startDate: Date,
+        endDate: Date,
+        weekdayFilter: Set<Int> = [],
+        limit: Int = 10
+    ) -> [AppUsageSummary] {
+        let calendar = Calendar.current
+        let filteredDevices = syncPayload.devices.filter {
+            selectedDeviceIds.contains($0.id) && $0.id != currentDevice.id
+        }
+        
+        var appMap: [String: AppUsageSummary] = [:]
+        
+        for device in filteredDevices {
+            for usage in device.appUsage {
+                // Note: appUsage doesn't have per-day breakdown, so we include all if device has data in range
+                // This is a limitation of the current data model
+                if var existing = appMap[usage.bundleId] {
+                    existing = AppUsageSummary(
+                        appName: existing.appName,
+                        totalSeconds: existing.totalSeconds + usage.totalSeconds,
+                        sessionCount: existing.sessionCount + usage.sessionCount
+                    )
+                    appMap[usage.bundleId] = existing
+                } else {
+                    appMap[usage.bundleId] = AppUsageSummary(
+                        appName: usage.displayName,
+                        totalSeconds: usage.totalSeconds,
+                        sessionCount: usage.sessionCount
+                    )
+                }
+            }
+        }
+        
+        return Array(appMap.values)
+            .sorted { $0.totalSeconds > $1.totalSeconds }
+            .prefix(limit)
+            .map { $0 }
+    }
+    
+    private func updateFilteredTopApps(from devices: [DeviceSyncData]) {
+        var appMap: [String: AppUsageSummary] = [:]
+        
+        for device in devices {
+            for usage in device.appUsage {
+                if var existing = appMap[usage.bundleId] {
+                    existing = AppUsageSummary(
+                        appName: existing.appName,
+                        totalSeconds: existing.totalSeconds + usage.totalSeconds,
+                        sessionCount: existing.sessionCount + usage.sessionCount
+                    )
+                    appMap[usage.bundleId] = existing
+                } else {
+                    appMap[usage.bundleId] = AppUsageSummary(
+                        appName: usage.displayName,
+                        totalSeconds: usage.totalSeconds,
+                        sessionCount: usage.sessionCount
+                    )
+                }
+            }
+        }
+        
+        filteredTopApps = Array(appMap.values)
+            .sorted { $0.totalSeconds > $1.totalSeconds }
+            .prefix(10)
+            .map { $0 }
+    }
+    
     // MARK: - Error Handling
     
     func dismissError() {
@@ -468,5 +590,31 @@ extension IOSAppState {
     var lastSyncFormatted: String {
         guard let date = lastSyncDate else { return "Never" }
         return TimeFormatters.relativeDate(date)
+    }
+    
+    // Filtered data formatters (based on selected synced devices)
+    var filteredTodayFormatted: String {
+        TimeFormatters.formatDuration(filteredTodayTotalSeconds, style: .compact)
+    }
+    
+    var filteredWeekFormatted: String {
+        TimeFormatters.formatDuration(filteredWeekTotalSeconds, style: .hoursOnly)
+    }
+    
+    var filteredDailyAverageFormatted: String {
+        TimeFormatters.formatDuration(filteredDailyAverage, style: .compact)
+    }
+    
+    /// Number of selected devices (including iPhone for display purposes)
+    var selectedDeviceCount: Int {
+        selectedDeviceIds.count
+    }
+    
+    /// Whether all available devices are selected
+    var allDevicesSelected: Bool {
+        let allIds = Set(syncPayload.devices.map { $0.id })
+        let localId = hasLocalScreenTimeAccess ? Set([currentDevice.id]) : Set<String>()
+        let allAvailable = allIds.union(localId)
+        return selectedDeviceIds == allAvailable && !allAvailable.isEmpty
     }
 }

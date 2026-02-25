@@ -435,7 +435,7 @@ struct ExportsView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.bordered)
         .disabled(isLoading || isExporting)
     }
 
@@ -713,7 +713,7 @@ struct ExportsView: View {
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                         }
-                        .buttonStyle(.glass)
+                        .buttonStyle(.bordered)
                         .tint(exportSettings.csvOptions.delimiter == delimiter ? BrutalTheme.accent : .clear)
                     }
                 }
@@ -741,7 +741,7 @@ struct ExportsView: View {
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                         }
-                        .buttonStyle(.glass)
+                        .buttonStyle(.bordered)
                         .tint(exportSettings.csvOptions.quoteStyle == style ? BrutalTheme.accent : .clear)
                     }
                 }
@@ -805,7 +805,7 @@ struct ExportsView: View {
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
                         }
-                        .buttonStyle(.glass)
+                        .buttonStyle(.bordered)
                         .tint(exportSettings.jsonOptions.structure == structure ? BrutalTheme.accent : .clear)
                     }
                 }
@@ -877,7 +877,7 @@ struct ExportsView: View {
                             .padding(.horizontal, 10)
                             .padding(.vertical, 6)
                     }
-                    .buttonStyle(.glass)
+                    .buttonStyle(.bordered)
                     .tint(exportSettings.timestampFormat == format ? BrutalTheme.accent : .clear)
                 }
             }
@@ -946,7 +946,7 @@ struct ExportsView: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 8)
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.bordered)
         .tint(isSelected ? BrutalTheme.accent : .clear)
     }
 
@@ -971,7 +971,7 @@ struct ExportsView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
         }
-        .buttonStyle(.glass)
+        .buttonStyle(.bordered)
         .disabled(isExporting)
     }
 
@@ -1523,7 +1523,7 @@ struct ExportsView: View {
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 6)
                                 }
-                                .buttonStyle(.glass)
+                                .buttonStyle(.bordered)
                                 .tint(combinedExportFormat == format ? BrutalTheme.accent : .clear)
                             }
                         }
@@ -1777,7 +1777,7 @@ struct ExportsView: View {
                             }
                             .font(.system(size: 11, weight: .semibold))
                         }
-                        .buttonStyle(.glass)
+                        .buttonStyle(.bordered)
 
                         Button {
                             if let url = cardPreviewURL,
@@ -1799,7 +1799,7 @@ struct ExportsView: View {
                             }
                             .font(.system(size: 11, weight: .semibold))
                         }
-                        .buttonStyle(.glass)
+                        .buttonStyle(.bordered)
 
                         Spacer()
                     }
@@ -1859,7 +1859,7 @@ struct ExportsView: View {
                                 }
                                 .font(.system(size: 11, weight: .semibold))
                             }
-                            .buttonStyle(.glass)
+                            .buttonStyle(.bordered)
 
                             Button {
                                 NSWorkspace.shared.open(url)
@@ -1870,7 +1870,7 @@ struct ExportsView: View {
                                 }
                                 .font(.system(size: 11, weight: .semibold))
                             }
-                            .buttonStyle(.glass)
+                            .buttonStyle(.bordered)
                         }
                     }
                 }

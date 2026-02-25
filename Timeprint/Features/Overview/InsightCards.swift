@@ -80,20 +80,25 @@ struct SparklineCard: View {
                     .foregroundColor(BrutalTheme.textTertiary)
                     .frame(height: 50)
             } else {
-                Chart(points) { point in
-                    AreaMark(
-                        x: .value("Date", point.date),
-                        y: .value("Time", point.totalSeconds)
-                    )
-                    .foregroundStyle(.teal.opacity(0.2).gradient)
+                Chart {
+                    ForEach(points) { point in
+                        AreaMark(
+                            x: .value("Date", point.date),
+                            y: .value("Time", point.totalSeconds)
+                        )
+                        .foregroundStyle(.teal.opacity(0.2).gradient)
+                        .interpolationMethod(.catmullRom)
 
-                    LineMark(
-                        x: .value("Date", point.date),
-                        y: .value("Time", point.totalSeconds)
-                    )
-                    .foregroundStyle(.teal)
-                    .lineStyle(StrokeStyle(lineWidth: 2))
+                        LineMark(
+                            x: .value("Date", point.date),
+                            y: .value("Time", point.totalSeconds)
+                        )
+                        .foregroundStyle(.teal)
+                        .lineStyle(StrokeStyle(lineWidth: 2))
+                        .interpolationMethod(.catmullRom)
+                    }
                 }
+                .chartYScale(domain: 0...(points.map(\.totalSeconds).max() ?? 0) * 1.15)
                 .chartXAxis(.hidden)
                 .chartYAxis(.hidden)
                 .frame(height: 50)
@@ -386,44 +391,6 @@ struct TopAppSpotlightCard: View {
     }
 }
 
-// MARK: - Focus Streak Badge
-
-struct FocusStreakCard: View {
-    let streakDays: Int
-    let focusBlocks: Int
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Image(systemName: "flame.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.orange)
-                Text("FOCUS STREAK")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
-                    .foregroundColor(BrutalTheme.textTertiary)
-                    .tracking(1)
-            }
-
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                AnimatedNumber(Double(streakDays), font: .system(size: 28, weight: .heavy, design: .rounded))
-                Text(streakDays == 1 ? "day" : "days")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(BrutalTheme.textTertiary)
-            }
-
-            Text("\(focusBlocks) focus blocks")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(BrutalTheme.textSecondary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        
-        .hoverScale()
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(streakDays) day focus streak, \(focusBlocks) focus blocks")
-    }
-}
-
 // MARK: - Longest Session Card
 
 struct LongestSessionCard: View {
@@ -489,7 +456,7 @@ struct MiniHeatmapCard: View {
             Canvas { context, size in
                 let totalW = CGFloat(hours) * (cellSize + cellSpacing)
                 let totalH = CGFloat(weekdays) * (cellSize + cellSpacing)
-                let offsetX = (size.width - totalW) / 2
+                let offsetX: CGFloat = 0  // Left-aligned to match other cards
                 let offsetY = max(0, (size.height - totalH) / 2)
 
                 for cell in cells {
@@ -669,7 +636,7 @@ struct SyncStatusCard: View {
                 Image(systemName: isSyncing ? "arrow.triangle.2.circlepath" : "icloud.fill")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.blue)
-                    .symbolEffect(.rotate, isActive: isSyncing)
+                    .modifier(RotateEffectModifier(isActive: isSyncing))
                 Text("SYNC STATUS")
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
                     .foregroundColor(BrutalTheme.textTertiary)
@@ -719,6 +686,21 @@ extension DeviceInfo.Platform {
             return .red
         case .visionOS:
             return .indigo
+        }
+    }
+}
+
+// MARK: - Symbol Effect Compatibility
+
+/// Provides .symbolEffect(.rotate) on macOS 15+ with graceful fallback
+private struct RotateEffectModifier: ViewModifier {
+    let isActive: Bool
+    
+    func body(content: Content) -> some View {
+        if #available(macOS 15.0, iOS 17.0, *) {
+            content.symbolEffect(.rotate, isActive: isActive)
+        } else {
+            content
         }
     }
 }

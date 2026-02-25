@@ -41,11 +41,6 @@ struct TimeprintCommands: Commands {
                 }
                 .keyboardShortcut("5", modifiers: .command)
                 
-                Button("Focus Streaks") {
-                    navigation.selectedDestination = .focus
-                }
-                .keyboardShortcut("6", modifiers: .command)
-                
                 Divider()
                 
                 Button("Exports") {
@@ -196,7 +191,6 @@ struct TimeprintCommands: Commands {
  ⌘3          Apps & Categories
  ⌘4          Sessions
  ⌘5          Heatmap
- ⌘6          Focus Streaks
  ⇧⌘E         Exports
  ⌘,          Settings
  

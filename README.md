@@ -42,12 +42,12 @@ Timeprint is a privacy-first screen time analytics app that gives you beautiful,
 ## Requirements
 
 ### macOS App
-- macOS 26.1+ (Sequoia)
+- macOS 14.0+ (Sonoma)
 - Full Disk Access (for knowledgeC.db access)
-- Xcode 26.2+ (for building)
+- Xcode 15.0+ (for building)
 
 ### iOS App  
-- iOS 18.0+
+- iOS 17.0+
 - iPhone or iPad
 - iCloud enabled (for sync)
 

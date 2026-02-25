@@ -44,8 +44,6 @@ struct RootSplitView: View {
                             SessionsView(filters: filters)
                         case .heatmap:
                             DistractingHoursView(filters: filters)
-                        case .focus:
-                            FocusStreaksView(filters: filters)
                         case .rawSessions:
                             // Raw sessions is export-only, redirect to exports
                             ExportsView(filters: filters)
@@ -145,7 +143,7 @@ private struct SettingsScaffoldView: View {
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
                                 }
-                                .buttonStyle(.glass)
+                                .buttonStyle(.bordered)
                                 .tint(displayMode == mode ? BrutalTheme.accent : .clear)
                             }
                         }

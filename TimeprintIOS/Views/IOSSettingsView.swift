@@ -64,7 +64,7 @@ struct IOSSettingsView: View {
             } header: {
                 Text("Notifications")
             } footer: {
-                Text("Get reminders to check your screen time and celebrate streaks.")
+                Text("Get reminders to check your screen time.")
             }
             
             // Data section
@@ -305,18 +305,6 @@ struct IOSSettingsView: View {
                 )
             }
             
-            // Streak alerts toggle
-            Toggle(isOn: $notificationSettings.streakAlertsEnabled) {
-                HStack {
-                    Image(systemName: "flame")
-                        .foregroundStyle(.orange)
-                        .frame(width: 32)
-                    Text("Streak Alerts")
-                }
-            }
-            .onChange(of: notificationSettings.streakAlertsEnabled) { _, _ in
-                notificationSettings.save()
-            }
         }
     }
     

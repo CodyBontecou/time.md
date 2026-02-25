@@ -32,7 +32,7 @@ protocol ScreenTimeProviding: Sendable {
     /// Fetch session duration distribution
     func fetchSessionBuckets(filters: FilterSnapshot) async throws -> [SessionBucket]
     
-    // MARK: - Focus & Streaks
+    // MARK: - Focus Data
     
     /// Fetch focus days data
     func fetchFocusDays(filters: FilterSnapshot) async throws -> [FocusDay]

@@ -41,8 +41,11 @@ struct OverviewView: View {
     @State private var hasLoadedPrimary: Bool = false
     @State private var hasLoadedSecondary: Bool = false
     
+    /// Show skeleton until both primary AND secondary data are loaded.
+    /// The insight cards need periodSummary (from secondary), so we must wait
+    /// for secondary to complete before showing the actual content.
     private var showSkeleton: Bool {
-        !hasLoadedPrimary
+        !hasLoadedPrimary || !hasLoadedSecondary
     }
 
     // MARK: Computed helpers
@@ -665,18 +668,29 @@ struct OverviewView: View {
         }
         
         isSyncing = true
-        defer { isSyncing = false }
         
-        do {
-            // Perform sync to get latest data from all devices
-            try await syncCoordinator.performSync()
-            
-            // Fetch the updated payload
-            syncPayload = try await syncCoordinator.fetchPayload()
-            lastSyncDate = Date()
-        } catch {
-            // Sync failed - non-critical, just show local data
-            // Don't clear existing payload in case we had previous data
+        // Run sync in a detached task to avoid blocking the main thread.
+        // NSFileCoordinator operations can block, so we need to ensure
+        // they don't run on the main actor's executor.
+        let result: (payload: SyncPayload, date: Date)? = await Task.detached(priority: .utility) {
+            do {
+                // Perform sync to get latest data from all devices
+                try await syncCoordinator.performSync()
+                
+                // Fetch the updated payload
+                let payload = try await syncCoordinator.fetchPayload()
+                return (payload, Date())
+            } catch {
+                // Sync failed - non-critical
+                return nil
+            }
+        }.value
+        
+        // Update UI state on main actor
+        if let result {
+            syncPayload = result.payload
+            lastSyncDate = result.date
         }
+        isSyncing = false
     }
 }

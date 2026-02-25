@@ -109,6 +109,8 @@ struct TimeprintApp: App {
     }
     
     /// Sync screen time data to iCloud for the iOS companion app.
+    /// Runs sync in a detached task to avoid blocking the main thread
+    /// (NSFileCoordinator can block while coordinating file access).
     @MainActor
     private func performCloudSync() async {
         guard let syncCoordinator = AppEnvironment.live.syncCoordinator else {
@@ -116,14 +118,24 @@ struct TimeprintApp: App {
             return
         }
         
-        do {
-            try await syncCoordinator.performSync()
+        // Run sync in detached task to prevent main thread blocking
+        let error: Error? = await Task.detached(priority: .utility) {
+            do {
+                try await syncCoordinator.performSync()
+                return nil
+            } catch {
+                return error
+            }
+        }.value
+        
+        // Update state on main actor
+        if let error {
+            cloudSyncError = error.localizedDescription
+            print("[CloudSync] Failed to sync: \(error.localizedDescription)")
+        } else {
             lastCloudSyncDate = Date()
             cloudSyncError = nil
             print("[CloudSync] Successfully synced to iCloud at \(Date())")
-        } catch {
-            cloudSyncError = error.localizedDescription
-            print("[CloudSync] Failed to sync: \(error.localizedDescription)")
         }
     }
 

@@ -17,8 +17,10 @@ struct TrendsView: View {
     @Environment(\.appNameDisplayMode) private var appNameDisplayMode
     @State private var trend: [TrendPoint] = []
     @State private var dailyBreakdown: [DailyAppBreakdown] = []
+    @State private var hourlyAppData: [HourlyAppUsage] = []
     @State private var loadError: Error?
     @State private var hoveredDate: Date?
+    @State private var selectedDate: Date?
     @State private var brushedRange: ClosedRange<Date>?
     @State private var chartMode: TrendChartMode = .total
     
@@ -33,6 +35,23 @@ struct TrendsView: View {
     
     /// Whether we're showing hourly breakdown (Day granularity)
     private var isHourlyMode: Bool { filters.granularity == .day }
+    
+    /// The currently active date (selected takes priority over hovered)
+    private var activeDate: Date? { selectedDate ?? hoveredDate }
+    
+    /// The selected hour (0-23) if in hourly mode
+    private var selectedHour: Int? {
+        guard isHourlyMode, let date = selectedDate else { return nil }
+        return Calendar.current.component(.hour, from: date)
+    }
+    
+    /// Apps used during the selected hour, sorted by duration
+    private var appsForSelectedHour: [HourlyAppUsage] {
+        guard let hour = selectedHour else { return [] }
+        return hourlyAppData
+            .filter { $0.hour == hour }
+            .sorted { $0.totalSeconds > $1.totalSeconds }
+    }
 
     // Computed: top 5 app names for stacked chart
     private var top5Apps: [String] {
@@ -94,29 +113,102 @@ struct TrendsView: View {
                         }
                     }
 
-                // Hover tooltip
+                // Selection summary
                 if let hoveredPoint {
                     GlassCard {
-                        HStack(spacing: 16) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("SELECTED")
-                                    .font(.system(size: 9, weight: .bold, design: .monospaced))
-                                    .foregroundColor(BrutalTheme.textTertiary)
-                                    .tracking(1)
-                                Text(label(for: hoveredPoint.date))
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(BrutalTheme.textPrimary)
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack(spacing: 16) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("SELECTED")
+                                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                        .foregroundColor(BrutalTheme.textTertiary)
+                                        .tracking(1)
+                                    Text(label(for: hoveredPoint.date))
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundColor(BrutalTheme.textPrimary)
+                                }
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("DURATION")
+                                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                        .foregroundColor(BrutalTheme.textTertiary)
+                                        .tracking(1)
+                                    Text(DurationFormatter.short(hoveredPoint.totalSeconds))
+                                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                                        .foregroundColor(BrutalTheme.textPrimary)
+                                }
+                                Spacer()
+                                
+                                // Clear selection button (only if selected, not just hovered)
+                                if selectedDate != nil {
+                                    Button {
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            selectedDate = nil
+                                        }
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.system(size: 16))
+                                            .foregroundColor(BrutalTheme.textTertiary)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
                             }
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("DURATION")
-                                    .font(.system(size: 9, weight: .bold, design: .monospaced))
-                                    .foregroundColor(BrutalTheme.textTertiary)
-                                    .tracking(1)
-                                Text(DurationFormatter.short(hoveredPoint.totalSeconds))
-                                    .font(.system(size: 14, weight: .bold, design: .monospaced))
-                                    .foregroundColor(BrutalTheme.textPrimary)
+                            
+                            // Detailed app breakdown table for hourly mode
+                            if isHourlyMode, let selected = selectedDate, !appsForSelectedHour.isEmpty {
+                                Divider()
+                                    .background(BrutalTheme.border)
+                                
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack {
+                                        Text("APP BREAKDOWN")
+                                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                            .foregroundColor(BrutalTheme.textTertiary)
+                                            .tracking(1)
+                                        
+                                        Spacer()
+                                        
+                                        Text(hourRangeLabel(for: selected))
+                                            .font(.system(size: 9, weight: .medium, design: .monospaced))
+                                            .foregroundColor(BrutalTheme.textTertiary)
+                                    }
+                                    
+                                    ForEach(appsForSelectedHour) { usage in
+                                        HStack(spacing: 12) {
+                                            // App icon placeholder
+                                            RoundedRectangle(cornerRadius: 4)
+                                                .fill(BrutalTheme.color(for: usage.appName, in: appsForSelectedHour.map(\.appName)))
+                                                .frame(width: 24, height: 24)
+                                            
+                                            AppNameText(usage.appName)
+                                                .font(.system(size: 13, weight: .medium))
+                                                .foregroundColor(BrutalTheme.textPrimary)
+                                                .lineLimit(1)
+                                            
+                                            Spacer()
+                                            
+                                            Text(DurationFormatter.short(usage.totalSeconds))
+                                                .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                                                .foregroundColor(BrutalTheme.textSecondary)
+                                            
+                                            // Percentage of hour
+                                            let percentage = (usage.totalSeconds / hoveredPoint.totalSeconds) * 100
+                                            Text(String(format: "%.0f%%", percentage))
+                                                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                                .foregroundColor(BrutalTheme.textTertiary)
+                                                .frame(width: 40, alignment: .trailing)
+                                        }
+                                        .padding(.vertical, 4)
+                                    }
+                                }
                             }
-                            Spacer()
+                            
+                            // Hint to click for details (only when hovering, not selected)
+                            if isHourlyMode, selectedDate == nil {
+                                Text("Click to see app breakdown")
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(BrutalTheme.textTertiary)
+                                    .italic()
+                            }
                         }
                     }
                 }
@@ -234,12 +326,14 @@ struct TrendsView: View {
                 .interpolationMethod(.catmullRom)
             }
 
-            // Hover indicator
-            if let hoveredPoint {
-                RuleMark(x: .value("Date", hoveredPoint.date))
+            // Selection indicator - use activeDate for precise positioning
+            if let activeDate, let hoveredPoint {
+                // Vertical rule at the precise selected position
+                RuleMark(x: .value("Date", activeDate))
                     .foregroundStyle(BrutalTheme.textTertiary.opacity(0.5))
                     .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
 
+                // Point on the curve at the hour's data point
                 PointMark(
                     x: .value("Date", hoveredPoint.date),
                     y: .value("Seconds", hoveredPoint.totalSeconds)
@@ -284,20 +378,43 @@ struct TrendsView: View {
                     .onContinuousHover { phase in
                         switch phase {
                         case let .active(location):
-                            updateHoveredDate(locationX: location.x, proxy: proxy, geometry: geometry)
+                            // Only update hover if nothing is selected
+                            if selectedDate == nil {
+                                updateHoveredDate(locationX: location.x, proxy: proxy, geometry: geometry)
+                            }
                         case .ended:
-                            hoveredDate = nil
+                            if selectedDate == nil {
+                                hoveredDate = nil
+                            }
                         }
                     }
                     .gesture(
                         DragGesture(minimumDistance: 0)
                             .onChanged { value in
-                                updateBrush(
-                                    startX: value.startLocation.x,
-                                    currentX: value.location.x,
-                                    proxy: proxy,
-                                    geometry: geometry
-                                )
+                                if isHourlyMode {
+                                    // In hourly mode: drag to scrub through hours
+                                    updateSelectedDate(locationX: value.location.x, proxy: proxy, geometry: geometry)
+                                } else {
+                                    // In other modes: brush selection
+                                    updateBrush(
+                                        startX: value.startLocation.x,
+                                        currentX: value.location.x,
+                                        proxy: proxy,
+                                        geometry: geometry
+                                    )
+                                }
+                            }
+                            .onEnded { value in
+                                if isHourlyMode {
+                                    // Keep selection after drag ends
+                                    updateSelectedDate(locationX: value.location.x, proxy: proxy, geometry: geometry)
+                                }
+                            }
+                    )
+                    .simultaneousGesture(
+                        TapGesture()
+                            .onEnded {
+                                // Tap handling is done via drag gesture with minimumDistance: 0
                             }
                     )
             }
@@ -369,8 +486,16 @@ struct TrendsView: View {
     }
 
     private var hoveredPoint: TrendPoint? {
-        guard let hoveredDate else { return nil }
-        return trend.min { abs($0.date.timeIntervalSince(hoveredDate)) < abs($1.date.timeIntervalSince(hoveredDate)) }
+        guard let activeDate else { return nil }
+        
+        if isHourlyMode {
+            // In hourly mode, find the trend point for the hour containing the active date
+            let calendar = Calendar.current
+            let hour = calendar.component(.hour, from: activeDate)
+            return trend.first { calendar.component(.hour, from: $0.date) == hour }
+        } else {
+            return trend.min { abs($0.date.timeIntervalSince(activeDate)) < abs($1.date.timeIntervalSince(activeDate)) }
+        }
     }
 
     private func updateHoveredDate(locationX: CGFloat, proxy: ChartProxy, geometry: GeometryProxy) {
@@ -380,6 +505,32 @@ struct TrendsView: View {
         guard relativeX >= 0, relativeX <= plotRect.width,
               let date: Date = proxy.value(atX: relativeX) else { hoveredDate = nil; return }
         hoveredDate = date
+    }
+    
+    private func updateSelectedDate(locationX: CGFloat, proxy: ChartProxy, geometry: GeometryProxy) {
+        guard let plotFrame = proxy.plotFrame else { return }
+        let plotRect = geometry[plotFrame]
+        let relativeX = locationX - plotRect.origin.x
+        guard relativeX >= 0, relativeX <= plotRect.width else { return }
+        
+        // Calculate time directly from pixel position for precise minute-level control
+        let calendar = Calendar.current
+        let dayStart = calendar.startOfDay(for: filters.startDate)
+        
+        // Map pixel position to time of day (0-24 hours)
+        let fraction = relativeX / plotRect.width
+        let totalSecondsInDay: Double = 24 * 60 * 60
+        let secondsFromMidnight = fraction * totalSecondsInDay
+        
+        // Create precise date from seconds
+        let preciseDate = dayStart.addingTimeInterval(secondsFromMidnight)
+        
+        // Clamp to valid range
+        let dayEnd = calendar.date(bySettingHour: 23, minute: 59, second: 59, of: dayStart) ?? dayStart
+        let clampedDate = min(max(preciseDate, dayStart), dayEnd)
+        
+        selectedDate = clampedDate
+        hoveredDate = nil
     }
 
     private func updateBrush(startX: CGFloat, currentX: CGFloat, proxy: ChartProxy, geometry: GeometryProxy) {
@@ -401,11 +552,25 @@ struct TrendsView: View {
     private func label(for date: Date) -> String {
         let formatter = DateFormatter()
         if isHourlyMode {
+            // Show exact time with minutes for precise selection
             formatter.dateFormat = "h:mm a"
         } else {
             formatter.dateStyle = .medium
         }
         return formatter.string(from: date)
+    }
+    
+    /// Label showing the hour range for the breakdown (e.g., "7:00 AM - 8:00 AM")
+    private func hourRangeLabel(for date: Date) -> String {
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: date)
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        
+        let hourStart = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: date) ?? date
+        let hourEnd = calendar.date(bySettingHour: hour, minute: 59, second: 59, of: date) ?? date
+        
+        return "\(formatter.string(from: hourStart)) – \(formatter.string(from: hourEnd))"
     }
 
     private func shortAxisLabel(_ date: Date) -> String {
@@ -428,10 +593,17 @@ struct TrendsView: View {
         do {
             loadError = nil
             let snapshot = filters.snapshot
+            
+            // Clear selection when data changes
+            selectedDate = nil
+            hoveredDate = nil
 
             if isHourlyMode {
                 // Fetch hourly breakdown for Day view
                 let hourlyData = try await appEnvironment.dataService.fetchHourlyAppUsage(for: snapshot.startDate)
+                
+                // Store raw hourly data for detailed breakdown
+                hourlyAppData = hourlyData
                 
                 // Convert to TrendPoints (aggregated by hour)
                 let calendar = Calendar.current
@@ -461,6 +633,9 @@ struct TrendsView: View {
                 
                 dailyBreakdown = hourlyAppBreakdown
             } else {
+                // Clear hourly data for non-hourly modes
+                hourlyAppData = []
+                
                 // Fetch daily data for Week/Month/Year views
                 async let trendFetch = appEnvironment.dataService.fetchTrend(filters: snapshot)
                 async let breakdownFetch = appEnvironment.dataService.fetchDailyAppBreakdown(filters: snapshot, topN: 5)
@@ -472,6 +647,7 @@ struct TrendsView: View {
             loadError = error
             trend = []
             dailyBreakdown = []
+            hourlyAppData = []
         }
     }
 }

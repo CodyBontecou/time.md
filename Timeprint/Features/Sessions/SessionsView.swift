@@ -336,6 +336,7 @@ struct SessionsView: View {
                             }
                         }
                         .frame(height: 260)
+                        .chartLegend(.hidden)
 
                         // Legend
                         HStack(spacing: 16) {

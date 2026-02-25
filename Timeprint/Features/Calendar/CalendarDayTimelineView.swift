@@ -1,5 +1,60 @@
 import SwiftUI
 
+// MARK: - App Filter Row (sidebar clickable row with hover)
+
+private struct AppFilterRow: View {
+    let appName: String
+    let seconds: Double
+    let color: Color
+    let isFiltered: Bool
+    let isVisible: Bool
+    let onTap: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        HStack(spacing: 8) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(color)
+                .frame(width: 10, height: 10)
+                .opacity(isVisible ? 1 : 0.3)
+
+            AppNameText(appName)
+                .font(.system(size: 11))
+                .foregroundColor(isVisible ? .primary : .secondary.opacity(0.5))
+                .lineLimit(1)
+
+            Spacer()
+
+            if isFiltered {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundColor(BrutalTheme.accent)
+            }
+
+            Text(DurationFormatter.short(seconds))
+                .font(.system(size: 10))
+                .foregroundColor(isVisible ? .secondary : .secondary.opacity(0.4))
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 4)
+        .background(
+            RoundedRectangle(cornerRadius: 4)
+                .fill(isHovered ? Color.primary.opacity(0.06) : Color.clear)
+        )
+        .contentShape(Rectangle())
+        .onHover { hovering in
+            isHovered = hovering
+            if hovering {
+                NSCursor.pointingHand.push()
+            } else {
+                NSCursor.pop()
+            }
+        }
+        .onTapGesture { onTap() }
+    }
+}
+
 // MARK: - Day Block Cell (isolated hover state)
 
 private struct DayBlockCell: View {
@@ -61,7 +116,9 @@ private struct DayBlockCell: View {
                     color: color,
                     startHour: block.startHour,
                     endHour: block.endHour,
-                    totalSeconds: block.totalSeconds
+                    totalSeconds: block.totalSeconds,
+                    actualStartTime: block.actualStartTime,
+                    actualEndTime: block.actualEndTime
                 )
                 .fixedSize()
                 .offset(y: -52)
@@ -94,6 +151,15 @@ struct CalendarDayTimelineView: View {
     @State private var loadError: Error?
     @State private var selectedBlockKey: BlockSelectionKey?
     @State private var hoveredBlockID: String?
+    @State private var filteredApps: Set<String> = []  // Empty means show all
+    
+    // Loading state - start true so skeleton shows immediately
+    @State private var isLoading = true
+    @State private var hasLoadedOnce = false
+    
+    private var showSkeleton: Bool {
+        !hasLoadedOnce
+    }
 
     private let cal = Calendar.current
     private let hourHeight: CGFloat = 52
@@ -108,6 +174,12 @@ struct CalendarDayTimelineView: View {
         var byApp: [String: Double] = [:]
         for entry in hourlyData { byApp[entry.appName, default: 0] += entry.totalSeconds }
         return byApp.sorted { $0.value > $1.value }.map { ($0.key, $0.value) }
+    }
+
+    /// Blocks filtered by selected apps (empty = show all)
+    private var displayedBlocks: [ScreenTimeBlock] {
+        if filteredApps.isEmpty { return blocks }
+        return blocks.filter { filteredApps.contains($0.appName) }
     }
 
     private var daysWithData: Set<Int> {
@@ -144,22 +216,29 @@ struct CalendarDayTimelineView: View {
     // MARK: Body
 
     var body: some View {
-        HStack(spacing: 0) {
-            // Timeline
-            VStack(spacing: 0) {
-                dayHeader
-                Rectangle().fill(CalendarColors.gridLine).frame(height: 0.5)
-                timelineScrollView
+        Group {
+            if showSkeleton {
+                CalendarDaySkeletonView()
+            } else {
+                HStack(spacing: 0) {
+                    // Timeline
+                    VStack(spacing: 0) {
+                        dayHeader
+                        Rectangle().fill(CalendarColors.gridLine).frame(height: 0.5)
+                        timelineScrollView
+                    }
+                    .zIndex(1)
+
+                    Rectangle().fill(CalendarColors.gridLine).frame(width: 0.5)
+
+                    // Right sidebar — swaps between default stats and block detail
+                    sidebarContent
+                        .frame(width: sidebarWidth)
+                        .animation(.easeInOut(duration: 0.2), value: selectedBlockKey)
+                }
             }
-            .zIndex(1)
-
-            Rectangle().fill(CalendarColors.gridLine).frame(width: 0.5)
-
-            // Right sidebar — swaps between default stats and block detail
-            sidebarContent
-                .frame(width: sidebarWidth)
-                .animation(.easeInOut(duration: 0.2), value: selectedBlockKey)
         }
+        .animation(.easeInOut(duration: 0.25), value: showSkeleton)
         .task(id: cal.startOfDay(for: date)) {
             await loadDayData()
         }
@@ -167,8 +246,9 @@ struct CalendarDayTimelineView: View {
             await loadMonthTotals()
         }
         .onChange(of: date) { _, _ in
-            // Clear selection when navigating days
+            // Clear selection and filter when navigating days
             selectedBlockKey = nil
+            filteredApps = []
         }
     }
 
@@ -280,18 +360,21 @@ struct CalendarDayTimelineView: View {
     }
 
     private var blocksOverlay: some View {
-        let currentBlocks = blocks
-        let currentLayouts = CalendarBlockBuilder.computeColumns(for: currentBlocks)
+        // Use displayedBlocks for filtered view, but compute layout from all blocks
+        // so positions remain stable when filtering
+        let allLayouts = CalendarBlockBuilder.computeColumns(for: blocks)
 
         return GeometryReader { geo in
             let contentWidth = geo.size.width
 
-            ForEach(currentBlocks) { block in
-                if let layout = currentLayouts[block.id] {
+            ForEach(displayedBlocks) { block in
+                if let layout = allLayouts[block.id] {
                     let colWidth = contentWidth / CGFloat(layout.totalColumns)
                     let xOffset = CGFloat(layout.column) * colWidth
-                    let yOffset = CGFloat(block.startHour) * hourHeight + 1
-                    let height = CGFloat(block.endHour - block.startHour) * hourHeight - 2
+                    
+                    // Calculate precise Y offset and height from actual times when available
+                    let (yOffset, height) = calculateBlockPosition(for: block)
+                    
                     let color = appColors[block.appName] ?? block.color
                     let key = BlockSelectionKey(block: block, date: date)
                     let isSelected = selectedBlockKey == key
@@ -310,7 +393,7 @@ struct CalendarDayTimelineView: View {
                         }
                     )
                     .offset(x: xOffset + 1, y: yOffset)
-                    .frame(width: colWidth - 3, height: max(height, hourHeight * 0.6))
+                    .frame(width: colWidth - 3, height: max(height, hourHeight * 0.4))
                     .zIndex(isSelected ? 20 : (hoveredBlockID == block.id ? 10 : 0))
                 }
             }
@@ -380,33 +463,80 @@ struct CalendarDayTimelineView: View {
 
                 Rectangle().fill(CalendarColors.gridLine).frame(height: 0.5)
 
-                Text("Apps")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(.secondary)
-
-                ForEach(Array(topApps.prefix(8).enumerated()), id: \.element.name) { _, app in
-                    HStack(spacing: 8) {
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(appColors[app.name] ?? .gray)
-                            .frame(width: 10, height: 10)
-
-                        AppNameText(app.name)
-                            .font(.system(size: 11))
-                            .foregroundColor(.primary)
-                            .lineLimit(1)
-
-                        Spacer()
-
-                        Text(DurationFormatter.short(app.seconds))
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
+                HStack {
+                    Text("Apps")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    if !filteredApps.isEmpty {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                filteredApps = []
+                            }
+                        } label: {
+                            Text("Clear")
+                                .font(.system(size: 9, weight: .medium))
+                                .foregroundColor(BrutalTheme.accent)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
+
+                VStack(spacing: 2) {
+                    ForEach(Array(topApps.prefix(8).enumerated()), id: \.element.name) { _, app in
+                        AppFilterRow(
+                            appName: app.name,
+                            seconds: app.seconds,
+                            color: appColors[app.name] ?? .gray,
+                            isFiltered: filteredApps.contains(app.name),
+                            isVisible: filteredApps.isEmpty || filteredApps.contains(app.name),
+                            onTap: {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    if filteredApps.contains(app.name) {
+                                        filteredApps.remove(app.name)
+                                    } else {
+                                        filteredApps.insert(app.name)
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+                .padding(.horizontal, -6)  // Offset parent padding so hover bg extends edge-to-edge
             }
             .padding(14)
         }
         .scrollClipDisabled()
         .scrollIndicators(.never)
+    }
+
+    // MARK: Block Position Calculation
+    
+    /// Calculate precise Y offset and height for a block based on actual times
+    private func calculateBlockPosition(for block: ScreenTimeBlock) -> (yOffset: CGFloat, height: CGFloat) {
+        // If we have actual times, use them for precise positioning
+        if let startTime = block.actualStartTime, let endTime = block.actualEndTime {
+            let startHour = cal.component(.hour, from: startTime)
+            let startMinute = cal.component(.minute, from: startTime)
+            let endHour = cal.component(.hour, from: endTime)
+            let endMinute = cal.component(.minute, from: endTime)
+            
+            // Calculate fractional hours for precise positioning
+            let startFractionalHour = CGFloat(startHour) + CGFloat(startMinute) / 60.0
+            let endFractionalHour = CGFloat(endHour) + CGFloat(endMinute) / 60.0
+            
+            let yOffset = startFractionalHour * hourHeight + 1
+            let height = (endFractionalHour - startFractionalHour) * hourHeight - 2
+            
+            return (yOffset, height)
+        }
+        
+        // Fallback to hour-based positioning
+        let yOffset = CGFloat(block.startHour) * hourHeight + 1
+        let height = CGFloat(block.endHour - block.startHour) * hourHeight - 2
+        return (yOffset, height)
     }
 
     // MARK: Data Helpers
@@ -434,12 +564,37 @@ struct CalendarDayTimelineView: View {
     // MARK: Data Loading
 
     private func loadDayData() async {
+        isLoading = true
+        defer {
+            isLoading = false
+            hasLoadedOnce = true
+        }
+        
         do {
             loadError = nil
+            let dayStart = cal.startOfDay(for: date)
+            guard let dayEnd = cal.date(byAdding: .day, value: 1, to: dayStart) else { return }
+            
+            // Fetch both hourly data (for stats/totals) and raw sessions (for exact times)
             let data = try await appEnvironment.dataService.fetchHourlyAppUsage(for: date)
             hourlyData = data
-            blocks = CalendarBlockBuilder.buildBlocks(from: data)
+            
+            // Fetch raw sessions to get actual timestamps
+            let sessionFilters = FilterSnapshot(
+                startDate: dayStart,
+                endDate: dayEnd,
+                granularity: .day,
+                selectedApps: [],
+                selectedCategories: [],
+                selectedHeatmapCells: []
+            )
+            let sessions = try await appEnvironment.dataService.fetchRawSessions(filters: sessionFilters)
+            
+            // Build colors from hourly data (authoritative source for totals)
             appColors = CalendarBlockBuilder.assignColors(for: data)
+            
+            // Build blocks using hourly data for totals, sessions for actual times
+            blocks = CalendarBlockBuilder.buildBlocksWithActualTimes(hourlyData: data, sessions: sessions, colors: appColors)
         } catch {
             loadError = error
             hourlyData = []

@@ -35,13 +35,14 @@ struct OverviewView: View {
     @State private var isSyncing: Bool = false
     
     // Loading state - progressive loading phases
-    @State private var isLoadingPrimary: Bool = false
+    // Start with isLoadingPrimary = true so skeleton shows immediately on first render
+    @State private var isLoadingPrimary: Bool = true
     @State private var isLoadingSecondary: Bool = false
     @State private var hasLoadedPrimary: Bool = false
     @State private var hasLoadedSecondary: Bool = false
     
     private var showSkeleton: Bool {
-        isLoadingPrimary && !hasLoadedPrimary
+        !hasLoadedPrimary
     }
 
     // MARK: Computed helpers
@@ -204,7 +205,7 @@ struct OverviewView: View {
                     )
                 }
 
-                // Row 2: Top app, longest session, mini heatmap
+                // Row 2: Top app, longest session, mini heatmap, calendar preview
                 navCard(.appsCategories) {
                     TopAppSpotlightCard(
                         appName: periodSummary?.topAppName ?? "None",
@@ -222,6 +223,15 @@ struct OverviewView: View {
                     MiniHeatmapCard(
                         cells: heatmapCells,
                         maxSeconds: heatmapMax
+                    )
+                }
+                
+                navCard(.calendar) {
+                    CalendarPreviewCard(
+                        granularity: filters.granularity,
+                        startDate: filters.startDate,
+                        sparklinePoints: sparklinePoints,
+                        hourlyPoints: hourlyTrendPoints
                     )
                 }
                 

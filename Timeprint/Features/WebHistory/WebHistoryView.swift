@@ -32,7 +32,7 @@ struct WebHistoryView: View {
     @State private var dailyCounts: [DailyVisitCount] = []
     @State private var hourlyCounts: [HourlyVisitCount] = []
     @State private var loadError: Error?
-    @State private var isLoading = false
+    @State private var isLoading = true  // Start true so skeleton shows immediately
     @State private var hasLoadedOnce = false
     @State private var availableBrowsers: [BrowserSource] = [.all]
     @State private var expandedDomains: Set<String> = []
@@ -40,6 +40,7 @@ struct WebHistoryView: View {
     @State private var loadingDomains: Set<String> = []
 
     private let service: BrowsingHistoryServing = SQLiteBrowsingHistoryService()
+    private let browserSettings = BrowserSettingsStore.shared
     
     /// Show skeleton only on initial load, not on subsequent filter changes
     private var showSkeleton: Bool {
@@ -76,7 +77,15 @@ struct WebHistoryView: View {
         .scrollClipDisabled()
         .scrollIndicators(.never)
         .task {
-            availableBrowsers = service.availableBrowsers()
+            // Move file system checks off main thread to avoid blocking navigation
+            let (installed, enabled) = await Task.detached(priority: .userInitiated) { [service, browserSettings] in
+                let installed = service.availableBrowsers()
+                let enabled = browserSettings.enabledBrowsers(from: installed)
+                return (installed, enabled)
+            }.value
+            
+            availableBrowsers = enabled.isEmpty ? installed : enabled
+            
             if !availableBrowsers.contains(browserFilter) {
                 browserFilter = availableBrowsers.first ?? .all
             }

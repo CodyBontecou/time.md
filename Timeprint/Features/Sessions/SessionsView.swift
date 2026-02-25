@@ -27,6 +27,15 @@ struct SessionsView: View {
     @State private var hoveredBucketLabel: String?
     @State private var selectedBucketLabel: String?
     @State private var chartMode: SessionChartMode = .typicalDay
+    
+    // Loading state
+    @State private var isLoading = true
+    @State private var hasLoadedOnce = false
+    
+    /// Show skeleton only on initial load, not on subsequent filter changes
+    private var showSkeleton: Bool {
+        isLoading && !hasLoadedOnce
+    }
 
     // Aggregated hourly totals for "typical day"
     private var hourlyTotals: [(hour: Int, totalSeconds: Double)] {
@@ -65,41 +74,47 @@ struct SessionsView: View {
                     Spacer()
                 }
 
-                if let loadError {
-                    DataLoadErrorView(error: loadError)
-                }
-
-                // Mode toggle
-                HStack(spacing: 6) {
-                    ForEach(SessionChartMode.allCases) { mode in
-                        let isActive = chartMode == mode
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) { chartMode = mode }
-                        } label: {
-                            Text(mode.rawValue)
-                                .font(.system(size: 12, weight: isActive ? .bold : .medium, design: .monospaced))
-                                .foregroundColor(isActive ? .white : BrutalTheme.textTertiary)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                        }
-                        .buttonStyle(.bordered)
-                        .tint(isActive ? BrutalTheme.accent : .clear)
+                if showSkeleton {
+                    // Skeleton loader during initial load
+                    SessionsSkeletonView()
+                } else {
+                    if let loadError {
+                        DataLoadErrorView(error: loadError)
                     }
-                    Spacer()
-                }
 
-                // Chart
-                switch chartMode {
-                case .distribution:
-                    distributionSection
-                case .typicalDay:
-                    typicalDaySection
-                case .contextSwitching:
-                    contextSwitchingSection
-                case .transitions:
-                    transitionsSection
+                    // Mode toggle
+                    HStack(spacing: 6) {
+                        ForEach(SessionChartMode.allCases) { mode in
+                            let isActive = chartMode == mode
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.2)) { chartMode = mode }
+                            } label: {
+                                Text(mode.rawValue)
+                                    .font(.system(size: 12, weight: isActive ? .bold : .medium, design: .monospaced))
+                                    .foregroundColor(isActive ? .black : BrutalTheme.textTertiary)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                            }
+                            .buttonStyle(.bordered)
+                            .tint(isActive ? BrutalTheme.accent : .clear)
+                        }
+                        Spacer()
+                    }
+
+                    // Chart
+                    switch chartMode {
+                    case .distribution:
+                        distributionSection
+                    case .typicalDay:
+                        typicalDaySection
+                    case .contextSwitching:
+                        contextSwitchingSection
+                    case .transitions:
+                        transitionsSection
+                    }
                 }
             }
+            .animation(.easeInOut(duration: 0.25), value: showSkeleton)
         }
         .scrollClipDisabled()
         .scrollIndicators(.never)
@@ -570,6 +585,12 @@ struct SessionsView: View {
     }
 
     private func load() async {
+        isLoading = true
+        defer {
+            isLoading = false
+            hasLoadedOnce = true
+        }
+        
         do {
             loadError = nil
             let snapshot = filters.snapshot

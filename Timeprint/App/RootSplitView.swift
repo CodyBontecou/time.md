@@ -9,7 +9,7 @@ struct RootSplitView: View {
 
     var body: some View {
         ZStack {
-            NavigationSplitView {
+            NavigationSplitView(columnVisibility: $navigation.sidebarVisibility) {
                 List(selection: $navigation.selectedDestination) {
                     ForEach(NavigationSection.visibleSections) { section in
                         Section(section.rawValue) {
@@ -61,7 +61,17 @@ struct RootSplitView: View {
                 .onChange(of: filters.granularity) { _, newValue in
                     filters.adjustDateRange(for: newValue)
                 }
+                .toolbar(removing: .sidebarToggle)
                 .toolbar {
+                    ToolbarItem(placement: .navigation) {
+                        Button {
+                            navigation.toggleSidebar()
+                        } label: {
+                            Image(systemName: "sidebar.leading")
+                                .font(.system(size: 14, weight: .medium))
+                        }
+                        .help("Toggle Sidebar ⌘B")
+                    }
                     ToolbarItem(placement: .primaryAction) {
                         GranularityPickerToolbar(filters: filters)
                     }
@@ -85,11 +95,13 @@ private struct SettingsScaffoldView: View {
     @AppStorage("appNameDisplayMode") private var appNameDisplayModeRaw: String = AppNameDisplayMode.short.rawValue
     @AppStorage("iCloudSyncEnabled") private var iCloudSyncEnabled: Bool = false
     @AppStorage("insightTickerAutoScroll") private var insightTickerAutoScroll: Bool = true
+    @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
     
     @State private var isSyncing = false
     @State private var lastSyncDate: Date?
     @State private var syncError: String?
     @State private var showSyncSuccess = false
+    @State private var browserSettings = BrowserSettingsStore.shared
 
     private var displayMode: AppNameDisplayMode {
         AppNameDisplayMode(rawValue: appNameDisplayModeRaw) ?? .short
@@ -200,22 +212,69 @@ private struct SettingsScaffoldView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
+                // ─── Menu Bar ───
+                GlassCard {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(BrutalTheme.sectionLabel(4, "MENU BAR"))
+                            .font(BrutalTheme.headingFont)
+                            .foregroundColor(BrutalTheme.textSecondary)
+                            .tracking(1.5)
+
+                        Text("Show a menu bar icon for quick access to today's screen time.")
+                            .font(BrutalTheme.bodyMono)
+                            .foregroundColor(BrutalTheme.textPrimary)
+                            .lineSpacing(3)
+
+                        HStack(spacing: 16) {
+                            Toggle(isOn: $showMenuBarItem) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: showMenuBarItem ? "menubar.rectangle" : "menubar.arrow.up.rectangle")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(showMenuBarItem ? .green : .orange)
+                                    
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(showMenuBarItem ? "Visible" : "Hidden")
+                                            .font(.system(size: 13, weight: .semibold))
+                                            .foregroundColor(BrutalTheme.textPrimary)
+                                        
+                                        Text(showMenuBarItem ? "Menu bar item shows today's screen time" : "Menu bar item is hidden")
+                                            .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                            .foregroundColor(BrutalTheme.textTertiary)
+                                    }
+                                }
+                            }
+                            .toggleStyle(.switch)
+                            .tint(.green)
+                            
+                            Spacer()
+                        }
+
+                        Text("The menu bar item displays your daily screen time and allows quick sync.")
+                            .font(BrutalTheme.captionMono)
+                            .foregroundColor(BrutalTheme.textTertiary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                // ─── Web Browsers ───
+                browserSettingsSection
+
                 settingsBlock(
-                    number: 4,
+                    number: 6,
                     title: "DATA SOURCE",
                     body: "Data loads from local SQLite only (normalized screentime.db or knowledgeC.db fallback).",
                     footnote: "Category mappings saved at ~/Library/Application Support/Timeprint/category-mappings.db."
                 )
 
                 settingsBlock(
-                    number: 5,
+                    number: 7,
                     title: "CATEGORY MAPPING",
                     body: "Mappings are edited from the Apps & Categories view. Single source of truth — no conflicting state.",
                     footnote: nil
                 )
 
                 settingsBlock(
-                    number: 6,
+                    number: 8,
                     title: "PRIVACY",
                     body: "Timeprint is local-first. Your raw data stays on this machine. iCloud sync only shares aggregated daily summaries.",
                     footnote: nil
@@ -227,6 +286,110 @@ private struct SettingsScaffoldView: View {
         }
         .scrollClipDisabled()
         .scrollIndicators(.never)
+    }
+    
+    // MARK: - Browser Settings Section
+    
+    private var browserSettingsSection: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(BrutalTheme.sectionLabel(5, "WEB BROWSERS"))
+                    .font(BrutalTheme.headingFont)
+                    .foregroundColor(BrutalTheme.textSecondary)
+                    .tracking(1.5)
+                
+                Text("Choose which browsers to include in Web History tracking. Only installed browsers can be enabled.")
+                    .font(BrutalTheme.bodyMono)
+                    .foregroundColor(BrutalTheme.textPrimary)
+                    .lineSpacing(3)
+                
+                // Browser toggles grid
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 12),
+                    GridItem(.flexible(), spacing: 12)
+                ], spacing: 10) {
+                    ForEach(browserSettings.allBrowsersStatus(), id: \.browser) { status in
+                        browserToggleRow(
+                            browser: status.browser,
+                            isInstalled: status.isInstalled,
+                            isEnabled: status.isEnabled
+                        )
+                    }
+                }
+                .frame(maxWidth: 500)
+                
+                // Summary of enabled browsers
+                let enabledCount = browserSettings.allBrowsersStatus().filter { $0.isInstalled && $0.isEnabled }.count
+                let installedCount = browserSettings.allBrowsersStatus().filter { $0.isInstalled }.count
+                
+                HStack(spacing: 6) {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 11))
+                        .foregroundColor(BrutalTheme.textTertiary)
+                    
+                    Text("\(enabledCount) of \(installedCount) installed browser\(installedCount == 1 ? "" : "s") enabled for tracking")
+                        .font(BrutalTheme.captionMono)
+                        .foregroundColor(BrutalTheme.textTertiary)
+                }
+                .padding(.top, 4)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+    
+    private func browserToggleRow(browser: BrowserSource, isInstalled: Bool, isEnabled: Bool) -> some View {
+        HStack(spacing: 10) {
+            // Browser icon
+            Image(systemName: browser.systemImage)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(isInstalled ? (isEnabled ? BrutalTheme.accent : BrutalTheme.textSecondary) : BrutalTheme.textTertiary.opacity(0.5))
+                .frame(width: 24, height: 24)
+            
+            // Browser name and status
+            VStack(alignment: .leading, spacing: 2) {
+                Text(browser.rawValue)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(isInstalled ? BrutalTheme.textPrimary : BrutalTheme.textTertiary)
+                
+                Text(isInstalled ? (isEnabled ? "Tracking enabled" : "Tracking disabled") : "Not installed")
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundColor(isInstalled ? (isEnabled ? .green : .orange) : BrutalTheme.textTertiary)
+            }
+            
+            Spacer()
+            
+            // Toggle
+            if isInstalled {
+                Toggle("", isOn: Binding(
+                    get: { browserSettings.isEnabled(browser) },
+                    set: { browserSettings.setEnabled(browser, enabled: $0) }
+                ))
+                .toggleStyle(.switch)
+                .tint(.green)
+                .labelsHidden()
+            } else {
+                // Show "N/A" for uninstalled browsers
+                Text("N/A")
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textTertiary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(BrutalTheme.surfaceAlt.opacity(0.5))
+                    )
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isInstalled ? BrutalTheme.surface.opacity(0.5) : BrutalTheme.surface.opacity(0.2))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isInstalled && isEnabled ? BrutalTheme.accent.opacity(0.3) : BrutalTheme.border.opacity(0.3), lineWidth: 1)
+                )
+        )
     }
     
     // MARK: - Sync Section
@@ -327,7 +490,7 @@ private struct SettingsScaffoldView: View {
         
         return GlassCard {
             VStack(alignment: .leading, spacing: 10) {
-                Text(BrutalTheme.sectionLabel(7, "THIS DEVICE"))
+                Text(BrutalTheme.sectionLabel(9, "THIS DEVICE"))
                     .font(BrutalTheme.headingFont)
                     .foregroundColor(BrutalTheme.textSecondary)
                     .tracking(1.5)

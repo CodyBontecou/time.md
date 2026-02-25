@@ -1,7 +1,7 @@
 # Timeprint Build Commands
 # Usage: make <target>
 
-.PHONY: help build-mac build-ios test archive upload clean
+.PHONY: help build-mac build-ios test archive upload clean package-gumroad
 
 # Default target
 help:
@@ -17,6 +17,7 @@ help:
 	@echo "Release:"
 	@echo "  make archive       Archive iOS app for App Store"
 	@echo "  make upload        Archive and upload to App Store Connect"
+	@echo "  make package-gumroad  Build, sign, notarize, and package for Gumroad"
 	@echo "  make bump-build    Increment build number"
 	@echo ""
 	@echo "Code Quality:"
@@ -142,3 +143,75 @@ stats:
 	@echo ""
 	@echo "Documentation files:"
 	@find . -name "*.md" -not -path "./.build/*" -not -path "./DerivedData/*" -not -path "./.git/*" -not -path "./node_modules/*" -not -path "./.pi/*" -maxdepth 3 | wc -l | tr -d ' '
+
+# ============================================================================
+# GUMROAD DISTRIBUTION
+# ============================================================================
+
+VERSION := $(shell grep -m1 'MARKETING_VERSION' Timeprint.xcodeproj/project.pbxproj | sed 's/.*= //' | tr -d ';' | tr -d ' ')
+DEVELOPER_ID := "Developer ID Application: Cody Russell Bontecou (67KC823C9A)"
+TEAM_ID := 67KC823C9A
+BUNDLE_ID := com.bontecou.Timeprint
+
+# Build, sign, notarize, and package for Gumroad distribution
+package-gumroad:
+	@echo "=== Building Timeprint v$(VERSION) for Gumroad ==="
+	@echo ""
+	@# Clean previous builds
+	rm -rf build/release dist
+	mkdir -p build/release dist
+	@# Build universal release
+	@echo "► Building universal binary..."
+	xcodebuild -scheme Timeprint \
+		-configuration Release \
+		-destination 'generic/platform=macOS' \
+		-archivePath build/release/Timeprint.xcarchive \
+		archive
+	@# Export the app
+	@echo "► Exporting app..."
+	xcodebuild -exportArchive \
+		-archivePath build/release/Timeprint.xcarchive \
+		-exportPath build/release \
+		-exportOptionsPlist ExportOptions-macOS.plist
+	@# Create DMG
+	@echo "► Creating DMG..."
+	hdiutil create -volname "Timeprint" \
+		-srcfolder build/release/Timeprint.app \
+		-ov -format UDZO \
+		build/release/Timeprint.dmg
+	@# Sign DMG
+	@echo "► Signing DMG..."
+	codesign --force --sign $(DEVELOPER_ID) build/release/Timeprint.dmg
+	@# Notarize
+	@echo "► Notarizing (this may take a few minutes)..."
+	xcrun notarytool submit build/release/Timeprint.dmg \
+		--keychain-profile "notarytool-profile" \
+		--wait
+	@# Staple
+	@echo "► Stapling notarization ticket..."
+	xcrun stapler staple build/release/Timeprint.dmg
+	@# Create distribution package
+	@echo "► Creating distribution package..."
+	cp build/release/Timeprint.dmg dist/
+	cp dist-assets/README.txt dist/ 2>/dev/null || cp dist/README.txt dist/ 2>/dev/null || true
+	cp LICENSE dist/LICENSE.txt
+	cd dist && zip -r ../Timeprint-v$(VERSION)-macOS.zip .
+	@echo ""
+	@echo "=== Package Complete ==="
+	@echo "Upload to Gumroad: Timeprint-v$(VERSION)-macOS.zip"
+	@echo "Size: $$(du -h Timeprint-v$(VERSION)-macOS.zip | cut -f1)"
+	@echo ""
+
+# Quick repackage (skip build, use existing app)
+repackage-gumroad:
+	@echo "=== Repackaging Timeprint v$(VERSION) ==="
+	rm -rf dist
+	mkdir -p dist
+	cp build/release/Timeprint.dmg dist/
+	cp LICENSE dist/LICENSE.txt
+	@echo "Creating README..."
+	@cat > dist/README.txt << 'EOFREADME'
+	@# README is created inline - see existing dist/README.txt
+	@test -f dist/README.txt || echo "Add README.txt to dist/"
+	cd dist && zip -r ../Timeprint-v$(VERSION)-macOS.zip .
+	@echo "Done: Timeprint-v$(VERSION)-macOS.zip"

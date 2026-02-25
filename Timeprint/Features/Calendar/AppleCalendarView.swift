@@ -21,14 +21,20 @@ struct ScreenTimeBlock: Identifiable {
     let endHour: Int       // exclusive
     let totalSeconds: Double
     let color: Color
+    /// Actual start time of the first session in this block (for precise display)
+    let actualStartTime: Date?
+    /// Actual end time of the last session in this block (for precise display)
+    let actualEndTime: Date?
 
-    init(appName: String, startHour: Int, endHour: Int, totalSeconds: Double, color: Color) {
+    init(appName: String, startHour: Int, endHour: Int, totalSeconds: Double, color: Color, actualStartTime: Date? = nil, actualEndTime: Date? = nil) {
         self.id = "\(appName)|\(startHour)-\(endHour)"
         self.appName = appName
         self.startHour = startHour
         self.endHour = endHour
         self.totalSeconds = totalSeconds
         self.color = color
+        self.actualStartTime = actualStartTime
+        self.actualEndTime = actualEndTime
     }
 }
 
@@ -101,6 +107,110 @@ enum CalendarBlockBuilder {
             ))
         }
 
+        return blocks
+    }
+
+    /// Build blocks from hourly data, enhanced with actual times from raw sessions.
+    /// Uses hourly data for accurate totals, raw sessions only for precise timestamps.
+    static func buildBlocksWithActualTimes(hourlyData: [HourlyAppUsage], sessions: [RawSession], colors: [String: Color]) -> [ScreenTimeBlock] {
+        let calendar = Calendar.current
+        
+        // First, extract actual times from sessions grouped by app+hour
+        struct SessionHourKey: Hashable {
+            let appName: String
+            let hour: Int
+        }
+        
+        var sessionTimes: [SessionHourKey: (earliest: Date, latest: Date)] = [:]
+        for session in sessions {
+            let hour = calendar.component(.hour, from: session.startTime)
+            let key = SessionHourKey(appName: session.appName, hour: hour)
+            if let existing = sessionTimes[key] {
+                sessionTimes[key] = (
+                    earliest: min(existing.earliest, session.startTime),
+                    latest: max(existing.latest, session.endTime)
+                )
+            } else {
+                sessionTimes[key] = (earliest: session.startTime, latest: session.endTime)
+            }
+        }
+        
+        // Group hourly data by app
+        var appHours: [String: [(hour: Int, seconds: Double)]] = [:]
+        for entry in hourlyData where entry.totalSeconds > 30 {
+            appHours[entry.appName, default: []].append((entry.hour, entry.totalSeconds))
+        }
+        
+        var blocks: [ScreenTimeBlock] = []
+        
+        for (appName, hours) in appHours {
+            let sorted = hours.sorted { $0.hour < $1.hour }
+            guard !sorted.isEmpty else { continue }
+            
+            var startHour = sorted[0].hour
+            var endHour = sorted[0].hour + 1
+            var totalSeconds = sorted[0].seconds
+            
+            // Get actual times for first hour
+            let firstKey = SessionHourKey(appName: appName, hour: sorted[0].hour)
+            var actualStart = sessionTimes[firstKey]?.earliest
+            var actualEnd = sessionTimes[firstKey]?.latest
+            
+            for i in 1..<sorted.count {
+                if sorted[i].hour == endHour {
+                    // Consecutive hour - merge
+                    endHour = sorted[i].hour + 1
+                    totalSeconds += sorted[i].seconds
+                    
+                    // Update actual times
+                    let key = SessionHourKey(appName: appName, hour: sorted[i].hour)
+                    if let times = sessionTimes[key] {
+                        if let start = actualStart {
+                            actualStart = min(start, times.earliest)
+                        } else {
+                            actualStart = times.earliest
+                        }
+                        if let end = actualEnd {
+                            actualEnd = max(end, times.latest)
+                        } else {
+                            actualEnd = times.latest
+                        }
+                    }
+                } else {
+                    // Gap - finalize current block
+                    blocks.append(ScreenTimeBlock(
+                        appName: appName,
+                        startHour: startHour,
+                        endHour: endHour,
+                        totalSeconds: totalSeconds,
+                        color: colors[appName] ?? .gray,
+                        actualStartTime: actualStart,
+                        actualEndTime: actualEnd
+                    ))
+                    
+                    // Start new block
+                    startHour = sorted[i].hour
+                    endHour = sorted[i].hour + 1
+                    totalSeconds = sorted[i].seconds
+                    
+                    let key = SessionHourKey(appName: appName, hour: sorted[i].hour)
+                    actualStart = sessionTimes[key]?.earliest
+                    actualEnd = sessionTimes[key]?.latest
+                }
+            }
+            
+            // Finalize last block
+            blocks.append(ScreenTimeBlock(
+                appName: appName,
+                startHour: startHour,
+                endHour: endHour,
+                totalSeconds: totalSeconds,
+                color: colors[appName] ?? .gray,
+                actualStartTime: actualStart,
+                actualEndTime: actualEnd
+            ))
+        }
+        
         return blocks
     }
 

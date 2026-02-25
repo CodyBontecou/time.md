@@ -53,7 +53,9 @@ private struct WeekBlockCell: View {
                     color: color,
                     startHour: block.startHour,
                     endHour: block.endHour,
-                    totalSeconds: block.totalSeconds
+                    totalSeconds: block.totalSeconds,
+                    actualStartTime: block.actualStartTime,
+                    actualEndTime: block.actualEndTime
                 )
                 .fixedSize()
                 .offset(y: -52)
@@ -84,6 +86,14 @@ struct CalendarWeekTimelineView: View {
     @State private var weekAppColors: [String: Color] = [:]
     @State private var loadError: Error?
     @State private var selectedBlockKey: BlockSelectionKey?
+    
+    // Loading state - start true so skeleton shows immediately
+    @State private var isLoading = true
+    @State private var hasLoadedOnce = false
+    
+    private var showSkeleton: Bool {
+        !hasLoadedOnce
+    }
 
     private let cal = Calendar.current
     private let hourHeight: CGFloat = 52
@@ -118,32 +128,39 @@ struct CalendarWeekTimelineView: View {
     // MARK: Body
 
     var body: some View {
-        HStack(spacing: 0) {
-            // Main timeline
-            VStack(spacing: 0) {
-                dayHeaders
-                Rectangle().fill(CalendarColors.gridLine).frame(height: 0.5)
-                timelineScroll
-            }
-
-            // Detail sidebar (slides in on selection)
-            if let detail = selectedDetail {
-                Rectangle().fill(CalendarColors.gridLine).frame(width: 0.5)
-
-                BlockDetailSidebar(
-                    block: detail.block,
-                    color: detail.color,
-                    date: detail.date,
-                    hourlyBreakdown: detail.hourly,
-                    weeklyTotals: detail.weekly,
-                    onClose: {
-                        withAnimation(.easeInOut(duration: 0.2)) { selectedBlockKey = nil }
+        Group {
+            if showSkeleton {
+                CalendarWeekSkeletonView()
+            } else {
+                HStack(spacing: 0) {
+                    // Main timeline
+                    VStack(spacing: 0) {
+                        dayHeaders
+                        Rectangle().fill(CalendarColors.gridLine).frame(height: 0.5)
+                        timelineScroll
                     }
-                )
-                .frame(width: sidebarWidth)
-                .transition(.move(edge: .trailing).combined(with: .opacity))
+
+                    // Detail sidebar (slides in on selection)
+                    if let detail = selectedDetail {
+                        Rectangle().fill(CalendarColors.gridLine).frame(width: 0.5)
+
+                        BlockDetailSidebar(
+                            block: detail.block,
+                            color: detail.color,
+                            date: detail.date,
+                            hourlyBreakdown: detail.hourly,
+                            weeklyTotals: detail.weekly,
+                            onClose: {
+                                withAnimation(.easeInOut(duration: 0.2)) { selectedBlockKey = nil }
+                            }
+                        )
+                        .frame(width: sidebarWidth)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                    }
+                }
             }
         }
+        .animation(.easeInOut(duration: 0.25), value: showSkeleton)
         .animation(.easeInOut(duration: 0.2), value: selectedBlockKey)
         .task(id: weekStart) {
             await loadWeekData()
@@ -359,30 +376,57 @@ struct CalendarWeekTimelineView: View {
     // MARK: Data Loading
 
     private func loadWeekData() async {
-        var result: [Date: [HourlyAppUsage]] = [:]
+        isLoading = true
+        defer {
+            isLoading = false
+            hasLoadedOnce = true
+        }
+        
+        var hourlyResult: [Date: [HourlyAppUsage]] = [:]
+        var sessionsResult: [Date: [RawSession]] = [:]
 
-        await withTaskGroup(of: (Date, [HourlyAppUsage]).self) { group in
+        await withTaskGroup(of: (Date, [HourlyAppUsage], [RawSession]).self) { group in
             for day in weekDays {
                 group.addTask {
+                    let dayStart = cal.startOfDay(for: day)
+                    guard let dayEnd = cal.date(byAdding: .day, value: 1, to: dayStart) else {
+                        return (dayStart, [], [])
+                    }
+                    
                     let data = (try? await appEnvironment.dataService.fetchHourlyAppUsage(for: day)) ?? []
-                    return (cal.startOfDay(for: day), data)
+                    
+                    // Fetch raw sessions for actual times
+                    let sessionFilters = FilterSnapshot(
+                        startDate: dayStart,
+                        endDate: dayEnd,
+                        granularity: .day,
+                        selectedApps: [],
+                        selectedCategories: [],
+                        selectedHeatmapCells: []
+                    )
+                    let sessions = (try? await appEnvironment.dataService.fetchRawSessions(filters: sessionFilters)) ?? []
+                    
+                    return (dayStart, data, sessions)
                 }
             }
-            for await (dayStart, data) in group {
-                result[dayStart] = data
+            for await (dayStart, data, sessions) in group {
+                hourlyResult[dayStart] = data
+                sessionsResult[dayStart] = sessions
             }
         }
 
-        weeklyData = result
+        weeklyData = hourlyResult
 
-        // Compute blocks and colors once from the loaded data
+        // Compute colors from all hourly data (authoritative source for totals)
+        let allHourlyData = hourlyResult.values.flatMap { $0 }
+        weekAppColors = CalendarBlockBuilder.assignColors(for: allHourlyData)
+
+        // Compute blocks using hourly data for totals, sessions for actual times
         var blocks: [Date: [ScreenTimeBlock]] = [:]
-        for (day, data) in result {
-            blocks[day] = CalendarBlockBuilder.buildBlocks(from: data)
+        for (day, hourlyData) in hourlyResult {
+            let sessions = sessionsResult[day] ?? []
+            blocks[day] = CalendarBlockBuilder.buildBlocksWithActualTimes(hourlyData: hourlyData, sessions: sessions, colors: weekAppColors)
         }
         weekBlocks = blocks
-
-        let allData = result.values.flatMap { $0 }
-        weekAppColors = CalendarBlockBuilder.assignColors(for: allData)
     }
 }

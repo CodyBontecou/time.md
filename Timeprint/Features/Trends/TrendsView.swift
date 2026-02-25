@@ -22,6 +22,15 @@ struct TrendsView: View {
     @State private var brushedRange: ClosedRange<Date>?
     @State private var chartMode: TrendChartMode = .total
     
+    // Loading state
+    @State private var isLoading = true
+    @State private var hasLoadedOnce = false
+    
+    /// Show skeleton only on initial load, not on subsequent filter changes
+    private var showSkeleton: Bool {
+        isLoading && !hasLoadedOnce
+    }
+    
     /// Whether we're showing hourly breakdown (Day granularity)
     private var isHourlyMode: Bool { filters.granularity == .day }
 
@@ -58,28 +67,32 @@ struct TrendsView: View {
                     Spacer()
                 }
 
-                if let loadError {
-                    DataLoadErrorView(error: loadError)
-                }
+                if showSkeleton {
+                    // Skeleton loader during initial load
+                    TrendsSkeletonView()
+                } else {
+                    if let loadError {
+                        DataLoadErrorView(error: loadError)
+                    }
 
-                // Controls row
-                controlsRow
+                    // Controls row
+                    controlsRow
 
-                // Main chart
-                GlassCard {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(isHourlyMode ? "HOURLY USAGE" : "\(filters.granularity.title.uppercased()) USAGE")
-                            .font(BrutalTheme.headingFont)
-                            .foregroundColor(BrutalTheme.textSecondary)
-                            .tracking(1)
+                    // Main chart
+                    GlassCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(isHourlyMode ? "HOURLY USAGE" : "\(filters.granularity.title.uppercased()) USAGE")
+                                .font(BrutalTheme.headingFont)
+                                .foregroundColor(BrutalTheme.textSecondary)
+                                .tracking(1)
 
-                        if chartMode == .total {
-                            totalChart
-                        } else {
-                            stackedChart
+                            if chartMode == .total {
+                                totalChart
+                            } else {
+                                stackedChart
+                            }
                         }
                     }
-                }
 
                 // Hover tooltip
                 if let hoveredPoint {
@@ -163,7 +176,9 @@ struct TrendsView: View {
                         }
                     }
                 }
+                } // End of else block
             }
+            .animation(.easeInOut(duration: 0.25), value: showSkeleton)
         }
         .scrollClipDisabled()
         .scrollIndicators(.never)
@@ -185,7 +200,7 @@ struct TrendsView: View {
                     } label: {
                         Text(mode.rawValue)
                             .font(.system(size: 12, weight: isActive ? .bold : .medium, design: .monospaced))
-                            .foregroundColor(isActive ? .white : BrutalTheme.textTertiary)
+                            .foregroundColor(isActive ? .black : BrutalTheme.textTertiary)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
                     }
@@ -404,6 +419,12 @@ struct TrendsView: View {
     }
 
     private func loadTrend() async {
+        isLoading = true
+        defer {
+            isLoading = false
+            hasLoadedOnce = true
+        }
+        
         do {
             loadError = nil
             let snapshot = filters.snapshot

@@ -7,6 +7,7 @@ struct TimeprintApp: App {
     @State private var filters = GlobalFilterStore()
     @State private var navigation = NavigationCoordinator()
     @AppStorage("appNameDisplayMode") private var appNameDisplayMode: String = AppNameDisplayMode.short.rawValue
+    @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
     @State private var lastCloudSyncDate: Date?
     @State private var cloudSyncError: String?
 
@@ -76,7 +77,7 @@ struct TimeprintApp: App {
         }
         
         // Menu bar extra for quick access to today's screen time
-        MenuBarExtra {
+        MenuBarExtra(isInserted: $showMenuBarItem) {
             TimeprintMenuBarExtra()
                 .environment(\.appEnvironment, .live)
         } label: {
@@ -88,13 +89,16 @@ struct TimeprintApp: App {
 
     /// Run immediately on launch so data is captured even if the user
     /// opens the app briefly and closes it without navigating anywhere.
+    /// Fire-and-forget — don't block the UI waiting for sync to complete.
     private func initialSync() async {
-        await Task.detached(priority: .utility) {
+        Task.detached(priority: .utility) {
             HistoryStore.syncIfNeeded()
-        }.value
+        }
         
         // Prefetch browser history databases in background so Web History view loads instantly
-        SQLiteBrowsingHistoryService().prefetchDatabases()
+        Task.detached(priority: .utility) {
+            SQLiteBrowsingHistoryService().prefetchDatabases()
+        }
     }
     
     /// Perform initial cloud sync on app launch.

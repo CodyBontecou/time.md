@@ -8,6 +8,16 @@ struct BlockHoverTooltip: View {
     let startHour: Int
     let endHour: Int
     let totalSeconds: Double
+    /// Actual start time (if available from raw sessions)
+    var actualStartTime: Date? = nil
+    /// Actual end time (if available from raw sessions)
+    var actualEndTime: Date? = nil
+
+    private static let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "h:mm a"
+        return f
+    }()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -51,7 +61,12 @@ struct BlockHoverTooltip: View {
     }
 
     private var timeRange: String {
-        "\(hourString(startHour)) – \(hourString(endHour))"
+        // Prefer actual times if available
+        if let start = actualStartTime, let end = actualEndTime {
+            return "\(Self.timeFormatter.string(from: start)) – \(Self.timeFormatter.string(from: end))"
+        }
+        // Fallback to hour blocks
+        return "\(hourString(startHour)) – \(hourString(endHour))"
     }
 
     private func hourString(_ h: Int) -> String {
@@ -351,8 +366,19 @@ struct BlockDetailSidebar: View {
             .tracking(1.0)
     }
 
+    private static let timeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "h:mm a"
+        return f
+    }()
+
     private var timeRangeLabel: String {
-        "\(hourString(block.startHour)) – \(hourString(block.endHour))"
+        // Prefer actual times if available
+        if let start = block.actualStartTime, let end = block.actualEndTime {
+            return "\(Self.timeFormatter.string(from: start)) – \(Self.timeFormatter.string(from: end))"
+        }
+        // Fallback to hour blocks
+        return "\(hourString(block.startHour)) – \(hourString(block.endHour))"
     }
 
     private var dateLabel: String {

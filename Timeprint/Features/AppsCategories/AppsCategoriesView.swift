@@ -25,6 +25,15 @@ struct AppsCategoriesView: View {
     @State private var mappingError: String?
     @State private var hoveredApp: String?
     @State private var hoveredCategory: String?
+    
+    // Loading state
+    @State private var isLoading = true
+    @State private var hasLoadedOnce = false
+    
+    /// Show skeleton only on initial load, not on subsequent filter changes
+    private var showSkeleton: Bool {
+        isLoading && !hasLoadedOnce
+    }
 
     var body: some View {
         ScrollView {
@@ -34,46 +43,52 @@ struct AppsCategoriesView: View {
                     .font(.system(size: 26, weight: .bold, design: .default))
                     .foregroundColor(BrutalTheme.textPrimary)
 
-                // Mode toggle — glass buttons
-                HStack(spacing: 6) {
-                    ForEach(BreakdownMode.allCases) { m in
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.15)) {
-                                mode = m
+                if showSkeleton {
+                    // Skeleton loader during initial load
+                    AppsCategoriesSkeletonView()
+                } else {
+                    // Mode toggle — glass buttons
+                    HStack(spacing: 6) {
+                        ForEach(BreakdownMode.allCases) { m in
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.15)) {
+                                    mode = m
+                                }
+                            } label: {
+                                Text(m.title)
+                                    .font(BrutalTheme.captionMono)
+                                    .tracking(1)
+                                    .foregroundColor(mode == m ? .black : BrutalTheme.textSecondary)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
                             }
-                        } label: {
-                            Text(m.title)
-                                .font(BrutalTheme.captionMono)
-                                .tracking(1)
-                                .foregroundColor(mode == m ? .white : BrutalTheme.textSecondary)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
+                            .buttonStyle(.bordered)
+                            .tint(mode == m ? BrutalTheme.accent : .clear)
                         }
-                        .buttonStyle(.bordered)
-                        .tint(mode == m ? BrutalTheme.accent : .clear)
                     }
-                }
 
-                if let loadError {
-                    DataLoadErrorView(error: loadError)
-                }
-
-                // ─── Chart ───
-                Group {
-                    switch mode {
-                    case .apps:
-                        appChart
-                    case .categories:
-                        categoryChart
+                    if let loadError {
+                        DataLoadErrorView(error: loadError)
                     }
+
+                    // ─── Chart ───
+                    Group {
+                        switch mode {
+                        case .apps:
+                            appChart
+                        case .categories:
+                            categoryChart
+                        }
+                    }
+
+                    // ─── Cross-filter ───
+                    quickFilterPanel
+
+                    // ─── Mapping editor ───
+                    mappingEditor
                 }
-
-                // ─── Cross-filter ───
-                quickFilterPanel
-
-                // ─── Mapping editor ───
-                mappingEditor
             }
+            .animation(.easeInOut(duration: 0.25), value: showSkeleton)
         }
         .scrollClipDisabled()
         .scrollIndicators(.never)
@@ -578,6 +593,12 @@ struct AppsCategoriesView: View {
     }
 
     private func load() async {
+        isLoading = true
+        defer {
+            isLoading = false
+            hasLoadedOnce = true
+        }
+        
         do {
             loadError = nil
             mappingError = nil

@@ -22,3 +22,7 @@ app-icon-options/
 .vercel
 .env*.local
 node_modules/
+
+# Distribution (keep dist-assets/)
+dist/
+*.zip

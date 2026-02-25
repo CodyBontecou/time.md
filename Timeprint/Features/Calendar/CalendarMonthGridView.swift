@@ -10,6 +10,14 @@ struct CalendarMonthGridView: View {
     @State private var dailyTotals: [Date: Double] = [:]
     @State private var dailyApps: [Date: [DailyAppBreakdown]] = [:]
     @State private var loadError: Error?
+    
+    // Loading state - start true so skeleton shows immediately
+    @State private var isLoading = true
+    @State private var hasLoadedOnce = false
+    
+    private var showSkeleton: Bool {
+        !hasLoadedOnce
+    }
 
     private let cal = Calendar.current
     private let weekdaySymbols = Calendar.current.shortWeekdaySymbols
@@ -56,44 +64,51 @@ struct CalendarMonthGridView: View {
     // MARK: Body
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Weekday header row
-            weekdayHeader
-
-            Rectangle().fill(CalendarColors.gridLine).frame(height: 0.5)
-
-            // Day grid — fills available space
-            GeometryReader { geo in
-                let rowHeight = geo.size.height / CGFloat(weekCount)
-
+        Group {
+            if showSkeleton {
+                CalendarMonthSkeletonView()
+            } else {
                 VStack(spacing: 0) {
-                    ForEach(0..<weekCount, id: \.self) { week in
-                        HStack(spacing: 0) {
-                            ForEach(0..<7, id: \.self) { col in
-                                let index = week * 7 + col
-                                let dayDate = calendarDays[index]
+                    // Weekday header row
+                    weekdayHeader
 
-                                if col > 0 {
-                                    Rectangle().fill(CalendarColors.gridLineFaint).frame(width: 0.5)
+                    Rectangle().fill(CalendarColors.gridLine).frame(height: 0.5)
+
+                    // Day grid — fills available space
+                    GeometryReader { geo in
+                        let rowHeight = geo.size.height / CGFloat(weekCount)
+
+                        VStack(spacing: 0) {
+                            ForEach(0..<weekCount, id: \.self) { week in
+                                HStack(spacing: 0) {
+                                    ForEach(0..<7, id: \.self) { col in
+                                        let index = week * 7 + col
+                                        let dayDate = calendarDays[index]
+
+                                        if col > 0 {
+                                            Rectangle().fill(CalendarColors.gridLineFaint).frame(width: 0.5)
+                                        }
+
+                                        if let dayDate {
+                                            monthDayCell(for: dayDate, height: rowHeight)
+                                        } else {
+                                            Color.clear
+                                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                        }
+                                    }
                                 }
+                                .frame(height: rowHeight)
 
-                                if let dayDate {
-                                    monthDayCell(for: dayDate, height: rowHeight)
-                                } else {
-                                    Color.clear
-                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                if week < weekCount - 1 {
+                                    Rectangle().fill(CalendarColors.gridLine).frame(height: 0.5)
                                 }
                             }
-                        }
-                        .frame(height: rowHeight)
-
-                        if week < weekCount - 1 {
-                            Rectangle().fill(CalendarColors.gridLine).frame(height: 0.5)
                         }
                     }
                 }
             }
         }
+        .animation(.easeInOut(duration: 0.25), value: showSkeleton)
         .task(id: monthTaskID) {
             await loadMonthData()
         }
@@ -127,7 +142,7 @@ struct CalendarMonthGridView: View {
         let isFuture = dayDate > Date.now
         let dayStart = cal.startOfDay(for: dayDate)
         let totalSeconds = dailyTotals[dayStart] ?? 0
-        let apps = dailyApps[dayStart] ?? []
+        let apps = (dailyApps[dayStart] ?? []).filter { $0.totalSeconds > 0 }
         // Show top 3 apps that fit
         let maxEvents = max(Int((height - 30) / 16), 0)
         let visibleApps = Array(apps.prefix(min(3, maxEvents)))
@@ -225,6 +240,12 @@ struct CalendarMonthGridView: View {
     // MARK: Data Loading
 
     private func loadMonthData() async {
+        isLoading = true
+        defer {
+            isLoading = false
+            hasLoadedOnce = true
+        }
+        
         guard let interval = monthInterval else { return }
 
         let endDate = cal.date(byAdding: .day, value: -1, to: interval.end) ?? interval.end

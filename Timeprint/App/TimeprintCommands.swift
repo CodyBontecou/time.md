@@ -6,6 +6,7 @@ struct TimeprintCommands: Commands {
     var navigation: NavigationCoordinator
     var filters: GlobalFilterStore
     let performCloudSync: () async -> Void
+    @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
     
     var body: some Commands {
         // Replace default "New" command group
@@ -16,6 +17,13 @@ struct TimeprintCommands: Commands {
         // View menu - Navigation shortcuts
         CommandGroup(after: .toolbar) {
             Section {
+                Button("Toggle Sidebar") {
+                    navigation.toggleSidebar()
+                }
+                .keyboardShortcut("b", modifiers: .command)
+                
+                Divider()
+                
                 Button("Overview") {
                     navigation.selectedDestination = .overview
                 }
@@ -52,6 +60,10 @@ struct TimeprintCommands: Commands {
                     navigation.selectedDestination = .settings
                 }
                 .keyboardShortcut(",", modifiers: .command)
+                
+                Divider()
+                
+                Toggle("Show Menu Bar Item", isOn: $showMenuBarItem)
             }
         }
         
@@ -186,6 +198,7 @@ struct TimeprintCommands: Commands {
  ============================
  
  Navigation:
+ ⌘B          Toggle Sidebar
  ⌘1          Overview
  ⌘2          Trends
  ⌘3          Apps & Categories
@@ -193,6 +206,9 @@ struct TimeprintCommands: Commands {
  ⌘5          Heatmap
  ⇧⌘E         Exports
  ⌘,          Settings
+ 
+ View:
+ (toggle)    Show Menu Bar Item
  
  Time Range:
  ⇧⌘T         Today

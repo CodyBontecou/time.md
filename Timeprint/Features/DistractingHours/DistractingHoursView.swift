@@ -115,6 +115,15 @@ struct DistractingHoursView: View {
     @State private var loadError: Error?
     @State private var selectedPreset: HeatmapPreset = .all
     @State private var hoveredCell: HeatmapCellCoordinate?
+    
+    // Loading state
+    @State private var isLoading = true
+    @State private var hasLoadedOnce = false
+    
+    /// Show skeleton only on initial load, not on subsequent filter changes
+    private var showSkeleton: Bool {
+        isLoading && !hasLoadedOnce
+    }
 
     private let weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     private let cellSpacing: CGFloat = 3
@@ -155,47 +164,53 @@ struct DistractingHoursView: View {
                     Spacer()
                 }
 
-                if let loadError {
-                    DataLoadErrorView(error: loadError)
-                }
+                if showSkeleton {
+                    // Skeleton loader during initial load
+                    HeatmapSkeletonView()
+                } else {
+                    if let loadError {
+                        DataLoadErrorView(error: loadError)
+                    }
 
-                // Preset controls
-                presetsRow
+                    // Preset controls
+                    presetsRow
 
-                HStack(alignment: .top, spacing: 20) {
-                    // Main heatmap
-                    VStack(alignment: .leading, spacing: 16) {
-                        heatmapGrid
-                        colorLegend
+                    HStack(alignment: .top, spacing: 20) {
+                        // Main heatmap
+                        VStack(alignment: .leading, spacing: 16) {
+                            heatmapGrid
+                            colorLegend
 
-                        // Hovered cell tooltip
-                        if let hc = hoveredCell,
-                           let cell = cells.first(where: { $0.weekday == hc.weekday && $0.hour == hc.hour }),
-                           cell.totalSeconds > 0 {
-                            HStack(spacing: 12) {
-                                Image(systemName: "square.fill")
-                                    .foregroundColor(BrutalTheme.heatmapColor(intensity: maxSeconds > 0 ? cell.totalSeconds / maxSeconds : 0))
-                                    .font(.system(size: 14))
-                                Text("\(weekdayLabels[hc.weekday]) \(hourHeader(hc.hour))")
-                                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                                    .foregroundColor(BrutalTheme.textPrimary)
-                                Text(DurationFormatter.short(cell.totalSeconds))
-                                    .font(.system(size: 12, weight: .medium, design: .monospaced))
-                                    .foregroundColor(BrutalTheme.textSecondary)
+                            // Hovered cell tooltip
+                            if let hc = hoveredCell,
+                               let cell = cells.first(where: { $0.weekday == hc.weekday && $0.hour == hc.hour }),
+                               cell.totalSeconds > 0 {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "square.fill")
+                                        .foregroundColor(BrutalTheme.heatmapColor(intensity: maxSeconds > 0 ? cell.totalSeconds / maxSeconds : 0))
+                                        .font(.system(size: 14))
+                                    Text("\(weekdayLabels[hc.weekday]) \(hourHeader(hc.hour))")
+                                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                        .foregroundColor(BrutalTheme.textPrimary)
+                                    Text(DurationFormatter.short(cell.totalSeconds))
+                                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                                        .foregroundColor(BrutalTheme.textSecondary)
+                                }
+                                .transition(.opacity.combined(with: .scale(scale: 0.95)))
                             }
-                            .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                        }
+
+                        // Side panel: selected cell apps
+                        if !filters.selectedHeatmapCells.isEmpty {
+                            sidePanelApps
                         }
                     }
 
-                    // Side panel: selected cell apps
-                    if !filters.selectedHeatmapCells.isEmpty {
-                        sidePanelApps
-                    }
+                    // Selection info
+                    selectionInfo
                 }
-
-                // Selection info
-                selectionInfo
             }
+            .animation(.easeInOut(duration: 0.25), value: showSkeleton)
         }
         .scrollClipDisabled()
         .scrollIndicators(.never)
@@ -416,6 +431,12 @@ struct DistractingHoursView: View {
     }
 
     private func load() async {
+        isLoading = true
+        defer {
+            isLoading = false
+            hasLoadedOnce = true
+        }
+        
         do {
             loadError = nil
             let snapshot = filters.snapshot

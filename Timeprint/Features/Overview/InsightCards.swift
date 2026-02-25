@@ -690,6 +690,302 @@ extension DeviceInfo.Platform {
     }
 }
 
+// MARK: - Calendar Preview Card
+
+/// Shows a mini calendar preview that adapts to the current granularity
+struct CalendarPreviewCard: View {
+    let granularity: TimeGranularity
+    let startDate: Date
+    let sparklinePoints: [SparklinePoint]
+    let hourlyPoints: [SparklinePoint]
+    
+    private let cal = Calendar.current
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.pink)
+                Text("CALENDAR")
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textTertiary)
+                    .tracking(1)
+            }
+            
+            // Adaptive calendar preview based on granularity
+            Group {
+                switch granularity {
+                case .day:
+                    DayPreview(date: startDate, hourlyPoints: hourlyPoints)
+                case .week:
+                    WeekPreview(date: startDate, sparklinePoints: sparklinePoints)
+                case .month:
+                    MonthPreview(date: startDate, sparklinePoints: sparklinePoints)
+                case .year:
+                    YearPreview(date: startDate, sparklinePoints: sparklinePoints)
+                }
+            }
+            .frame(height: 56)
+            
+            Text(granularityLabel)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(BrutalTheme.textTertiary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .hoverScale()
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Calendar preview: \(granularityLabel)")
+    }
+    
+    private var granularityLabel: String {
+        switch granularity {
+        case .day:
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE, MMM d"
+            return formatter.string(from: startDate)
+        case .week:
+            return "This Week"
+        case .month:
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MMMM yyyy"
+            return formatter.string(from: startDate)
+        case .year:
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy"
+            return formatter.string(from: startDate)
+        }
+    }
+}
+
+// MARK: - Day Preview (24-hour timeline)
+
+private struct DayPreview: View {
+    let date: Date
+    let hourlyPoints: [SparklinePoint]
+    
+    private let cellWidth: CGFloat = 5
+    private let cellSpacing: CGFloat = 1.5
+    
+    private var maxSeconds: Double {
+        hourlyPoints.map(\.totalSeconds).max() ?? 1
+    }
+    
+    var body: some View {
+        HStack(spacing: cellSpacing) {
+            ForEach(0..<24, id: \.self) { hour in
+                let seconds = hourlyPoints.first { Calendar.current.component(.hour, from: $0.date) == hour }?.totalSeconds ?? 0
+                let intensity = maxSeconds > 0 ? min(seconds / maxSeconds, 1.0) : 0
+                
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(intensity > 0 ? BrutalTheme.accent.opacity(0.3 + intensity * 0.7) : Color.gray.opacity(0.15))
+                    .frame(width: cellWidth)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .overlay(alignment: .bottom) {
+            // Hour labels
+            HStack {
+                Text("12a")
+                Spacer()
+                Text("12p")
+                Spacer()
+                Text("11p")
+            }
+            .font(.system(size: 7, weight: .medium, design: .monospaced))
+            .foregroundColor(BrutalTheme.textTertiary)
+            .offset(y: 12)
+        }
+    }
+}
+
+// MARK: - Week Preview (7 day columns)
+
+private struct WeekPreview: View {
+    let date: Date
+    let sparklinePoints: [SparklinePoint]
+    
+    private let cal = Calendar.current
+    private let weekdays = Calendar.current.veryShortWeekdaySymbols
+    
+    private var maxSeconds: Double {
+        sparklinePoints.map(\.totalSeconds).max() ?? 1
+    }
+    
+    private func secondsForWeekday(_ weekdayIndex: Int) -> Double {
+        // Find the sparkline point for this weekday
+        for point in sparklinePoints {
+            let pointWeekday = cal.component(.weekday, from: point.date) - 1 // 0-indexed
+            if pointWeekday == weekdayIndex {
+                return point.totalSeconds
+            }
+        }
+        return 0
+    }
+    
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(0..<7, id: \.self) { index in
+                let seconds = secondsForWeekday(index)
+                let intensity = maxSeconds > 0 ? min(seconds / maxSeconds, 1.0) : 0
+                let isToday = cal.component(.weekday, from: Date()) - 1 == index
+                
+                VStack(spacing: 2) {
+                    Text(weekdays[index])
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundColor(isToday ? BrutalTheme.accent : BrutalTheme.textTertiary)
+                    
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(intensity > 0 ? BrutalTheme.accent.opacity(0.3 + intensity * 0.7) : Color.gray.opacity(0.15))
+                        .frame(maxWidth: .infinity)
+                        .overlay {
+                            if isToday {
+                                RoundedRectangle(cornerRadius: 3)
+                                    .strokeBorder(BrutalTheme.accent, lineWidth: 1)
+                            }
+                        }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Month Preview (mini month grid)
+
+private struct MonthPreview: View {
+    let date: Date
+    let sparklinePoints: [SparklinePoint]
+    
+    private let cal = Calendar.current
+    private let cellSize: CGFloat = 7
+    private let cellSpacing: CGFloat = 1.5
+    
+    private var monthInterval: DateInterval? {
+        cal.dateInterval(of: .month, for: date)
+    }
+    
+    private var daysInMonth: Int {
+        cal.range(of: .day, in: .month, for: date)?.count ?? 30
+    }
+    
+    private var firstWeekdayOffset: Int {
+        guard let interval = monthInterval else { return 0 }
+        return (cal.component(.weekday, from: interval.start) - cal.firstWeekday + 7) % 7
+    }
+    
+    private var daysWithData: Set<Int> {
+        var result = Set<Int>()
+        for point in sparklinePoints {
+            if cal.isDate(point.date, equalTo: date, toGranularity: .month) && point.totalSeconds > 0 {
+                result.insert(cal.component(.day, from: point.date))
+            }
+        }
+        return result
+    }
+    
+    private var todayDay: Int? {
+        if cal.isDate(Date(), equalTo: date, toGranularity: .month) {
+            return cal.component(.day, from: Date())
+        }
+        return nil
+    }
+    
+    var body: some View {
+        let totalCells = firstWeekdayOffset + daysInMonth
+        let rows = Int(ceil(Double(totalCells) / 7.0))
+        
+        VStack(spacing: cellSpacing) {
+            ForEach(0..<rows, id: \.self) { row in
+                HStack(spacing: cellSpacing) {
+                    ForEach(0..<7, id: \.self) { col in
+                        let index = row * 7 + col
+                        let day = index - firstWeekdayOffset + 1
+                        
+                        if day >= 1 && day <= daysInMonth {
+                            let hasData = daysWithData.contains(day)
+                            let isToday = todayDay == day
+                            
+                            RoundedRectangle(cornerRadius: 1)
+                                .fill(isToday ? Color.red : (hasData ? BrutalTheme.accent : Color.gray.opacity(0.15)))
+                                .frame(width: cellSize, height: cellSize)
+                        } else {
+                            Color.clear
+                                .frame(width: cellSize, height: cellSize)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+// MARK: - Year Preview (12 month mini grid)
+
+private struct YearPreview: View {
+    let date: Date
+    let sparklinePoints: [SparklinePoint]
+    
+    private let cal = Calendar.current
+    private let cellSize: CGFloat = 14
+    private let cellSpacing: CGFloat = 3
+    
+    private var currentMonth: Int {
+        cal.component(.month, from: Date())
+    }
+    
+    private var currentYear: Int {
+        cal.component(.year, from: date)
+    }
+    
+    private var isCurrentYear: Bool {
+        cal.component(.year, from: Date()) == currentYear
+    }
+    
+    private func monthHasData(_ month: Int) -> Bool {
+        for point in sparklinePoints {
+            if cal.component(.month, from: point.date) == month && point.totalSeconds > 0 {
+                return true
+            }
+        }
+        return false
+    }
+    
+    var body: some View {
+        VStack(spacing: cellSpacing) {
+            ForEach(0..<3, id: \.self) { row in
+                HStack(spacing: cellSpacing) {
+                    ForEach(0..<4, id: \.self) { col in
+                        let month = row * 4 + col + 1
+                        let hasData = monthHasData(month)
+                        let isCurrent = isCurrentYear && currentMonth == month
+                        
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(isCurrent ? Color.red : (hasData ? BrutalTheme.accent : Color.gray.opacity(0.15)))
+                            .frame(width: cellSize, height: cellSize)
+                            .overlay(alignment: .center) {
+                                Text(monthAbbrev(month))
+                                    .font(.system(size: 6, weight: .medium))
+                                    .foregroundColor(isCurrent || hasData ? .white : BrutalTheme.textTertiary)
+                            }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    private func monthAbbrev(_ month: Int) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM"
+        var components = DateComponents()
+        components.month = month
+        let date = cal.date(from: components) ?? Date()
+        return String(formatter.string(from: date).prefix(1))
+    }
+}
+
 // MARK: - Symbol Effect Compatibility
 
 /// Provides .symbolEffect(.rotate) on macOS 15+ with graceful fallback

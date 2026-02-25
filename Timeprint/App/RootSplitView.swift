@@ -28,6 +28,7 @@ struct RootSplitView: View {
                 }
                 .navigationTitle("Timeprint")
                 .listStyle(.sidebar)
+                .toolbar(removing: .sidebarToggle)
             } detail: {
                 VStack(spacing: 0) {
                     Group {
@@ -61,20 +62,20 @@ struct RootSplitView: View {
                 .onChange(of: filters.granularity) { _, newValue in
                     filters.adjustDateRange(for: newValue)
                 }
-                .toolbar(removing: .sidebarToggle)
-                .toolbar {
-                    ToolbarItem(placement: .navigation) {
-                        Button {
-                            navigation.toggleSidebar()
-                        } label: {
-                            Image(systemName: "sidebar.leading")
-                                .font(.system(size: 14, weight: .medium))
-                        }
-                        .help("Toggle Sidebar ⌘B")
+            }
+            .toolbar(removing: .sidebarToggle)
+            .toolbar {
+                ToolbarItem(placement: .navigation) {
+                    Button {
+                        navigation.toggleSidebar()
+                    } label: {
+                        Image(systemName: "sidebar.leading")
+                            .font(.system(size: 14, weight: .medium))
                     }
-                    ToolbarItem(placement: .primaryAction) {
-                        GranularityPickerToolbar(filters: filters)
-                    }
+                    .help("Toggle Sidebar ⌘B")
+                }
+                ToolbarItem(placement: .primaryAction) {
+                    GranularityPickerToolbar(filters: filters)
                 }
             }
 

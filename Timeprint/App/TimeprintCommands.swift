@@ -39,37 +39,49 @@ struct TimeprintCommands: Commands {
                 }
                 .keyboardShortcut("1", modifiers: .command)
                 
+                Button("Calendar") {
+                    navigation.selectedDestination = .calendar
+                }
+                .keyboardShortcut("2", modifiers: .command)
+                
                 Button("Trends") {
                     navigation.selectedDestination = .trends
                 }
-                .keyboardShortcut("2", modifiers: .command)
+                .keyboardShortcut("3", modifiers: .command)
                 
                 Button("Apps & Categories") {
                     navigation.selectedDestination = .appsCategories
                 }
-                .keyboardShortcut("3", modifiers: .command)
+                .keyboardShortcut("4", modifiers: .command)
                 
                 Button("Sessions") {
                     navigation.selectedDestination = .sessions
                 }
-                .keyboardShortcut("4", modifiers: .command)
+                .keyboardShortcut("5", modifiers: .command)
                 
                 Button("Heatmap") {
                     navigation.selectedDestination = .heatmap
                 }
-                .keyboardShortcut("5", modifiers: .command)
+                .keyboardShortcut("6", modifiers: .command)
                 
                 Divider()
+                
+                Button("Web History") {
+                    navigation.selectedDestination = .webHistory
+                }
+                .keyboardShortcut("7", modifiers: .command)
                 
                 Button("Exports") {
                     navigation.selectedDestination = .exports
                 }
-                .keyboardShortcut("e", modifiers: [.command, .shift])
+                .keyboardShortcut("8", modifiers: .command)
+                
+                Divider()
                 
                 Button("Settings") {
                     navigation.selectedDestination = .settings
                 }
-                .keyboardShortcut(",", modifiers: .command)
+                .keyboardShortcut("9", modifiers: .command)
                 
                 Divider()
                 
@@ -210,12 +222,14 @@ struct TimeprintCommands: Commands {
  Navigation:
  ⌘B          Toggle Sidebar
  ⌘1          Overview
- ⌘2          Trends
- ⌘3          Apps & Categories
- ⌘4          Sessions
- ⌘5          Heatmap
- ⇧⌘E         Exports
- ⌘,          Settings
+ ⌘2          Calendar
+ ⌘3          Trends
+ ⌘4          Apps & Categories
+ ⌘5          Sessions
+ ⌘6          Heatmap
+ ⌘7          Web History
+ ⌘8          Exports
+ ⌘9          Settings
  
  View:
  (toggle)    Show Menu Bar Item

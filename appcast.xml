@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Timeprint Updates</title>
+        <link>https://github.com/codybontecou/Timeprint/releases</link>
+        <description>Timeprint macOS App Updates</description>
+        <language>en</language>
+        
+        <!-- Add new <item> blocks here for each release, newest first -->
+        <!--
+        <item>
+            <title>Version 1.1</title>
+            <pubDate>Mon, 25 Feb 2026 12:00:00 +0000</pubDate>
+            <sparkle:version>2</sparkle:version>
+            <sparkle:shortVersionString>1.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>
+                <![CDATA[
+                    <h2>What's New in 1.1</h2>
+                    <ul>
+                        <li>Bug fixes and improvements</li>
+                    </ul>
+                ]]>
+            </description>
+            <enclosure
+                url="https://github.com/codybontecou/Timeprint/releases/download/v1.1/Timeprint-v1.1-macOS.zip"
+                length="5500000"
+                type="application/octet-stream"
+                sparkle:edSignature="YOUR_ED_SIGNATURE_HERE"
+            />
+        </item>
+        -->
+        
+        <item>
+            <title>Version 1.0</title>
+            <pubDate>Tue, 25 Feb 2026 00:00:00 +0000</pubDate>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>1.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>
+                <![CDATA[
+                    <h2>Initial Release</h2>
+                    <ul>
+                        <li>Screen time tracking and analytics</li>
+                        <li>iCloud sync with iOS companion app</li>
+                        <li>Multiple data views: Overview, Trends, Sessions, Heatmap</li>
+                        <li>Export capabilities</li>
+                        <li>Menu bar widget</li>
+                    </ul>
+                ]]>
+            </description>
+            <enclosure
+                url="https://github.com/codybontecou/Timeprint/releases/download/v1.0/Timeprint-v1.0-macOS.zip"
+                length="5347178"
+                type="application/octet-stream"
+                sparkle:edSignature="PLACEHOLDER_SIGN_WITH_SPARKLE_GENERATE_KEYS"
+            />
+        </item>
+    </channel>
+</rss>

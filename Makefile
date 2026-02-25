@@ -18,6 +18,9 @@ help:
 	@echo "  make archive       Archive iOS app for App Store"
 	@echo "  make upload        Archive and upload to App Store Connect"
 	@echo "  make package-gumroad  Build, sign, notarize, and package for Gumroad"
+	@echo "  make release-mac   Build, notarize, and ZIP for Sparkle release"
+	@echo "  make sign-update   Sign release ZIP for Sparkle auto-updates"
+	@echo "  make appcast-template  Show appcast.xml entry template"
 	@echo "  make bump-build    Increment build number"
 	@echo ""
 	@echo "Code Quality:"
@@ -215,3 +218,101 @@ repackage-gumroad:
 	@test -f dist/README.txt || echo "Add README.txt to dist/"
 	cd dist && zip -r ../Timeprint-v$(VERSION)-macOS.zip .
 	@echo "Done: Timeprint-v$(VERSION)-macOS.zip"
+
+# ============================================================================
+# SPARKLE AUTO-UPDATES
+# ============================================================================
+
+SPARKLE_BIN := $(shell find ~/Library/Developer/Xcode/DerivedData/Timeprint-*/SourcePackages/artifacts/sparkle/Sparkle/bin -maxdepth 0 2>/dev/null | head -1)
+BUILD_NUMBER := $(shell grep -m1 'CURRENT_PROJECT_VERSION' Timeprint.xcodeproj/project.pbxproj | sed 's/.*= //' | tr -d ';' | tr -d ' ')
+
+# Sign a release ZIP for Sparkle updates
+sign-update:
+	@if [ -z "$(SPARKLE_BIN)" ]; then \
+		echo "Error: Sparkle tools not found. Run 'make build-mac' first to fetch packages."; \
+		exit 1; \
+	fi
+	@if [ ! -f "Timeprint-v$(VERSION)-macOS.zip" ]; then \
+		echo "Error: Timeprint-v$(VERSION)-macOS.zip not found."; \
+		echo "Run 'make release-mac' first to create the release ZIP."; \
+		exit 1; \
+	fi
+	@echo "=== Signing Timeprint-v$(VERSION)-macOS.zip for Sparkle ==="
+	@echo ""
+	@$(SPARKLE_BIN)/sign_update Timeprint-v$(VERSION)-macOS.zip
+	@echo ""
+	@echo "Copy the edSignature above into appcast.xml"
+
+# Build, notarize, and prepare for Sparkle release
+release-mac:
+	@echo "=== Building Timeprint v$(VERSION) (build $(BUILD_NUMBER)) for Release ==="
+	@echo ""
+	@# Clean previous builds
+	rm -rf build/release Timeprint-v$(VERSION)-macOS Timeprint-v$(VERSION)-macOS.zip
+	mkdir -p build/release
+	@# Build release archive
+	@echo "► Building release archive..."
+	xcodebuild -scheme Timeprint \
+		-configuration Release \
+		-destination 'generic/platform=macOS' \
+		-archivePath build/release/Timeprint.xcarchive \
+		archive
+	@# Export the app
+	@echo "► Exporting app..."
+	xcodebuild -exportArchive \
+		-archivePath build/release/Timeprint.xcarchive \
+		-exportPath build/release \
+		-exportOptionsPlist ExportOptions-macOS.plist
+	@# Notarize the app
+	@echo "► Notarizing app (this may take a few minutes)..."
+	ditto -c -k --keepParent build/release/Timeprint.app build/release/Timeprint-notarize.zip
+	xcrun notarytool submit build/release/Timeprint-notarize.zip \
+		--keychain-profile "notarytool-profile" \
+		--wait
+	@# Staple the app
+	@echo "► Stapling notarization ticket..."
+	xcrun stapler staple build/release/Timeprint.app
+	@# Create release ZIP (app only, for Sparkle)
+	@echo "► Creating release ZIP..."
+	mkdir -p Timeprint-v$(VERSION)-macOS
+	cp -R build/release/Timeprint.app Timeprint-v$(VERSION)-macOS/
+	ditto -c -k --keepParent Timeprint-v$(VERSION)-macOS Timeprint-v$(VERSION)-macOS.zip
+	@echo ""
+	@echo "=== Release Build Complete ==="
+	@echo "ZIP: Timeprint-v$(VERSION)-macOS.zip"
+	@echo "Size: $$(du -h Timeprint-v$(VERSION)-macOS.zip | cut -f1)"
+	@echo "Bytes: $$(stat -f%z Timeprint-v$(VERSION)-macOS.zip)"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  1. Run 'make sign-update' to get the Sparkle signature"
+	@echo "  2. Update appcast.xml with the signature and file size"
+	@echo "  3. Create a GitHub release and upload the ZIP"
+	@echo "  4. Push appcast.xml to main branch"
+
+# Show appcast.xml template for new release
+appcast-template:
+	@echo ""
+	@echo "Add this to appcast.xml (after <channel>, before existing <item>s):"
+	@echo ""
+	@echo "        <item>"
+	@echo "            <title>Version $(VERSION)</title>"
+	@echo "            <pubDate>$$(date -R)</pubDate>"
+	@echo "            <sparkle:version>$(BUILD_NUMBER)</sparkle:version>"
+	@echo "            <sparkle:shortVersionString>$(VERSION)</sparkle:shortVersionString>"
+	@echo "            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>"
+	@echo "            <description>"
+	@echo "                <![CDATA["
+	@echo "                    <h2>What's New in $(VERSION)</h2>"
+	@echo "                    <ul>"
+	@echo "                        <li>YOUR CHANGES HERE</li>"
+	@echo "                    </ul>"
+	@echo "                ]]>"
+	@echo "            </description>"
+	@echo "            <enclosure"
+	@echo "                url=\"https://github.com/codybontecou/Timeprint/releases/download/v$(VERSION)/Timeprint-v$(VERSION)-macOS.zip\""
+	@echo "                length=\"$$(stat -f%z Timeprint-v$(VERSION)-macOS.zip 2>/dev/null || echo 'FILE_SIZE_BYTES')\""
+	@echo "                type=\"application/octet-stream\""
+	@echo "                sparkle:edSignature=\"YOUR_SIGNATURE_HERE\""
+	@echo "            />"
+	@echo "        </item>"
+	@echo ""

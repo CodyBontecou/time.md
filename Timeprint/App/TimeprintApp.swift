@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import Sparkle
 import SwiftUI
 
 @main
@@ -10,6 +11,9 @@ struct TimeprintApp: App {
     @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
     @State private var lastCloudSyncDate: Date?
     @State private var cloudSyncError: String?
+    
+    /// Sparkle updater controller for auto-updates
+    @StateObject private var updaterController = UpdaterController()
 
     /// Fires every 15 minutes while the app is running to capture new Screen Time data.
     private let localSyncTimer = Timer.publish(every: 900, on: .main, in: .common).autoconnect()
@@ -73,7 +77,12 @@ struct TimeprintApp: App {
         .windowResizability(.contentSize)
         .defaultSize(width: 1360, height: 860)
         .commands {
-            TimeprintCommands(navigation: navigation, filters: filters, performCloudSync: performCloudSync)
+            TimeprintCommands(
+                navigation: navigation,
+                filters: filters,
+                performCloudSync: performCloudSync,
+                updaterController: updaterController
+            )
         }
         
         // Menu bar extra for quick access to today's screen time

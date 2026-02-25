@@ -1,3 +1,4 @@
+import Sparkle
 import SwiftUI
 
 #if os(macOS)
@@ -6,9 +7,18 @@ struct TimeprintCommands: Commands {
     var navigation: NavigationCoordinator
     var filters: GlobalFilterStore
     let performCloudSync: () async -> Void
+    @ObservedObject var updaterController: UpdaterController
     @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
     
     var body: some Commands {
+        // Check for Updates in App menu
+        CommandGroup(after: .appInfo) {
+            Button("Check for Updates...") {
+                updaterController.checkForUpdates()
+            }
+            .disabled(!updaterController.canCheckForUpdates)
+        }
+        
         // Replace default "New" command group
         CommandGroup(replacing: .newItem) {
             // No new document creation in Timeprint

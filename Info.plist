@@ -6,5 +6,12 @@
 	<string>AppIcon</string>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
+	<!-- Sparkle Auto-Update Configuration -->
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/codybontecou/Timeprint/main/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>2XiB94uURfV+rZ4RdbaoAxkPYgvEcj8T8x8HsdCZxSk=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
 </dict>
 </plist>

@@ -203,6 +203,188 @@ struct JSONExportOptions: Codable, Equatable {
     }
 }
 
+// MARK: - Markdown Export Options
+
+/// Markdown format customization options
+struct MarkdownExportOptions: Codable, Equatable {
+    var includeTableOfContents: Bool = true
+    var includeMetadataHeader: Bool = true
+    var tableStyle: MarkdownTableStyle = .github
+    var headingStyle: MarkdownHeadingStyle = .atx
+    var includeHorizontalRules: Bool = true
+    var includeEmoji: Bool = true
+    var linkAppsToNotes: Bool = false  // For Obsidian: create [[App Name]] links
+    
+    enum MarkdownTableStyle: String, CaseIterable, Identifiable, Codable {
+        case github     // GFM tables with | pipes |
+        case simple     // Plain text aligned columns
+        case html       // HTML tables (for complex styling)
+        
+        var id: String { rawValue }
+        
+        var displayName: String {
+            switch self {
+            case .github: return "GitHub (GFM)"
+            case .simple: return "Simple Text"
+            case .html: return "HTML Tables"
+            }
+        }
+    }
+    
+    enum MarkdownHeadingStyle: String, CaseIterable, Identifiable, Codable {
+        case atx        // # Heading
+        case setext     // Heading\n======
+        
+        var id: String { rawValue }
+        
+        var displayName: String {
+            switch self {
+            case .atx: return "ATX (# style)"
+            case .setext: return "Setext (underline)"
+            }
+        }
+    }
+}
+
+// MARK: - Obsidian Export Options
+
+/// Obsidian-specific export options with frontmatter support
+struct ObsidianExportOptions: Codable, Equatable {
+    var includeFrontmatter: Bool = true
+    var frontmatterStyle: FrontmatterStyle = .yaml
+    var includeWikiLinks: Bool = true      // [[App Name]] style links
+    var includeTags: Bool = true           // #timeprint #screentime etc
+    var includeAliases: Bool = false       // Frontmatter aliases
+    var dailyNoteFormat: String = "yyyy-MM-dd"  // For date linking
+    var appNoteFolder: String = "Apps"     // Folder for app notes (Apps/Safari.md)
+    var createBacklinks: Bool = true       // Link back to daily notes
+    var includeDataview: Bool = true       // Dataview-compatible frontmatter
+    var customTags: [String] = []          // Additional custom tags
+    
+    enum FrontmatterStyle: String, CaseIterable, Identifiable, Codable {
+        case yaml       // ---\nkey: value\n---
+        case toml       // +++\nkey = "value"\n+++
+        
+        var id: String { rawValue }
+        
+        var displayName: String {
+            switch self {
+            case .yaml: return "YAML (---)"
+            case .toml: return "TOML (+++)"
+            }
+        }
+        
+        var delimiter: String {
+            switch self {
+            case .yaml: return "---"
+            case .toml: return "+++"
+            }
+        }
+    }
+    
+    /// Generate frontmatter for a screen time note
+    func generateFrontmatter(
+        title: String,
+        date: Date,
+        totalSeconds: Double,
+        topApps: [String],
+        filters: String,
+        additionalFields: [String: Any] = [:]
+    ) -> String {
+        let delimiter = frontmatterStyle.delimiter
+        var lines: [String] = [delimiter]
+        
+        switch frontmatterStyle {
+        case .yaml:
+            lines.append("title: \"\(title)\"")
+            lines.append("date: \(formatDate(date))")
+            lines.append("type: screentime-export")
+            lines.append("total_hours: \(String(format: "%.2f", totalSeconds / 3600))")
+            lines.append("total_minutes: \(Int(totalSeconds / 60))")
+            
+            if includeDataview {
+                lines.append("created: \(formatDateTime(date))")
+                lines.append("modified: \(formatDateTime(Date()))")
+            }
+            
+            if !topApps.isEmpty {
+                lines.append("top_apps:")
+                for app in topApps.prefix(5) {
+                    lines.append("  - \"\(app)\"")
+                }
+            }
+            
+            if includeTags {
+                var tags = ["timeprint", "screentime"]
+                tags.append(contentsOf: customTags)
+                lines.append("tags:")
+                for tag in tags {
+                    lines.append("  - \(tag)")
+                }
+            }
+            
+            if includeAliases {
+                lines.append("aliases:")
+                lines.append("  - \"Screen Time \(formatDate(date))\"")
+            }
+            
+            lines.append("filters: \"\(filters)\"")
+            
+            for (key, value) in additionalFields {
+                if let stringValue = value as? String {
+                    lines.append("\(key): \"\(stringValue)\"")
+                } else if let numberValue = value as? Double {
+                    lines.append("\(key): \(numberValue)")
+                } else if let intValue = value as? Int {
+                    lines.append("\(key): \(intValue)")
+                } else if let boolValue = value as? Bool {
+                    lines.append("\(key): \(boolValue)")
+                }
+            }
+            
+        case .toml:
+            lines.append("title = \"\(title)\"")
+            lines.append("date = \"\(formatDate(date))\"")
+            lines.append("type = \"screentime-export\"")
+            lines.append("total_hours = \(String(format: "%.2f", totalSeconds / 3600))")
+            lines.append("total_minutes = \(Int(totalSeconds / 60))")
+            
+            if !topApps.isEmpty {
+                let appsStr = topApps.prefix(5).map { "\"\($0)\"" }.joined(separator: ", ")
+                lines.append("top_apps = [\(appsStr)]")
+            }
+            
+            if includeTags {
+                var tags = ["timeprint", "screentime"]
+                tags.append(contentsOf: customTags)
+                let tagsStr = tags.map { "\"\($0)\"" }.joined(separator: ", ")
+                lines.append("tags = [\(tagsStr)]")
+            }
+            
+            lines.append("filters = \"\(filters)\"")
+        }
+        
+        lines.append(delimiter)
+        lines.append("")
+        
+        return lines.joined(separator: "\n")
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: date)
+    }
+    
+    private func formatDateTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        return formatter.string(from: date)
+    }
+}
+
 // MARK: - Export Sections (for Combined Exports)
 
 /// Individual data sections that can be included in a combined export
@@ -475,13 +657,15 @@ struct ExportEstimate: Sendable {
         rowCount > 1000
     }
 
-    /// Rough estimate: CSV ~50 bytes/row, JSON ~80 bytes/row
+    /// Rough estimate: CSV ~50 bytes/row, JSON ~80 bytes/row, Markdown ~70 bytes/row
     static func estimate(rowCount: Int, format: ExportFormat) -> ExportEstimate {
         let bytesPerRow: Int
         switch format {
         case .csv: bytesPerRow = 50
         case .json: bytesPerRow = 80
-        case .png, .pdf: bytesPerRow = 0 // Images don't scale linearly with rows
+        case .yaml: bytesPerRow = 90
+        case .markdown: bytesPerRow = 70
+        case .obsidian: bytesPerRow = 100 // Extra for frontmatter and wiki links
         }
 
         let estimated = rowCount * bytesPerRow
@@ -551,6 +735,8 @@ struct ExportSettings: Codable {
     var timestampFormat: ExportTimestampFormat = .iso8601Full
     var csvOptions: CSVExportOptions = CSVExportOptions()
     var jsonOptions: JSONExportOptions = JSONExportOptions()
+    var markdownOptions: MarkdownExportOptions = MarkdownExportOptions()
+    var obsidianOptions: ObsidianExportOptions = ObsidianExportOptions()
     
     /// Per-scope field selections (persisted separately for flexibility)
     var fieldSelections: [String: ExportFieldSelection] = [:]
@@ -770,7 +956,7 @@ struct ExportPreset: Identifiable, Codable {
     static let weeklySummary = ExportPreset(
         id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
         name: "Weekly Summary",
-        format: .pdf,
+        format: .markdown,
         sections: .quickSummary,
         dateRangeType: .relative,
         relativeDateRange: .thisWeek,
@@ -800,11 +986,35 @@ struct ExportPreset: Identifiable, Codable {
         description: "Context switches, transitions, and patterns"
     )
     
+    static let markdownExport = ExportPreset(
+        id: UUID(uuidString: "00000000-0000-0000-0000-000000000005")!,
+        name: "Markdown Report",
+        format: .markdown,
+        sections: .quickSummary,
+        dateRangeType: .relative,
+        relativeDateRange: .last7Days,
+        isBuiltIn: true,
+        description: "Clean markdown for notes and documentation"
+    )
+    
+    static let obsidianExport = ExportPreset(
+        id: UUID(uuidString: "00000000-0000-0000-0000-000000000006")!,
+        name: "Obsidian Vault",
+        format: .obsidian,
+        sections: .withAnalytics,
+        dateRangeType: .relative,
+        relativeDateRange: .last7Days,
+        isBuiltIn: true,
+        description: "Full export with frontmatter and wiki links"
+    )
+    
     static let builtInPresets: [ExportPreset] = [
         .fullDataDump,
         .weeklySummary,
         .rawSessionsExport,
-        .analyticsReport
+        .analyticsReport,
+        .markdownExport,
+        .obsidianExport
     ]
 }
 

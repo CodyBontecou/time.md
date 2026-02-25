@@ -3,28 +3,61 @@ import CoreGraphics
 import Foundation
 
 enum ExportFormat: String, CaseIterable, Identifiable, Codable {
-    case png
-    case pdf
     case csv
     case json
+    case yaml
+    case markdown
+    case obsidian
 
     var id: String { rawValue }
 
     var displayName: String {
-        rawValue.uppercased()
+        switch self {
+        case .csv: return "CSV"
+        case .json: return "JSON"
+        case .yaml: return "YAML"
+        case .markdown: return "Markdown"
+        case .obsidian: return "Obsidian"
+        }
     }
 
     var fileExtension: String {
-        rawValue
+        switch self {
+        case .csv: return "csv"
+        case .json: return "json"
+        case .yaml: return "yaml"
+        case .markdown, .obsidian: return "md"
+        }
     }
 
     var systemImage: String {
         switch self {
-        case .png: "photo"
-        case .pdf: "doc.richtext"
         case .csv: "tablecells"
         case .json: "curlybraces"
+        case .yaml: "doc.text"
+        case .markdown: "text.document"
+        case .obsidian: "link"
         }
+    }
+    
+    var description: String {
+        switch self {
+        case .csv: return "Spreadsheet-compatible"
+        case .json: return "Structured data"
+        case .yaml: return "Human-readable config"
+        case .markdown: return "Notes & docs"
+        case .obsidian: return "Knowledge base"
+        }
+    }
+    
+    /// Whether this format supports knowledge base linking (Obsidian)
+    var supportsWikiLinks: Bool {
+        self == .obsidian
+    }
+    
+    /// Whether this format uses YAML frontmatter
+    var usesFrontmatter: Bool {
+        self == .obsidian
     }
 }
 
@@ -96,12 +129,14 @@ struct ExportCoordinator: ExportCoordinating {
         switch format {
         case .csv:
             try writeCSV(report: report, to: fileURL, settings: settings)
-        case .png:
-            try writePNG(report: report, to: fileURL)
-        case .pdf:
-            try writePDF(report: report, to: fileURL)
         case .json:
             try writeJSON(report: report, to: fileURL, settings: settings)
+        case .yaml:
+            try writeYAML(report: report, to: fileURL, settings: settings, filters: filters)
+        case .markdown:
+            try writeMarkdown(report: report, to: fileURL, settings: settings, filters: filters)
+        case .obsidian:
+            try writeObsidian(report: report, to: fileURL, settings: settings, filters: filters)
         }
 
         return fileURL
@@ -183,10 +218,12 @@ struct ExportCoordinator: ExportCoordinating {
             try writeCombinedCSV(reports: reports, sections: config.sections.sections, to: fileURL, settings: settings)
         case .json:
             try writeCombinedJSON(reports: reports, sections: config.sections.sections, to: fileURL, settings: settings, filters: filters)
-        case .pdf:
-            try writeCombinedPDF(reports: reports, sections: config.sections.sections, to: fileURL)
-        case .png:
-            try writeCombinedPNG(reports: reports, sections: config.sections.sections, to: fileURL)
+        case .yaml:
+            try writeCombinedYAML(reports: reports, sections: config.sections.sections, to: fileURL, settings: settings, filters: filters)
+        case .markdown:
+            try writeCombinedMarkdown(reports: reports, sections: config.sections.sections, to: fileURL, settings: settings, filters: filters)
+        case .obsidian:
+            try writeCombinedObsidian(reports: reports, sections: config.sections.sections, to: fileURL, settings: settings, filters: filters)
         }
         
         if let progress {
@@ -559,6 +596,61 @@ struct ExportCoordinator: ExportCoordinating {
         }
     }
     
+    private func writeCombinedYAML(reports: [ExportSection: ExportReport], sections: [ExportSection], to fileURL: URL, settings: ExportSettings, filters: FilterSnapshot) throws {
+        var lines: [String] = []
+        
+        // YAML header with metadata
+        lines.append("# Timeprint Combined Export")
+        lines.append("")
+        lines.append("metadata:")
+        lines.append("  title: Timeprint Combined Export")
+        lines.append("  generated_at: \(isoDateTime(Date()))")
+        lines.append("  date_range:")
+        lines.append("    start: \(shortDate(filters.startDate))")
+        lines.append("    end: \(shortDate(filters.endDate))")
+        lines.append("  granularity: \(filters.granularity.rawValue)")
+        lines.append("  section_count: \(sections.count)")
+        lines.append("  filters: \"\(escapeYAMLString(summary(for: filters)))\"")
+        lines.append("")
+        
+        // Sections
+        lines.append("sections:")
+        for section in sections {
+            guard let report = reports[section] else { continue }
+            
+            lines.append("  - id: \(section.rawValue)")
+            lines.append("    name: \"\(escapeYAMLString(section.displayName))\"")
+            
+            for reportSection in report.sections {
+                lines.append("    headers:")
+                for header in reportSection.headers {
+                    lines.append("      - \(header)")
+                }
+                lines.append("    data:")
+                for row in reportSection.rows {
+                    lines.append("      -")
+                    for (index, header) in reportSection.headers.enumerated() {
+                        if index < row.count {
+                            if let _ = Double(row[index]) {
+                                lines.append("        \(header): \(row[index])")
+                            } else {
+                                lines.append("        \(header): \"\(escapeYAMLString(row[index]))\"")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        let content = lines.joined(separator: "\n") + "\n"
+        
+        do {
+            try content.write(to: fileURL, atomically: true, encoding: .utf8)
+        } catch {
+            throw ExportError.writeFailed(path: fileURL.path, details: error.localizedDescription)
+        }
+    }
+    
     private func writeCombinedPDF(reports: [ExportSection: ExportReport], sections: [ExportSection], to fileURL: URL) throws {
         var mediaBox = CGRect(x: 0, y: 0, width: 842, height: 595) // A4 landscape
         
@@ -665,14 +757,12 @@ struct ExportCoordinator: ExportCoordinating {
             try writeRawSessionsCSV(sessions: sessions, to: fileURL, settings: settings, progress: progress)
         case .json:
             try writeRawSessionsJSON(sessions: sessions, to: fileURL, settings: settings, progress: progress)
-        case .png, .pdf:
-            // For image formats, fall back to summary visualization
-            let report = try await buildReport(for: .sessions, filters: filters, settings: settings)
-            if format == .png {
-                try writePNG(report: report, to: fileURL)
-            } else {
-                try writePDF(report: report, to: fileURL)
-            }
+        case .yaml:
+            try writeRawSessionsYAML(sessions: sessions, to: fileURL, settings: settings, filters: filters, progress: progress)
+        case .markdown:
+            try writeRawSessionsMarkdown(sessions: sessions, to: fileURL, settings: settings, filters: filters, progress: progress)
+        case .obsidian:
+            try writeRawSessionsObsidian(sessions: sessions, to: fileURL, settings: settings, filters: filters, progress: progress)
         }
 
         if let progress {
@@ -1191,6 +1281,672 @@ private extension ExportCoordinator {
         }
     }
 
+    // MARK: - YAML Export
+
+    func writeYAML(report: ExportReport, to fileURL: URL, settings: ExportSettings, filters: FilterSnapshot) throws {
+        var lines: [String] = []
+        
+        // YAML header with metadata
+        lines.append("# \(report.title)")
+        lines.append("")
+        lines.append("metadata:")
+        lines.append("  title: \"\(escapeYAMLString(report.title))\"")
+        lines.append("  destination: \(report.destination.rawValue)")
+        lines.append("  generated_at: \(isoDateTime(report.generatedAt))")
+        lines.append("  date_range:")
+        lines.append("    start: \(shortDate(filters.startDate))")
+        lines.append("    end: \(shortDate(filters.endDate))")
+        lines.append("  granularity: \(filters.granularity.rawValue)")
+        lines.append("  filters: \"\(escapeYAMLString(report.filterSummary))\"")
+        lines.append("")
+        
+        // Sections
+        lines.append("sections:")
+        for section in report.sections {
+            lines.append("  - name: \"\(escapeYAMLString(section.title))\"")
+            lines.append("    headers:")
+            for header in section.headers {
+                lines.append("      - \(header)")
+            }
+            lines.append("    data:")
+            for row in section.rows {
+                lines.append("      -")
+                for (index, header) in section.headers.enumerated() {
+                    if index < row.count {
+                        // Try to detect if it's a number
+                        if let _ = Double(row[index]) {
+                            lines.append("        \(header): \(row[index])")
+                        } else {
+                            lines.append("        \(header): \"\(escapeYAMLString(row[index]))\"")
+                        }
+                    }
+                }
+            }
+        }
+        
+        let content = lines.joined(separator: "\n") + "\n"
+        
+        do {
+            try content.write(to: fileURL, atomically: true, encoding: .utf8)
+        } catch {
+            throw ExportError.writeFailed(path: fileURL.path, details: error.localizedDescription)
+        }
+    }
+
+    // MARK: - Markdown Export
+
+    func writeMarkdown(report: ExportReport, to fileURL: URL, settings: ExportSettings, filters: FilterSnapshot) throws {
+        let mdOpts = settings.markdownOptions
+        var lines: [String] = []
+        
+        // Title
+        lines.append(formatHeading(report.title, level: 1, style: mdOpts.headingStyle))
+        lines.append("")
+        
+        // Metadata header
+        if mdOpts.includeMetadataHeader {
+            let emoji = mdOpts.includeEmoji ? "📊 " : ""
+            lines.append("\(emoji)**Generated:** \(isoDateTime(report.generatedAt))")
+            lines.append("\(emoji)**Date Range:** \(shortDate(filters.startDate)) → \(shortDate(filters.endDate))")
+            lines.append("\(emoji)**Granularity:** \(filters.granularity.rawValue)")
+            lines.append("")
+            
+            if mdOpts.includeHorizontalRules {
+                lines.append("---")
+                lines.append("")
+            }
+        }
+        
+        // Table of contents
+        if mdOpts.includeTableOfContents && report.sections.count > 1 {
+            lines.append(formatHeading("Table of Contents", level: 2, style: mdOpts.headingStyle))
+            for section in report.sections {
+                let anchor = section.title.lowercased().replacingOccurrences(of: " ", with: "-")
+                lines.append("- [\(section.title)](#\(anchor))")
+            }
+            lines.append("")
+            
+            if mdOpts.includeHorizontalRules {
+                lines.append("---")
+                lines.append("")
+            }
+        }
+        
+        // Sections
+        for (sectionIndex, section) in report.sections.enumerated() {
+            lines.append(formatHeading(section.title, level: 2, style: mdOpts.headingStyle))
+            lines.append("")
+            
+            // Render table based on style
+            let tableLines = formatMarkdownTable(
+                headers: section.headers,
+                rows: section.rows,
+                style: mdOpts.tableStyle,
+                linkApps: mdOpts.linkAppsToNotes
+            )
+            lines.append(contentsOf: tableLines)
+            lines.append("")
+            
+            if mdOpts.includeHorizontalRules && sectionIndex < report.sections.count - 1 {
+                lines.append("---")
+                lines.append("")
+            }
+        }
+        
+        // Footer
+        let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
+        lines.append("")
+        lines.append("*\(footerEmoji)Exported by [Timeprint](https://timeprint.app)*")
+        
+        let content = lines.joined(separator: "\n")
+        
+        do {
+            try content.write(to: fileURL, atomically: true, encoding: .utf8)
+        } catch {
+            throw ExportError.writeFailed(path: fileURL.path, details: error.localizedDescription)
+        }
+    }
+
+    func writeObsidian(report: ExportReport, to fileURL: URL, settings: ExportSettings, filters: FilterSnapshot) throws {
+        let obsOpts = settings.obsidianOptions
+        let mdOpts = settings.markdownOptions
+        var lines: [String] = []
+        
+        // Extract top apps for frontmatter
+        var topApps: [String] = []
+        var totalSeconds: Double = 0
+        
+        for section in report.sections {
+            if section.title == "Apps" || section.title == "Top Apps" {
+                topApps = section.rows.prefix(5).compactMap { $0.first }
+            }
+            if section.title == "Summary" {
+                for row in section.rows {
+                    if row.first == "total_seconds", let val = Double(row.last ?? "") {
+                        totalSeconds = val
+                    }
+                }
+            }
+        }
+        
+        // Generate frontmatter
+        if obsOpts.includeFrontmatter {
+            let frontmatter = obsOpts.generateFrontmatter(
+                title: report.title,
+                date: report.generatedAt,
+                totalSeconds: totalSeconds,
+                topApps: topApps,
+                filters: report.filterSummary
+            )
+            lines.append(frontmatter)
+        }
+        
+        // Title with optional emoji
+        let titleEmoji = mdOpts.includeEmoji ? "📊 " : ""
+        lines.append(formatHeading("\(titleEmoji)\(report.title)", level: 1, style: mdOpts.headingStyle))
+        lines.append("")
+        
+        // Metadata with wiki-style date link
+        if mdOpts.includeMetadataHeader {
+            let dateLink = obsOpts.includeWikiLinks ? "[[\(formatObsidianDate(report.generatedAt, format: obsOpts.dailyNoteFormat))]]" : isoDateTime(report.generatedAt)
+            let rangeStart = obsOpts.includeWikiLinks ? "[[\(formatObsidianDate(filters.startDate, format: obsOpts.dailyNoteFormat))]]" : shortDate(filters.startDate)
+            let rangeEnd = obsOpts.includeWikiLinks ? "[[\(formatObsidianDate(filters.endDate, format: obsOpts.dailyNoteFormat))]]" : shortDate(filters.endDate)
+            
+            lines.append("| Property | Value |")
+            lines.append("|----------|-------|")
+            lines.append("| **Generated** | \(dateLink) |")
+            lines.append("| **Date Range** | \(rangeStart) → \(rangeEnd) |")
+            lines.append("| **Granularity** | \(filters.granularity.rawValue) |")
+            
+            if totalSeconds > 0 {
+                let hours = totalSeconds / 3600
+                lines.append("| **Total Time** | \(String(format: "%.1f", hours)) hours |")
+            }
+            lines.append("")
+            
+            // Tags inline
+            if obsOpts.includeTags {
+                var tags = ["#timeprint", "#screentime"]
+                tags.append(contentsOf: obsOpts.customTags.map { "#\($0)" })
+                lines.append(tags.joined(separator: " "))
+                lines.append("")
+            }
+            
+            lines.append("---")
+            lines.append("")
+        }
+        
+        // Table of contents with callout
+        if mdOpts.includeTableOfContents && report.sections.count > 1 {
+            lines.append("> [!summary] Table of Contents")
+            for section in report.sections {
+                let anchor = section.title.lowercased().replacingOccurrences(of: " ", with: "-")
+                lines.append("> - [\(section.title)](#\(anchor))")
+            }
+            lines.append("")
+        }
+        
+        // Sections
+        for section in report.sections {
+            let sectionEmoji = sectionEmoji(for: section.title, includeEmoji: mdOpts.includeEmoji)
+            lines.append(formatHeading("\(sectionEmoji)\(section.title)", level: 2, style: mdOpts.headingStyle))
+            lines.append("")
+            
+            // For apps, use wiki links if enabled
+            let shouldLinkApps = obsOpts.includeWikiLinks && 
+                (section.title == "Apps" || section.title == "Top Apps" || section.title == "Raw Sessions")
+            
+            let tableLines = formatMarkdownTable(
+                headers: section.headers,
+                rows: section.rows,
+                style: mdOpts.tableStyle,
+                linkApps: shouldLinkApps,
+                appFolder: obsOpts.appNoteFolder
+            )
+            lines.append(contentsOf: tableLines)
+            lines.append("")
+        }
+        
+        // Backlinks section for Obsidian
+        if obsOpts.createBacklinks {
+            lines.append("---")
+            lines.append("")
+            lines.append(formatHeading("🔗 Related", level: 2, style: mdOpts.headingStyle))
+            lines.append("")
+            
+            // Link to daily notes in range
+            let dateLink = formatObsidianDate(report.generatedAt, format: obsOpts.dailyNoteFormat)
+            lines.append("- Daily Note: [[\(dateLink)]]")
+            
+            // Link to top apps
+            if obsOpts.includeWikiLinks && !topApps.isEmpty {
+                lines.append("- Top Apps:")
+                for app in topApps.prefix(5) {
+                    let appLink = obsOpts.appNoteFolder.isEmpty ? app : "\(obsOpts.appNoteFolder)/\(app)"
+                    lines.append("  - [[\(appLink)|\(app)]]")
+                }
+            }
+            lines.append("")
+        }
+        
+        // Footer
+        let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
+        lines.append("*\(footerEmoji)Exported by [Timeprint](https://timeprint.app)*")
+        
+        let content = lines.joined(separator: "\n")
+        
+        do {
+            try content.write(to: fileURL, atomically: true, encoding: .utf8)
+        } catch {
+            throw ExportError.writeFailed(path: fileURL.path, details: error.localizedDescription)
+        }
+    }
+
+    // MARK: - Combined Markdown Export
+    
+    private func writeCombinedMarkdown(reports: [ExportSection: ExportReport], sections: [ExportSection], to fileURL: URL, settings: ExportSettings, filters: FilterSnapshot) throws {
+        let mdOpts = settings.markdownOptions
+        var lines: [String] = []
+        
+        // Title
+        let titleEmoji = mdOpts.includeEmoji ? "📊 " : ""
+        lines.append(formatHeading("\(titleEmoji)Timeprint Data Export", level: 1, style: mdOpts.headingStyle))
+        lines.append("")
+        
+        // Metadata
+        if mdOpts.includeMetadataHeader {
+            lines.append("**Generated:** \(isoDateTime(Date()))")
+            lines.append("**Date Range:** \(shortDate(filters.startDate)) → \(shortDate(filters.endDate))")
+            lines.append("**Sections:** \(sections.map(\.displayName).joined(separator: ", "))")
+            lines.append("")
+            
+            if mdOpts.includeHorizontalRules {
+                lines.append("---")
+                lines.append("")
+            }
+        }
+        
+        // Table of contents
+        if mdOpts.includeTableOfContents {
+            lines.append(formatHeading("Table of Contents", level: 2, style: mdOpts.headingStyle))
+            for section in sections {
+                let anchor = section.displayName.lowercased().replacingOccurrences(of: " ", with: "-")
+                let emoji = sectionEmoji(for: section.displayName, includeEmoji: mdOpts.includeEmoji)
+                lines.append("- [\(emoji)\(section.displayName)](#\(anchor))")
+            }
+            lines.append("")
+            
+            if mdOpts.includeHorizontalRules {
+                lines.append("---")
+                lines.append("")
+            }
+        }
+        
+        // Each section
+        for section in sections {
+            guard let report = reports[section] else { continue }
+            
+            let sectionEmoji = self.sectionEmoji(for: section.displayName, includeEmoji: mdOpts.includeEmoji)
+            lines.append(formatHeading("\(sectionEmoji)\(section.displayName)", level: 2, style: mdOpts.headingStyle))
+            lines.append("")
+            
+            for sectionData in report.sections {
+                if report.sections.count > 1 {
+                    lines.append(formatHeading(sectionData.title, level: 3, style: mdOpts.headingStyle))
+                    lines.append("")
+                }
+                
+                let tableLines = formatMarkdownTable(
+                    headers: sectionData.headers,
+                    rows: sectionData.rows,
+                    style: mdOpts.tableStyle,
+                    linkApps: mdOpts.linkAppsToNotes
+                )
+                lines.append(contentsOf: tableLines)
+                lines.append("")
+            }
+            
+            if mdOpts.includeHorizontalRules && section != sections.last {
+                lines.append("---")
+                lines.append("")
+            }
+        }
+        
+        // Footer
+        let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
+        lines.append("*\(footerEmoji)Exported by [Timeprint](https://timeprint.app)*")
+        
+        let content = lines.joined(separator: "\n")
+        
+        do {
+            try content.write(to: fileURL, atomically: true, encoding: .utf8)
+        } catch {
+            throw ExportError.writeFailed(path: fileURL.path, details: error.localizedDescription)
+        }
+    }
+    
+    private func writeCombinedObsidian(reports: [ExportSection: ExportReport], sections: [ExportSection], to fileURL: URL, settings: ExportSettings, filters: FilterSnapshot) throws {
+        let obsOpts = settings.obsidianOptions
+        let mdOpts = settings.markdownOptions
+        var lines: [String] = []
+        
+        // Calculate totals for frontmatter
+        var totalSeconds: Double = 0
+        var topApps: [String] = []
+        
+        for section in sections {
+            guard let report = reports[section] else { continue }
+            for sectionData in report.sections {
+                if sectionData.title == "Summary" {
+                    for row in sectionData.rows {
+                        if row.first == "total_seconds", let val = Double(row.last ?? "") {
+                            totalSeconds = val
+                        }
+                    }
+                }
+                if sectionData.title == "Apps" || sectionData.title == "Top Apps" {
+                    topApps = sectionData.rows.prefix(5).compactMap { $0.first }
+                }
+            }
+        }
+        
+        // Frontmatter
+        if obsOpts.includeFrontmatter {
+            let frontmatter = obsOpts.generateFrontmatter(
+                title: "Timeprint Data Export",
+                date: Date(),
+                totalSeconds: totalSeconds,
+                topApps: topApps,
+                filters: summary(for: filters),
+                additionalFields: [
+                    "section_count": sections.count,
+                    "export_type": "combined"
+                ]
+            )
+            lines.append(frontmatter)
+        }
+        
+        // Title
+        let titleEmoji = mdOpts.includeEmoji ? "📊 " : ""
+        lines.append(formatHeading("\(titleEmoji)Timeprint Data Export", level: 1, style: mdOpts.headingStyle))
+        lines.append("")
+        
+        // Metadata table
+        if mdOpts.includeMetadataHeader {
+            let dateLink = obsOpts.includeWikiLinks ? "[[\(formatObsidianDate(Date(), format: obsOpts.dailyNoteFormat))]]" : isoDateTime(Date())
+            let rangeStart = obsOpts.includeWikiLinks ? "[[\(formatObsidianDate(filters.startDate, format: obsOpts.dailyNoteFormat))]]" : shortDate(filters.startDate)
+            let rangeEnd = obsOpts.includeWikiLinks ? "[[\(formatObsidianDate(filters.endDate, format: obsOpts.dailyNoteFormat))]]" : shortDate(filters.endDate)
+            
+            lines.append("| Property | Value |")
+            lines.append("|----------|-------|")
+            lines.append("| **Generated** | \(dateLink) |")
+            lines.append("| **Date Range** | \(rangeStart) → \(rangeEnd) |")
+            lines.append("| **Sections** | \(sections.count) |")
+            
+            if totalSeconds > 0 {
+                lines.append("| **Total Time** | \(String(format: "%.1f", totalSeconds / 3600)) hours |")
+            }
+            lines.append("")
+            
+            // Tags
+            if obsOpts.includeTags {
+                var tags = ["#timeprint", "#screentime", "#data-export"]
+                tags.append(contentsOf: obsOpts.customTags.map { "#\($0)" })
+                lines.append(tags.joined(separator: " "))
+                lines.append("")
+            }
+            
+            lines.append("---")
+            lines.append("")
+        }
+        
+        // Table of contents in callout
+        if mdOpts.includeTableOfContents {
+            lines.append("> [!summary] Sections")
+            for section in sections {
+                let anchor = section.displayName.lowercased().replacingOccurrences(of: " ", with: "-")
+                let emoji = sectionEmoji(for: section.displayName, includeEmoji: mdOpts.includeEmoji)
+                lines.append("> - [\(emoji)\(section.displayName)](#\(anchor))")
+            }
+            lines.append("")
+        }
+        
+        // Each section
+        for section in sections {
+            guard let report = reports[section] else { continue }
+            
+            let emoji = sectionEmoji(for: section.displayName, includeEmoji: mdOpts.includeEmoji)
+            lines.append(formatHeading("\(emoji)\(section.displayName)", level: 2, style: mdOpts.headingStyle))
+            lines.append("")
+            
+            for sectionData in report.sections {
+                if report.sections.count > 1 {
+                    lines.append(formatHeading(sectionData.title, level: 3, style: mdOpts.headingStyle))
+                    lines.append("")
+                }
+                
+                let shouldLinkApps = obsOpts.includeWikiLinks && 
+                    (sectionData.title == "Apps" || sectionData.title == "Top Apps" || sectionData.title == "Raw Sessions")
+                
+                let tableLines = formatMarkdownTable(
+                    headers: sectionData.headers,
+                    rows: sectionData.rows,
+                    style: mdOpts.tableStyle,
+                    linkApps: shouldLinkApps,
+                    appFolder: obsOpts.appNoteFolder
+                )
+                lines.append(contentsOf: tableLines)
+                lines.append("")
+            }
+        }
+        
+        // Backlinks
+        if obsOpts.createBacklinks && !topApps.isEmpty {
+            lines.append("---")
+            lines.append("")
+            lines.append(formatHeading("🔗 Related", level: 2, style: mdOpts.headingStyle))
+            lines.append("")
+            lines.append("**Top Apps:**")
+            for app in topApps.prefix(5) {
+                let appLink = obsOpts.appNoteFolder.isEmpty ? app : "\(obsOpts.appNoteFolder)/\(app)"
+                lines.append("- [[\(appLink)|\(app)]]")
+            }
+            lines.append("")
+        }
+        
+        // Footer
+        let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
+        lines.append("*\(footerEmoji)Exported by [Timeprint](https://timeprint.app)*")
+        
+        let content = lines.joined(separator: "\n")
+        
+        do {
+            try content.write(to: fileURL, atomically: true, encoding: .utf8)
+        } catch {
+            throw ExportError.writeFailed(path: fileURL.path, details: error.localizedDescription)
+        }
+    }
+
+    // MARK: - Markdown Helpers
+    
+    private func formatHeading(_ text: String, level: Int, style: MarkdownExportOptions.MarkdownHeadingStyle) -> String {
+        switch style {
+        case .atx:
+            return String(repeating: "#", count: level) + " " + text
+        case .setext:
+            if level == 1 {
+                return "\(text)\n\(String(repeating: "=", count: text.count))"
+            } else if level == 2 {
+                return "\(text)\n\(String(repeating: "-", count: text.count))"
+            } else {
+                // Setext only supports h1 and h2, fallback to ATX
+                return String(repeating: "#", count: level) + " " + text
+            }
+        }
+    }
+    
+    private func formatMarkdownTable(
+        headers: [String],
+        rows: [[String]],
+        style: MarkdownExportOptions.MarkdownTableStyle,
+        linkApps: Bool,
+        appFolder: String = ""
+    ) -> [String] {
+        switch style {
+        case .github:
+            return formatGFMTable(headers: headers, rows: rows, linkApps: linkApps, appFolder: appFolder)
+        case .simple:
+            return formatSimpleTable(headers: headers, rows: rows, linkApps: linkApps, appFolder: appFolder)
+        case .html:
+            return formatHTMLTable(headers: headers, rows: rows, linkApps: linkApps, appFolder: appFolder)
+        }
+    }
+    
+    private func formatGFMTable(headers: [String], rows: [[String]], linkApps: Bool, appFolder: String) -> [String] {
+        var lines: [String] = []
+        
+        // Calculate column widths
+        var widths = headers.map { $0.count }
+        for row in rows {
+            for (i, cell) in row.enumerated() where i < widths.count {
+                widths[i] = max(widths[i], cell.count)
+            }
+        }
+        
+        // Header row
+        let headerLine = "| " + zip(headers, widths).map { header, width in
+            header.padding(toLength: width, withPad: " ", startingAt: 0)
+        }.joined(separator: " | ") + " |"
+        lines.append(headerLine)
+        
+        // Separator row
+        let separatorLine = "| " + widths.map { String(repeating: "-", count: $0) }.joined(separator: " | ") + " |"
+        lines.append(separatorLine)
+        
+        // Data rows
+        for row in rows {
+            var cells: [String] = []
+            for (i, cell) in row.enumerated() where i < widths.count {
+                var displayCell = cell
+                
+                // Create wiki link for app names (first column in app tables)
+                if linkApps && i == 0 && headers.first?.lowercased().contains("app") == true {
+                    let appLink = appFolder.isEmpty ? cell : "\(appFolder)/\(cell)"
+                    displayCell = "[[\(appLink)|\(cell)]]"
+                }
+                
+                cells.append(displayCell.padding(toLength: widths[i], withPad: " ", startingAt: 0))
+            }
+            let rowLine = "| " + cells.joined(separator: " | ") + " |"
+            lines.append(rowLine)
+        }
+        
+        return lines
+    }
+    
+    private func formatSimpleTable(headers: [String], rows: [[String]], linkApps: Bool, appFolder: String) -> [String] {
+        var lines: [String] = []
+        
+        // Calculate column widths
+        var widths = headers.map { $0.count }
+        for row in rows {
+            for (i, cell) in row.enumerated() where i < widths.count {
+                widths[i] = max(widths[i], cell.count)
+            }
+        }
+        
+        // Header
+        let headerLine = zip(headers, widths).map { header, width in
+            header.padding(toLength: width + 2, withPad: " ", startingAt: 0)
+        }.joined()
+        lines.append(headerLine)
+        
+        // Underline
+        let underline = widths.map { String(repeating: "-", count: $0 + 2) }.joined()
+        lines.append(underline)
+        
+        // Data rows
+        for row in rows {
+            var cells: [String] = []
+            for (i, cell) in row.enumerated() where i < widths.count {
+                var displayCell = cell
+                if linkApps && i == 0 && headers.first?.lowercased().contains("app") == true {
+                    let appLink = appFolder.isEmpty ? cell : "\(appFolder)/\(cell)"
+                    displayCell = "[[\(appLink)|\(cell)]]"
+                }
+                cells.append(displayCell.padding(toLength: widths[i] + 2, withPad: " ", startingAt: 0))
+            }
+            lines.append(cells.joined())
+        }
+        
+        return lines
+    }
+    
+    private func formatHTMLTable(headers: [String], rows: [[String]], linkApps: Bool, appFolder: String) -> [String] {
+        var lines: [String] = []
+        
+        lines.append("<table>")
+        lines.append("  <thead>")
+        lines.append("    <tr>")
+        for header in headers {
+            lines.append("      <th>\(escapeHTML(header))</th>")
+        }
+        lines.append("    </tr>")
+        lines.append("  </thead>")
+        lines.append("  <tbody>")
+        
+        for row in rows {
+            lines.append("    <tr>")
+            for (i, cell) in row.enumerated() {
+                var displayCell = escapeHTML(cell)
+                if linkApps && i == 0 && headers.first?.lowercased().contains("app") == true {
+                    let appLink = appFolder.isEmpty ? cell : "\(appFolder)/\(cell)"
+                    displayCell = "[[\(appLink)|\(cell)]]"
+                }
+                lines.append("      <td>\(displayCell)</td>")
+            }
+            lines.append("    </tr>")
+        }
+        
+        lines.append("  </tbody>")
+        lines.append("</table>")
+        
+        return lines
+    }
+    
+    private func escapeHTML(_ text: String) -> String {
+        text
+            .replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+            .replacingOccurrences(of: "\"", with: "&quot;")
+    }
+    
+    private func formatObsidianDate(_ date: Date, format: String) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = format
+        return formatter.string(from: date)
+    }
+    
+    private func sectionEmoji(for title: String, includeEmoji: Bool) -> String {
+        guard includeEmoji else { return "" }
+        
+        switch title.lowercased() {
+        case "summary": return "📈 "
+        case "apps", "top apps": return "📱 "
+        case "categories": return "📁 "
+        case "trends", "trend": return "📊 "
+        case "sessions", "session distribution": return "⏱️ "
+        case "heatmap": return "🔥 "
+        case "raw sessions": return "📋 "
+        case "context switches", "context switch rate": return "🔄 "
+        case "app transitions": return "↔️ "
+        case "period comparison": return "📆 "
+        default: return "📄 "
+        }
+    }
+
     // MARK: - Raw Session Export
 
     func writeRawSessionsCSV(sessions: [RawSession], to fileURL: URL, settings: ExportSettings, progress: ExportProgress?) throws {
@@ -1317,6 +2073,241 @@ private extension ExportCoordinator {
         do {
             let jsonData = try JSONSerialization.data(withJSONObject: outputData, options: jsonOpts.writingOptions)
             try jsonData.write(to: fileURL)
+        } catch {
+            throw ExportError.writeFailed(path: fileURL.path, details: error.localizedDescription)
+        }
+    }
+
+    func writeRawSessionsYAML(sessions: [RawSession], to fileURL: URL, settings: ExportSettings, filters: FilterSnapshot, progress: ExportProgress?) throws {
+        let fieldSelection = settings.fieldSelection(for: .rawSessions)
+        let selectedFields = fieldSelection.filter(ExportField.rawSessionFields)
+        let fieldsToExport = selectedFields.isEmpty ? ExportField.rawSessionFields : selectedFields
+        
+        var lines: [String] = []
+        
+        // YAML header with metadata
+        lines.append("# Timeprint Raw Sessions Export")
+        lines.append("# Generated: \(isoDateTime(Date()))")
+        lines.append("# Date Range: \(shortDate(filters.startDate)) - \(shortDate(filters.endDate))")
+        lines.append("")
+        lines.append("metadata:")
+        lines.append("  title: Raw Sessions Export")
+        lines.append("  generated_at: \(isoDateTime(Date()))")
+        lines.append("  date_range:")
+        lines.append("    start: \(shortDate(filters.startDate))")
+        lines.append("    end: \(shortDate(filters.endDate))")
+        lines.append("  row_count: \(sessions.count)")
+        lines.append("  timestamp_format: \(settings.timestampFormat.displayName)")
+        lines.append("  fields:")
+        for field in fieldsToExport {
+            lines.append("    - \(field.rawValue)")
+        }
+        lines.append("")
+        lines.append("sessions:")
+        
+        for (index, session) in sessions.enumerated() {
+            // Check cancellation every 1000 rows
+            if let progress, index % 1000 == 0 {
+                Task { @MainActor in
+                    if progress.isCancelled { return }
+                    progress.update(current: index, total: sessions.count)
+                }
+            }
+            
+            lines.append("  - ")
+            for field in fieldsToExport {
+                switch field {
+                case .appName:
+                    lines.append("    app_name: \"\(escapeYAMLString(session.appName))\"")
+                case .startTime:
+                    lines.append("    start_time: \"\(settings.timestampFormat.format(session.startTime))\"")
+                case .endTime:
+                    lines.append("    end_time: \"\(settings.timestampFormat.format(session.endTime))\"")
+                case .durationSeconds:
+                    lines.append("    duration_seconds: \(String(format: "%.3f", session.durationSeconds))")
+                default:
+                    break
+                }
+            }
+        }
+        
+        let content = lines.joined(separator: "\n") + "\n"
+        
+        do {
+            try content.write(to: fileURL, atomically: true, encoding: .utf8)
+        } catch {
+            throw ExportError.writeFailed(path: fileURL.path, details: error.localizedDescription)
+        }
+    }
+    
+    func escapeYAMLString(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            .replacingOccurrences(of: "\t", with: "\\t")
+    }
+
+    func writeRawSessionsMarkdown(sessions: [RawSession], to fileURL: URL, settings: ExportSettings, filters: FilterSnapshot, progress: ExportProgress?) throws {
+        let mdOpts = settings.markdownOptions
+        var lines: [String] = []
+        
+        // Title
+        let titleEmoji = mdOpts.includeEmoji ? "📋 " : ""
+        lines.append(formatHeading("\(titleEmoji)Raw Sessions Export", level: 1, style: mdOpts.headingStyle))
+        lines.append("")
+        
+        // Metadata
+        if mdOpts.includeMetadataHeader {
+            lines.append("**Generated:** \(isoDateTime(Date()))")
+            lines.append("**Date Range:** \(shortDate(filters.startDate)) → \(shortDate(filters.endDate))")
+            lines.append("**Total Sessions:** \(sessions.count)")
+            
+            let totalSeconds = sessions.reduce(0) { $0 + $1.durationSeconds }
+            lines.append("**Total Time:** \(String(format: "%.1f", totalSeconds / 3600)) hours")
+            lines.append("")
+            
+            if mdOpts.includeHorizontalRules {
+                lines.append("---")
+                lines.append("")
+            }
+        }
+        
+        // Table header
+        let headers = ["App Name", "Start Time", "End Time", "Duration (sec)"]
+        let rows = sessions.map { session -> [String] in
+            [
+                session.appName,
+                settings.timestampFormat.format(session.startTime),
+                settings.timestampFormat.format(session.endTime),
+                String(format: "%.3f", session.durationSeconds)
+            ]
+        }
+        
+        let tableLines = formatMarkdownTable(
+            headers: headers,
+            rows: rows,
+            style: mdOpts.tableStyle,
+            linkApps: mdOpts.linkAppsToNotes
+        )
+        lines.append(contentsOf: tableLines)
+        lines.append("")
+        
+        // Footer
+        let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
+        lines.append("*\(footerEmoji)Exported by [Timeprint](https://timeprint.app)*")
+        
+        let content = lines.joined(separator: "\n")
+        
+        do {
+            try content.write(to: fileURL, atomically: true, encoding: .utf8)
+        } catch {
+            throw ExportError.writeFailed(path: fileURL.path, details: error.localizedDescription)
+        }
+    }
+    
+    func writeRawSessionsObsidian(sessions: [RawSession], to fileURL: URL, settings: ExportSettings, filters: FilterSnapshot, progress: ExportProgress?) throws {
+        let obsOpts = settings.obsidianOptions
+        let mdOpts = settings.markdownOptions
+        var lines: [String] = []
+        
+        // Calculate stats for frontmatter
+        let totalSeconds = sessions.reduce(0) { $0 + $1.durationSeconds }
+        let topApps = Dictionary(grouping: sessions, by: { $0.appName })
+            .mapValues { $0.reduce(0) { $0 + $1.durationSeconds } }
+            .sorted { $0.value > $1.value }
+            .prefix(5)
+            .map { $0.key }
+        
+        // Frontmatter
+        if obsOpts.includeFrontmatter {
+            let frontmatter = obsOpts.generateFrontmatter(
+                title: "Raw Sessions Export",
+                date: Date(),
+                totalSeconds: totalSeconds,
+                topApps: Array(topApps),
+                filters: summary(for: filters),
+                additionalFields: [
+                    "session_count": sessions.count,
+                    "export_type": "raw_sessions"
+                ]
+            )
+            lines.append(frontmatter)
+        }
+        
+        // Title
+        let titleEmoji = mdOpts.includeEmoji ? "📋 " : ""
+        lines.append(formatHeading("\(titleEmoji)Raw Sessions Export", level: 1, style: mdOpts.headingStyle))
+        lines.append("")
+        
+        // Metadata table
+        if mdOpts.includeMetadataHeader {
+            let dateLink = obsOpts.includeWikiLinks ? "[[\(formatObsidianDate(Date(), format: obsOpts.dailyNoteFormat))]]" : isoDateTime(Date())
+            let rangeStart = obsOpts.includeWikiLinks ? "[[\(formatObsidianDate(filters.startDate, format: obsOpts.dailyNoteFormat))]]" : shortDate(filters.startDate)
+            let rangeEnd = obsOpts.includeWikiLinks ? "[[\(formatObsidianDate(filters.endDate, format: obsOpts.dailyNoteFormat))]]" : shortDate(filters.endDate)
+            
+            lines.append("| Property | Value |")
+            lines.append("|----------|-------|")
+            lines.append("| **Generated** | \(dateLink) |")
+            lines.append("| **Date Range** | \(rangeStart) → \(rangeEnd) |")
+            lines.append("| **Total Sessions** | \(sessions.count) |")
+            lines.append("| **Total Time** | \(String(format: "%.1f", totalSeconds / 3600)) hours |")
+            lines.append("")
+            
+            if obsOpts.includeTags {
+                var tags = ["#timeprint", "#screentime", "#raw-data"]
+                tags.append(contentsOf: obsOpts.customTags.map { "#\($0)" })
+                lines.append(tags.joined(separator: " "))
+                lines.append("")
+            }
+            
+            lines.append("---")
+            lines.append("")
+        }
+        
+        // Sessions table with wiki links
+        let headers = ["App Name", "Start Time", "End Time", "Duration (sec)"]
+        let rows = sessions.map { session -> [String] in
+            [
+                session.appName,
+                settings.timestampFormat.format(session.startTime),
+                settings.timestampFormat.format(session.endTime),
+                String(format: "%.3f", session.durationSeconds)
+            ]
+        }
+        
+        let tableLines = formatMarkdownTable(
+            headers: headers,
+            rows: rows,
+            style: mdOpts.tableStyle,
+            linkApps: obsOpts.includeWikiLinks,
+            appFolder: obsOpts.appNoteFolder
+        )
+        lines.append(contentsOf: tableLines)
+        lines.append("")
+        
+        // Backlinks
+        if obsOpts.createBacklinks && !topApps.isEmpty {
+            lines.append("---")
+            lines.append("")
+            lines.append(formatHeading("🔗 Related Apps", level: 2, style: mdOpts.headingStyle))
+            lines.append("")
+            for app in topApps {
+                let appLink = obsOpts.appNoteFolder.isEmpty ? app : "\(obsOpts.appNoteFolder)/\(app)"
+                lines.append("- [[\(appLink)|\(app)]]")
+            }
+            lines.append("")
+        }
+        
+        // Footer
+        let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
+        lines.append("*\(footerEmoji)Exported by [Timeprint](https://timeprint.app)*")
+        
+        let content = lines.joined(separator: "\n")
+        
+        do {
+            try content.write(to: fileURL, atomically: true, encoding: .utf8)
         } catch {
             throw ExportError.writeFailed(path: fileURL.path, details: error.localizedDescription)
         }

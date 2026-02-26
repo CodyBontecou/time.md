@@ -6,6 +6,8 @@ struct RootSplitView: View {
     @Bindable var navigation: NavigationCoordinator
 
     @State private var isCalendarExpanded = false
+    @State private var isSyncingLocal = false
+    @State private var showSyncSuccess = false
 
     var body: some View {
         ZStack {
@@ -29,6 +31,41 @@ struct RootSplitView: View {
                 .navigationTitle("time.md")
                 .listStyle(.sidebar)
                 .toolbar(removing: .sidebarToggle)
+                .safeAreaInset(edge: .bottom) {
+                    HStack {
+                        Button {
+                            Task {
+                                await syncLocalDatabase()
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                if isSyncingLocal {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                        .scaleEffect(0.8)
+                                } else {
+                                    Image(systemName: showSyncSuccess ? "checkmark.circle.fill" : "arrow.clockwise")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(showSyncSuccess ? .green : .secondary)
+                                }
+                                Text(isSyncingLocal ? "Syncing..." : (showSyncSuccess ? "Synced" : "Refresh Data"))
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(showSyncSuccess ? .green : .secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(Color.primary.opacity(0.05))
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isSyncingLocal)
+                        .help("Re-sync Screen Time data from macOS")
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 8)
+                }
             } detail: {
                 VStack(spacing: 0) {
                     Group {
@@ -84,6 +121,31 @@ struct RootSplitView: View {
                 AppleCalendarView(filters: filters, isExpanded: $isCalendarExpanded)
                     .background(CalendarColors.background)
             }
+        }
+    }
+    
+    // MARK: - Local Database Sync
+    
+    private func syncLocalDatabase() async {
+        isSyncingLocal = true
+        showSyncSuccess = false
+        
+        // Run sync on background thread
+        await Task.detached(priority: .userInitiated) {
+            HistoryStore.forceSync()
+        }.value
+        
+        isSyncingLocal = false
+        
+        // Show success feedback
+        withAnimation(.easeInOut(duration: 0.2)) {
+            showSyncSuccess = true
+        }
+        
+        // Hide success after 2 seconds
+        try? await Task.sleep(for: .seconds(2))
+        withAnimation(.easeInOut(duration: 0.2)) {
+            showSyncSuccess = false
         }
     }
 }

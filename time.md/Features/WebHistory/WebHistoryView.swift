@@ -1,3 +1,4 @@
+import AppKit
 import Charts
 import SwiftUI
 
@@ -233,7 +234,10 @@ struct WebHistoryView: View {
     // MARK: - Error card
 
     private func errorCard(_ error: Error) -> some View {
-        GlassCard {
+        let errorMessage = error.localizedDescription
+        let isPermissionError = errorMessage.contains("Permission denied") || errorMessage.contains("Full Disk Access")
+        
+        return GlassCard {
             HStack(spacing: 12) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundColor(BrutalTheme.warning)
@@ -244,13 +248,62 @@ struct WebHistoryView: View {
                         .font(BrutalTheme.headingFont)
                         .foregroundColor(BrutalTheme.danger)
                         .tracking(1)
-                    Text(error.localizedDescription)
-                        .font(BrutalTheme.bodyMono)
-                        .foregroundColor(BrutalTheme.textSecondary)
+                    
+                    if isPermissionError {
+                        permissionErrorMessage(errorMessage)
+                    } else {
+                        Text(errorMessage)
+                            .font(BrutalTheme.bodyMono)
+                            .foregroundColor(BrutalTheme.textSecondary)
+                    }
                 }
 
                 Spacer()
             }
+        }
+    }
+    
+    private func permissionErrorMessage(_ message: String) -> some View {
+        let settingsText = "System Settings → Privacy & Security"
+        
+        return HStack(spacing: 0) {
+            // Split the message around "System Settings → Privacy & Security"
+            if let range = message.range(of: settingsText) {
+                Text(String(message[..<range.lowerBound]))
+                    .font(BrutalTheme.bodyMono)
+                    .foregroundColor(BrutalTheme.textSecondary)
+                
+                Button {
+                    openFullDiskAccessSettings()
+                } label: {
+                    Text(settingsText)
+                        .font(BrutalTheme.bodyMono)
+                        .foregroundColor(BrutalTheme.accent)
+                        .underline()
+                }
+                .buttonStyle(.plain)
+                .onHover { hovering in
+                    if hovering {
+                        NSCursor.pointingHand.push()
+                    } else {
+                        NSCursor.pop()
+                    }
+                }
+                
+                Text(String(message[range.upperBound...]))
+                    .font(BrutalTheme.bodyMono)
+                    .foregroundColor(BrutalTheme.textSecondary)
+            } else {
+                Text(message)
+                    .font(BrutalTheme.bodyMono)
+                    .foregroundColor(BrutalTheme.textSecondary)
+            }
+        }
+    }
+    
+    private func openFullDiskAccessSettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") {
+            NSWorkspace.shared.open(url)
         }
     }
 

@@ -77,7 +77,7 @@ archive:
 # Export and upload to App Store Connect
 upload: archive
 	@echo "Exporting for App Store Connect..."
-	xcodebuild -exportArchive \
+	xcodebuild -exportArchive -allowProvisioningUpdates \
 		-archivePath $(ARCHIVE_PATH) \
 		-exportPath $(EXPORT_PATH) \
 		-exportOptionsPlist ExportOptions.plist
@@ -172,7 +172,7 @@ package-gumroad:
 		archive
 	@# Export the app
 	@echo "► Exporting app..."
-	xcodebuild -exportArchive \
+	xcodebuild -exportArchive -allowProvisioningUpdates \
 		-archivePath build/release/time.md.xcarchive \
 		-exportPath build/release \
 		-exportOptionsPlist ExportOptions-macOS.plist
@@ -259,7 +259,7 @@ release-mac:
 		archive
 	@# Export the app
 	@echo "► Exporting app..."
-	xcodebuild -exportArchive \
+	xcodebuild -exportArchive -allowProvisioningUpdates \
 		-archivePath build/release/time.md.xcarchive \
 		-exportPath build/release \
 		-exportOptionsPlist ExportOptions-macOS.plist

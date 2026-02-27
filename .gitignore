@@ -26,3 +26,5 @@ node_modules/
 # Distribution (keep dist-assets/)
 dist/
 *.zip
+time.md-v*-macOS
+time.md-v*-macOS.zip

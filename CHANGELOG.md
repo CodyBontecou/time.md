@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-02-26
+
+### Added
+- Refresh data button in sidebar for local database sync
+
 ## [1.1.0] - 2026-02-25
 
 ### Added
@@ -52,9 +57,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 1.1.1 | 2026-02-26 | Refresh data button for local sync |
 | 1.1.0 | 2026-02-25 | iOS companion app, iCloud sync, widgets, export features |
 | 1.0.0 | 2026-02-24 | Initial release with macOS analytics |
 
-[Unreleased]: https://github.com/codybontecou/time.md/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/codybontecou/time.md/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/codybontecou/time.md/releases/tag/v1.1.1
 [1.1.0]: https://github.com/codybontecou/time.md/releases/tag/v1.1
 [1.0.0]: https://github.com/codybontecou/time.md/releases/tag/v1.0.0

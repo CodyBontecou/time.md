@@ -65,7 +65,10 @@
 		AAAA00032F4C600000000003 /* Exceptions for "time.md" folder in "time.mdIOS" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Info.plist,
 				App/AppEnvironment.swift,
+				App/BrowserSettingsStore.swift,
+				App/time.mdCommands.swift,
 				App/AppNameDisplayStore.swift,
 				App/BackgroundSyncManager.swift,
 				App/FeatureFlags.swift,
@@ -104,10 +107,12 @@
 				Features/Calendar/CalendarYearGridView.swift,
 				Features/Calendar/MiniMonthCalendarView.swift,
 				Features/DistractingHours/DistractingHoursView.swift,
+				Features/Exports/ExportFilterPresetEditor.swift,
 				Features/Exports/ExportsView.swift,
 				Features/Filters/AdvancedTimeFiltersView.swift,
 				Features/Overview/InsightCards.swift,
 				Features/Overview/OverviewView.swift,
+				Features/Overview/ScreenTimeHealthBanner.swift,
 				Features/Sessions/SessionsView.swift,
 				Features/Trends/TrendsView.swift,
 				Features/WebHistory/WebHistoryView.swift,

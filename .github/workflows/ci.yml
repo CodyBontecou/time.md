@@ -47,7 +47,7 @@ jobs:
       - name: Build iOS app
         run: |
           xcodebuild -scheme "time.mdIOS" \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+            -destination 'generic/platform=iOS Simulator' \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO \
             build

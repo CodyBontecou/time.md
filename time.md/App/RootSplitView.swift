@@ -8,6 +8,7 @@ struct RootSplitView: View {
     @State private var isCalendarExpanded = false
     @State private var isSyncingLocal = false
     @State private var showSyncSuccess = false
+    @State private var syncError: String?
 
     var body: some View {
         ZStack {
@@ -43,14 +44,18 @@ struct RootSplitView: View {
                                     ProgressView()
                                         .controlSize(.small)
                                         .scaleEffect(0.8)
+                                } else if let syncError {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(.orange)
                                 } else {
                                     Image(systemName: showSyncSuccess ? "checkmark.circle.fill" : "arrow.clockwise")
                                         .font(.system(size: 12, weight: .medium))
                                         .foregroundColor(showSyncSuccess ? .green : .secondary)
                                 }
-                                Text(isSyncingLocal ? "Syncing..." : (showSyncSuccess ? "Synced" : "Refresh Data"))
+                                Text(isSyncingLocal ? "Syncing..." : (syncError != nil ? "Sync Failed" : (showSyncSuccess ? "Synced" : "Refresh Data")))
                                     .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(showSyncSuccess ? .green : .secondary)
+                                    .foregroundColor(syncError != nil ? .orange : (showSyncSuccess ? .green : .secondary))
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
@@ -61,7 +66,7 @@ struct RootSplitView: View {
                         }
                         .buttonStyle(.plain)
                         .disabled(isSyncingLocal)
-                        .help("Re-sync Screen Time data from macOS")
+                        .help(syncError ?? "Re-sync Screen Time data from macOS")
                     }
                     .padding(.horizontal, 12)
                     .padding(.bottom, 8)
@@ -129,23 +134,36 @@ struct RootSplitView: View {
     private func syncLocalDatabase() async {
         isSyncingLocal = true
         showSyncSuccess = false
-        
+        syncError = nil
+
         // Run sync on background thread
-        await Task.detached(priority: .userInitiated) {
+        let errorMessage = await Task.detached(priority: .userInitiated) {
             HistoryStore.forceSync()
         }.value
-        
+
         isSyncingLocal = false
-        
-        // Show success feedback
-        withAnimation(.easeInOut(duration: 0.2)) {
-            showSyncSuccess = true
-        }
-        
-        // Hide success after 2 seconds
-        try? await Task.sleep(for: .seconds(2))
-        withAnimation(.easeInOut(duration: 0.2)) {
-            showSyncSuccess = false
+
+        if let errorMessage {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                syncError = errorMessage
+            }
+            // Clear error after 5 seconds
+            try? await Task.sleep(for: .seconds(5))
+            withAnimation(.easeInOut(duration: 0.2)) {
+                syncError = nil
+            }
+        } else {
+            // Tell all views to re-query with the newly synced data
+            filters.triggerRefresh()
+
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showSyncSuccess = true
+            }
+            // Hide success after 2 seconds
+            try? await Task.sleep(for: .seconds(2))
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showSyncSuccess = false
+            }
         }
     }
 }

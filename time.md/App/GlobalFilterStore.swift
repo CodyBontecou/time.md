@@ -9,7 +9,11 @@ final class GlobalFilterStore {
     var selectedApps: Set<String>
     var selectedCategories: Set<String>
     var selectedHeatmapCells: Set<HeatmapCellCoordinate>
-    
+
+    /// Monotonically increasing token that forces views to re-query data.
+    /// Increment via `triggerRefresh()` after syncing new data into screentime.db.
+    var refreshToken: Int = 0
+
     // Advanced time filters
     var timeOfDayRanges: [TimeOfDayRange]
     var weekdayFilter: Set<Int>
@@ -103,6 +107,11 @@ final class GlobalFilterStore {
     func clearAllFilters() {
         clearSelections()
         clearAdvancedFilters()
+    }
+
+    /// Bump the refresh token to force all views to re-query data.
+    func triggerRefresh() {
+        refreshToken += 1
     }
 
     /// Snap the date range to the current period matching the given granularity.

@@ -553,7 +553,8 @@ struct AppsCategoriesView: View {
             String(filters.startDate.timeIntervalSince1970),
             String(filters.endDate.timeIntervalSince1970),
             filters.granularity.rawValue,
-            selectedCells
+            selectedCells,
+            String(filters.refreshToken),
         ].joined(separator: "::")
     }
     

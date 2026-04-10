@@ -15,18 +15,21 @@ enum ScreenTimeHealthStatus: Equatable, Sendable {
     /// No Screen Time data exists at all.
     case noData
     
+    /// The app lacks Full Disk Access and cannot read Screen Time data directly.
+    case noFullDiskAccess
+
     /// Could not check health status (e.g., database access error).
     case unknown(reason: String)
-    
+
     var isHealthy: Bool {
         if case .healthy = self { return true }
         return false
     }
-    
+
     var needsAttention: Bool {
         switch self {
         case .healthy, .unknown: return false
-        case .stale, .noData: return true
+        case .stale, .noData, .noFullDiskAccess: return true
         }
     }
 }
@@ -53,39 +56,59 @@ enum ScreenTimeHealthService {
     static func checkHealth() -> ScreenTimeHealthStatus {
         let knowledgePath = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
             .appendingPathComponent("Library/Application Support/Knowledge/knowledgeC.db")
-        
+
         guard FileManager.default.fileExists(atPath: knowledgePath.path) else {
             return .noData
         }
-        
+
+        // Quick readable check — TCC blocks even open() without FDA
+        if !FileManager.default.isReadableFile(atPath: knowledgePath.path) {
+            return .noFullDiskAccess
+        }
+
         // Open knowledgeC.db read-only
         var handle: OpaquePointer?
         let result = sqlite3_open_v2(
             knowledgePath.path, &handle,
             SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX, nil
         )
-        
+
         guard result == SQLITE_OK, let db = handle else {
             if let handle { sqlite3_close(handle) }
+            if result == SQLITE_CANTOPEN || result == SQLITE_AUTH {
+                return .noFullDiskAccess
+            }
             return .unknown(reason: "Could not open Screen Time database")
         }
         defer { sqlite3_close(db) }
-        
+
         // Check for the most recent app usage record
         let sql = """
         SELECT MAX(ZSTARTDATE) FROM ZOBJECT
         WHERE ZSTREAMNAME = '/app/usage'
           AND ZVALUESTRING IS NOT NULL
         """
-        
+
         var stmt: OpaquePointer?
-        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK,
-              let statement = stmt else {
+        let prepareResult = sqlite3_prepare_v2(db, sql, -1, &stmt, nil)
+        guard prepareResult == SQLITE_OK, let statement = stmt else {
+            // TCC may allow open but block reads — check error message
+            let msg = String(cString: sqlite3_errmsg(db))
+            if prepareResult == SQLITE_CANTOPEN || msg.localizedCaseInsensitiveContains("not permitted") {
+                return .noFullDiskAccess
+            }
             return .unknown(reason: "Could not query Screen Time database")
         }
         defer { sqlite3_finalize(statement) }
-        
-        guard sqlite3_step(statement) == SQLITE_ROW else {
+
+        let stepResult = sqlite3_step(statement)
+        guard stepResult == SQLITE_ROW else {
+            if stepResult == SQLITE_ERROR {
+                let msg = String(cString: sqlite3_errmsg(db))
+                if msg.localizedCaseInsensitiveContains("not permitted") {
+                    return .noFullDiskAccess
+                }
+            }
             return .noData
         }
         

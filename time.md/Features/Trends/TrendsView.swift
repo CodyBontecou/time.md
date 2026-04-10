@@ -482,6 +482,7 @@ struct TrendsView: View {
             String(filters.startDate.timeIntervalSince1970),
             String(filters.endDate.timeIntervalSince1970),
             filters.granularity.rawValue,
+            String(filters.refreshToken),
         ].joined(separator: "::")
     }
 

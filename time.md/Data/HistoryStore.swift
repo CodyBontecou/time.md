@@ -45,15 +45,19 @@ enum HistoryStore {
 
     /// Force an immediate sync, bypassing the interval throttle.
     /// Used by the background Launch Agent which runs as a separate process.
-    static func forceSync() {
+    /// Returns nil on success, or an error message on failure.
+    @discardableResult
+    static func forceSync() -> String? {
         syncLock.lock()
         defer { syncLock.unlock() }
 
         do {
             try performSync()
             _lastSyncDate = Date()
+            return nil
         } catch {
             print("[HistoryStore] Force sync failed: \(error.localizedDescription)")
+            return error.localizedDescription
         }
     }
 

@@ -54,28 +54,45 @@ struct ScreenTimeHealthBanner: View {
                             .font(.system(size: 10, weight: .bold, design: .monospaced))
                             .foregroundColor(BrutalTheme.textTertiary)
                             .tracking(1)
-                        
+
                         VStack(alignment: .leading, spacing: 12) {
-                            troubleshootingStep(
-                                number: 1,
-                                title: "Check Screen Time is enabled",
-                                description: "Open System Settings → Screen Time and ensure it's turned on.",
-                                action: ("Open Settings", {
-                                    openURL(URL(string: "x-apple.systempreferences:com.apple.Screen-Time-Settings.extension")!)
-                                })
-                            )
-                            
-                            troubleshootingStep(
-                                number: 2,
-                                title: "Restart your Mac",
-                                description: "This resets the Screen Time daemon and usually fixes data collection issues."
-                            )
-                            
-                            troubleshootingStep(
-                                number: 3,
-                                title: "Toggle Screen Time off and on",
-                                description: "If restarting doesn't help, try disabling Screen Time, waiting 30 seconds, then re-enabling it."
-                            )
+                            if case .noFullDiskAccess = status {
+                                troubleshootingStep(
+                                    number: 1,
+                                    title: "Grant Full Disk Access",
+                                    description: "Open System Settings → Privacy & Security → Full Disk Access, then enable time.md.",
+                                    action: ("Open Privacy Settings", {
+                                        openURL(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!)
+                                    })
+                                )
+
+                                troubleshootingStep(
+                                    number: 2,
+                                    title: "Relaunch time.md",
+                                    description: "After granting access, quit and reopen time.md for the change to take effect."
+                                )
+                            } else {
+                                troubleshootingStep(
+                                    number: 1,
+                                    title: "Check Screen Time is enabled",
+                                    description: "Open System Settings → Screen Time and ensure it's turned on.",
+                                    action: ("Open Settings", {
+                                        openURL(URL(string: "x-apple.systempreferences:com.apple.Screen-Time-Settings.extension")!)
+                                    })
+                                )
+
+                                troubleshootingStep(
+                                    number: 2,
+                                    title: "Restart your Mac",
+                                    description: "This resets the Screen Time daemon and usually fixes data collection issues."
+                                )
+
+                                troubleshootingStep(
+                                    number: 3,
+                                    title: "Toggle Screen Time off and on",
+                                    description: "If restarting doesn't help, try disabling Screen Time, waiting 30 seconds, then re-enabling it."
+                                )
+                            }
                         }
                         
                         Divider()
@@ -130,6 +147,8 @@ struct ScreenTimeHealthBanner: View {
     
     private var bannerTitle: String {
         switch status {
+        case .noFullDiskAccess:
+            return "Full Disk Access required"
         case .stale:
             return "Screen Time data collection paused"
         case .noData:
@@ -138,9 +157,11 @@ struct ScreenTimeHealthBanner: View {
             return "Screen Time issue detected"
         }
     }
-    
+
     private var bannerSubtitle: String {
         switch status {
+        case .noFullDiskAccess:
+            return "time.md needs permission to read Screen Time data. Tap for help."
         case .stale(_, let hours):
             return "macOS hasn't recorded any app usage for \(hours) hours. Tap for help."
         case .noData:

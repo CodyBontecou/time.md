@@ -175,14 +175,14 @@ struct OverviewView: View {
         }
         .scrollIndicators(.never)
         .scrollClipDisabled()
-        .task(id: filters.rangeLabel + filters.granularity.rawValue) {
+        .task(id: "\(filters.rangeLabel)\(filters.granularity.rawValue)\(filters.refreshToken)") {
             // Phase 1: Load primary data first (essential for initial render)
             await loadPrimary()
-            
+
             // Phase 2: Load secondary data after primary completes
             await loadSecondary()
         }
-        .task(id: filters.rangeLabel + "analytics") {
+        .task(id: "\(filters.rangeLabel)analytics\(filters.refreshToken)") {
             // Phase 3: Load analytics in background (lowest priority)
             // Small delay to let primary/secondary load first
             try? await Task.sleep(for: .milliseconds(100))

@@ -214,7 +214,7 @@ struct DistractingHoursView: View {
         }
         .scrollClipDisabled()
         .scrollIndicators(.never)
-        .task(id: filters.rangeLabel + filters.granularity.rawValue) {
+        .task(id: "\(filters.rangeLabel)\(filters.granularity.rawValue)\(filters.refreshToken)") {
             await load()
         }
     }

@@ -201,6 +201,7 @@ private struct SettingsScaffoldView: View {
 
                         HStack(spacing: 8) {
                             ForEach(AppNameDisplayMode.allCases) { mode in
+                                let isSelected = displayMode == mode
                                 Button {
                                     withAnimation(.easeInOut(duration: 0.15)) {
                                         appNameDisplayModeRaw = mode.rawValue
@@ -212,14 +213,17 @@ private struct SettingsScaffoldView: View {
                                             .tracking(1)
                                         Text("e.g. \(mode.description)")
                                             .font(.system(size: 9, weight: .regular, design: .monospaced))
-                                            .opacity(0.7)
+                                            .opacity(isSelected ? 0.85 : 0.7)
                                     }
-                                    .foregroundColor(displayMode == mode ? .white : BrutalTheme.textSecondary)
+                                    .foregroundColor(isSelected ? .white : BrutalTheme.textSecondary)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(isSelected ? BrutalTheme.accent : Color.clear)
+                                    )
                                 }
-                                .buttonStyle(.bordered)
-                                .tint(displayMode == mode ? BrutalTheme.accent : .clear)
+                                .buttonStyle(.plain)
                             }
                         }
                         .frame(maxWidth: 420)

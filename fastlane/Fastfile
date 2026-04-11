@@ -4,7 +4,7 @@ IOS_APP_ID = "bontecou.time.mdIOS"
 MAC_APP_ID = "com.bontecou.time.md"
 API_KEY_ID = "T7KGDK4Y4V"
 API_ISSUER_ID = "6c3b3640-c6bf-40a9-b6e5-57cda2c7776e"
-API_KEY_PATH = "/Users/codybontecou/dev/AuthKey_T7KGDK4Y4V.p8"
+API_KEY_PATH = "/Users/codybontecou/.private_keys/AuthKey_T7KGDK4Y4V.p8"
 
 def connect_api_key
   app_store_connect_api_key(
@@ -226,7 +226,7 @@ platform :mac do
     connect_api_key
     deliver(
       app_identifier: MAC_APP_ID,
-      app_version: "1.0",
+      app_version: "1.1.2",
       skip_binary_upload: true,
       skip_screenshots: true,
       run_precheck_before_submit: false,
@@ -240,7 +240,7 @@ platform :mac do
     connect_api_key
     deliver(
       app_identifier: MAC_APP_ID,
-      app_version: "1.0",
+      app_version: "1.1.2",
       skip_binary_upload: true,
       skip_metadata: true,
       overwrite_screenshots: true,
@@ -255,7 +255,7 @@ platform :mac do
     connect_api_key
     deliver(
       app_identifier: MAC_APP_ID,
-      app_version: "1.0",
+      app_version: "1.1.2",
       skip_binary_upload: true,
       overwrite_screenshots: true,
       run_precheck_before_submit: false,
@@ -269,7 +269,7 @@ platform :mac do
     connect_api_key
     deliver(
       app_identifier: MAC_APP_ID,
-      app_version: "1.0",
+      app_version: "1.1.2",
       skip_binary_upload: true,
       overwrite_screenshots: true,
       run_precheck_before_submit: true,

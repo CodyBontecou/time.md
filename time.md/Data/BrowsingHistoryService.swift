@@ -130,20 +130,20 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
     // MARK: - Database paths
 
     private static var safariHistoryURL: URL {
-        URL(fileURLWithPath: NSHomeDirectory())
+        realHomeDirectory()
             .appendingPathComponent("Library/Safari/History.db")
     }
 
     private static var chromeHistoryURL: URL {
-        URL(fileURLWithPath: NSHomeDirectory())
+        realHomeDirectory()
             .appendingPathComponent("Library/Application Support/Google/Chrome/Default/History")
     }
-    
+
     private static var arcHistoryURL: URL {
         // Arc stores history in the Default profile or Profile 1
-        let appSupport = URL(fileURLWithPath: NSHomeDirectory())
+        let appSupport = realHomeDirectory()
             .appendingPathComponent("Library/Application Support/Arc/User Data")
-        
+
         // Check Default profile first, then numbered profiles
         let defaultPath = appSupport.appendingPathComponent("Default/History")
         if FileManager.default.fileExists(atPath: defaultPath.path) {
@@ -152,14 +152,14 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
         // Fall back to Profile 1 if Default doesn't exist
         return appSupport.appendingPathComponent("Profile 1/History")
     }
-    
+
     private static var braveHistoryURL: URL {
-        URL(fileURLWithPath: NSHomeDirectory())
+        realHomeDirectory()
             .appendingPathComponent("Library/Application Support/BraveSoftware/Brave-Browser/Default/History")
     }
-    
+
     private static var edgeHistoryURL: URL {
-        URL(fileURLWithPath: NSHomeDirectory())
+        realHomeDirectory()
             .appendingPathComponent("Library/Application Support/Microsoft Edge/Default/History")
     }
 

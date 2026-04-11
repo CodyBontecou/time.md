@@ -1,4 +1,6 @@
+#if !APPSTORE
 import Sparkle
+#endif
 import SwiftUI
 
 #if os(macOS)
@@ -7,10 +9,13 @@ struct TimeMdCommands: Commands {
     var navigation: NavigationCoordinator
     var filters: GlobalFilterStore
     let performCloudSync: () async -> Void
+    #if !APPSTORE
     @ObservedObject var updaterController: UpdaterController
+    #endif
     @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
-    
+
     var body: some Commands {
+        #if !APPSTORE
         // Check for Updates in App menu
         CommandGroup(after: .appInfo) {
             Button("Check for Updates...") {
@@ -18,6 +23,7 @@ struct TimeMdCommands: Commands {
             }
             .disabled(!updaterController.canCheckForUpdates)
         }
+        #endif
         
         // Replace default "New" command group
         CommandGroup(replacing: .newItem) {

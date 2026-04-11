@@ -1,6 +1,8 @@
 import AppKit
 import Combine
+#if !APPSTORE
 import Sparkle
+#endif
 import SwiftUI
 
 @main
@@ -11,9 +13,12 @@ struct TimeMdApp: App {
     @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
     @State private var lastCloudSyncDate: Date?
     @State private var cloudSyncError: String?
+    @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedMacOnboarding")
     
+    #if !APPSTORE
     /// Sparkle updater controller for auto-updates
     @StateObject private var updaterController = UpdaterController()
+    #endif
 
     /// Fires every 15 minutes while the app is running to capture new Screen Time data.
     private let localSyncTimer = Timer.publish(every: 900, on: .main, in: .common).autoconnect()
@@ -63,6 +68,9 @@ struct TimeMdApp: App {
                 .task { await initialSync() }
                 .task { await initialCloudSync() }
                 .task { installBackgroundAgent() }
+                .sheet(isPresented: $showOnboarding) {
+                    MacOnboardingView(isPresented: $showOnboarding)
+                }
                 .onReceive(localSyncTimer) { _ in
                     Task.detached(priority: .utility) {
                         HistoryStore.syncIfNeeded()
@@ -77,12 +85,20 @@ struct TimeMdApp: App {
         .windowResizability(.contentSize)
         .defaultSize(width: 1360, height: 860)
         .commands {
+            #if APPSTORE
+            TimeMdCommands(
+                navigation: navigation,
+                filters: filters,
+                performCloudSync: performCloudSync
+            )
+            #else
             TimeMdCommands(
                 navigation: navigation,
                 filters: filters,
                 performCloudSync: performCloudSync,
                 updaterController: updaterController
             )
+            #endif
         }
         
         // Menu bar extra for quick access to today's screen time

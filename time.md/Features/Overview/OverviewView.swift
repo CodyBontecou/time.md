@@ -193,8 +193,8 @@ struct OverviewView: View {
             try? await Task.sleep(for: .milliseconds(200))
             await loadSyncPayload()
         }
-        .task {
-            // Phase 5: Check Screen Time health on appear
+        .task(id: "health\(filters.refreshToken)") {
+            // Phase 5: Check Screen Time health on appear and on refresh
             screenTimeHealth = await ScreenTimeHealthService.checkHealthAsync()
         }
     }

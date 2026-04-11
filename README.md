@@ -109,9 +109,25 @@ time.md/
 
 ```
 macOS: knowledgeC.db → SQLiteScreenTimeDataService → SyncCoordinator → iCloud
-                                                                         ↓
-iOS:                            IOSAppState ← iCloudSyncService ← iCloud Documents
+                                                                         ↕
+iOS:   DeviceActivity → Report Extension → App Group → IOSAppState → iCloud Documents
 ```
+
+Sync is **bidirectional** — the Mac uploads its rich data to iCloud, and the iOS app can contribute its own device data back. Both devices merge payloads per-device ID.
+
+### Data Refresh
+
+**macOS** reads Screen Time data from Apple's `knowledgeC.db` system database:
+
+| Trigger | Interval | Details |
+|---------|----------|---------|
+| App launch | Immediate | Forces a sync on startup |
+| In-app polling | 15 minutes | Throttled to avoid excessive database reads |
+| Background sync | 4 hours | Launch Agent syncs even when the app isn't running |
+
+Apple updates `knowledgeC.db` roughly every 15–30 minutes during active use (undocumented), so polling more frequently than 15 minutes would rarely yield new data.
+
+**iOS** uses the `DeviceActivity` framework, which is event-driven rather than poll-based. The system delivers callbacks at interval boundaries (hourly, daily) and usage thresholds.
 
 ### Key Components
 
@@ -154,10 +170,37 @@ See [`docs/iOS-ScreenTime-Setup.md`](docs/iOS-ScreenTime-Setup.md) for detailed 
 
 | Extension | Purpose |
 |-----------|---------|
-| `time.mdDeviceActivityReport` | Displays Screen Time data in SwiftUI views |
-| `time.mdDeviceActivityMonitor` | Captures usage data in background |
+| `time.mdDeviceActivityReport` | Reads Screen Time data and writes top apps to App Group storage |
+| `time.mdDeviceActivityMonitor` | Receives usage event callbacks (cannot write data due to sandbox) |
 
 Source files are in `time.mdDeviceActivityReport/` and `time.mdDeviceActivityMonitor/`. See their respective READMEs for Xcode setup.
+
+### Platform Data Comparison
+
+The macOS and iOS apps have very different data collection capabilities due to Apple's API restrictions:
+
+| Capability | macOS | iOS |
+|------------|-------|-----|
+| Per-app usage times | ✅ Full history via knowledgeC.db | ✅ Forward-looking only (no historical backfill) |
+| App names & bundle IDs | ✅ | ✅ |
+| Session-level detail | ✅ Individual sessions with timestamps | ❌ Daily totals + pickup counts only |
+| Web browsing history | ✅ Safari, Chrome, Arc, Brave, Edge | ❌ No iOS API available |
+| Category breakdown | ✅ Human-readable names | ⚠️ Opaque category tokens only |
+| Hourly breakdown | ✅ | ✅ |
+| Notification counts | ❌ | ✅ |
+| Pickup counts | ❌ | ✅ |
+| Arbitrary date ranges | ✅ Query any past date | ❌ Current monitoring period only |
+
+### iOS Data Flow Detail
+
+iOS data collection is constrained by Apple's sandbox model:
+
+1. **Report Extension** (`DeviceActivityReport`) — the only component that can read the full Screen Time API. Writes the top 20 apps to the App Group `UserDefaults`.
+2. **Monitor Extension** (`DeviceActivityMonitor`) — receives lifecycle and threshold callbacks but **cannot write to any shared storage** due to sandbox restrictions.
+3. **Main App** — reads from App Group via `IOSScreenTimeDataService`, merges with iCloud data, and uploads the combined payload on sync.
+4. **Mac App** — picks up the updated iCloud file and merges the iPhone's data into its device list.
+
+The Report Extension is the bottleneck — data only accumulates when it runs, and it can only write to `UserDefaults` (not the JSON sync file directly).
 
 ## Configuration
 
@@ -187,16 +230,17 @@ time.md is designed with privacy as a core principle:
 
 ### What syncs to iCloud?
 
-Only aggregated daily summaries:
+Only aggregated daily summaries per device:
 - Total screen time per day
-- Top 10 apps (name and total time)
-- Focus block counts
+- Top apps with name, bundle ID, and total time
+- Hourly usage breakdown
+- Web browsing domains and visit counts (macOS only)
 
 What **doesn't** sync:
-- Individual sessions
-- Timestamps
-- Browsing history
+- Individual sessions or timestamps
 - Raw database access
+- App icons or metadata
+- Notification/pickup data
 
 ## Documentation
 

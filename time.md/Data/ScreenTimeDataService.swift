@@ -1,5 +1,16 @@
+import Darwin
 import Foundation
 import SQLite3
+
+/// Returns the real user home directory, bypassing the sandbox container.
+/// In a sandboxed app `NSHomeDirectory()` returns the container path;
+/// this function uses POSIX `getpwuid` to get the actual `/Users/<name>`.
+func realHomeDirectory() -> URL {
+    if let pw = getpwuid(getuid()), let home = pw.pointee.pw_dir {
+        return URL(fileURLWithPath: String(cString: home), isDirectory: true)
+    }
+    return URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+}
 
 protocol ScreenTimeDataServing: Sendable {
     func fetchDashboardSummary(filters: FilterSnapshot) async throws -> DashboardSummary
@@ -1003,7 +1014,7 @@ private extension SQLiteScreenTimeDataService {
             u.app_name,
             SUM(u.duration_seconds) AS total_seconds
         FROM usage u
-        WHERE u.stream_type = 'app_usage'
+        WHERE u.stream_type IN ('app_usage', 'web_usage', 'media_usage')
           AND u.start_time >= ?
           AND u.start_time < ?
         GROUP BY hour, u.app_name
@@ -1031,7 +1042,7 @@ private extension SQLiteScreenTimeDataService {
             o.ZVALUESTRING AS app_name,
             SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds
         FROM ZOBJECT o
-        WHERE o.ZSTREAMNAME = '/app/usage'
+        WHERE o.ZSTREAMNAME IN ('/app/usage', '/app/webUsage', '/app/mediaUsage')
           AND o.ZVALUESTRING IS NOT NULL
           AND o.ZSTARTDATE >= ?
           AND o.ZSTARTDATE < ?
@@ -1605,7 +1616,7 @@ private extension SQLiteScreenTimeDataService {
         let range = normalizedDateRange(filters: filters)
 
         var conditions: [String] = [
-            "\(alias).stream_type = 'app_usage'",
+            "\(alias).stream_type IN ('app_usage', 'web_usage', 'media_usage')",
             "\(alias).start_time >= ?",
             "\(alias).start_time < ?"
         ]
@@ -1707,7 +1718,7 @@ private extension SQLiteScreenTimeDataService {
         let range = knowledgeDateRange(filters: filters)
 
         var conditions: [String] = [
-            "\(alias).ZSTREAMNAME = '/app/usage'",
+            "\(alias).ZSTREAMNAME IN ('/app/usage', '/app/webUsage', '/app/mediaUsage')",
             "\(alias).ZVALUESTRING IS NOT NULL",
             "\(alias).ZSTARTDATE >= ?",
             "\(alias).ZSTARTDATE < ?"
@@ -1970,14 +1981,15 @@ private extension SQLiteScreenTimeDataService {
             return ResolvedDatabase(url: url, backend: backend)
         }
 
-        let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+        let sandboxHome = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+        let realHome = realHomeDirectory()
         let candidates = [
             URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true).appendingPathComponent("screentime.db"),
             URL(fileURLWithPath: "/data/screentime.db"),
-            home.appendingPathComponent("screentime.db"),
-            home.appendingPathComponent("Library/Application Support/time.md/screentime.db"),
-            home.appendingPathComponent("Library/Application Support/time.md/screentime.db"),
-            home.appendingPathComponent("Library/Application Support/Knowledge/knowledgeC.db")
+            sandboxHome.appendingPathComponent("screentime.db"),
+            sandboxHome.appendingPathComponent("Library/Application Support/time.md/screentime.db"),
+            realHome.appendingPathComponent("Library/Application Support/time.md/screentime.db"),
+            realHome.appendingPathComponent("Library/Application Support/Knowledge/knowledgeC.db")
         ]
 
         var searched: [String] = []
@@ -2023,6 +2035,8 @@ private extension SQLiteScreenTimeDataService {
 
     static func validateNormalizedSchema(db: OpaquePointer, path: String) throws {
         let columns = try tableColumns(db: db, table: "usage")
+        // Core columns are required; device_id and metadata_hash are optional
+        // (added by migration, older DBs may not have them yet).
         let required: Set<String> = ["app_name", "duration_seconds", "start_time", "stream_type"]
         let missing = required.subtracting(columns)
         guard missing.isEmpty else {
@@ -2044,6 +2058,15 @@ private extension SQLiteScreenTimeDataService {
                 path: path,
                 details: "Detected ZOBJECT, but required columns are missing: \(missing.sorted().joined(separator: ", ")). Available columns: [\(available)]. This knowledgeC.db variant is not currently supported."
             )
+        }
+
+        // Log availability of optional metadata tables (used by LEFT JOINs).
+        // Their absence is non-fatal — queries degrade gracefully with NULL values.
+        if !tableExists(db: db, table: "ZSOURCE") {
+            print("[ScreenTimeDataService] ZSOURCE table not found — device_id will be unavailable")
+        }
+        if !tableExists(db: db, table: "ZSTRUCTUREDMETADATA") {
+            print("[ScreenTimeDataService] ZSTRUCTUREDMETADATA table not found — metadata_hash will be unavailable")
         }
     }
 

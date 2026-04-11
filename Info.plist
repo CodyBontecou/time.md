@@ -6,6 +6,8 @@
 	<string>AppIcon</string>
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.healthcare-fitness</string>
 	<!-- Sparkle Auto-Update Configuration -->
 	<key>SUFeedURL</key>
 	<string>https://raw.githubusercontent.com/codybontecou/time.md/main/appcast.xml</string>

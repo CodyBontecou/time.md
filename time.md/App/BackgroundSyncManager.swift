@@ -28,7 +28,7 @@ enum BackgroundSyncManager {
     // MARK: - Launch Agent plist
 
     private static func launchAgentURL() -> URL {
-        URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+        realHomeDirectory()
             .appendingPathComponent("Library/LaunchAgents/\(agentLabel).plist")
     }
 

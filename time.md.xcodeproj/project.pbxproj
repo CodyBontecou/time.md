@@ -75,6 +75,7 @@
 				App/GlobalFilterStore.swift,
 				App/NavigationCoordinator.swift,
 				App/NavigationDestination.swift,
+				App/MacOnboardingView.swift,
 				App/RootSplitView.swift,
 				App/time.mdApp.swift,
 				Assets.xcassets,
@@ -408,7 +409,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = time.mdDeviceActivityReport/time.mdDeviceActivityReport.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = time.mdDeviceActivityReport/Info.plist;
@@ -441,7 +442,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = time.mdDeviceActivityReport/time.mdDeviceActivityReport.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = time.mdDeviceActivityReport/Info.plist;
@@ -594,7 +595,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = 67KC823C9A;
 				ENABLE_APP_SANDBOX = NO;
@@ -634,7 +635,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = 67KC823C9A;
 				ENABLE_APP_SANDBOX = NO;
@@ -673,7 +674,7 @@
 				CODE_SIGN_ENTITLEMENTS = time.mdIOS/time.mdIOS.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 67KC823C9A;
 				ENABLE_PREVIEWS = YES;
@@ -717,7 +718,7 @@
 				CODE_SIGN_ENTITLEMENTS = time.mdIOS/time.mdIOS.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 8;
+				CURRENT_PROJECT_VERSION = 9;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 67KC823C9A;
 				ENABLE_PREVIEWS = YES;

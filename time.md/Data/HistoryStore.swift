@@ -65,7 +65,7 @@ enum HistoryStore {
 
     private static func performSync() throws {
         // Locate the system knowledgeC.db
-        let knowledgePath = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+        let knowledgePath = realHomeDirectory()
             .appendingPathComponent("Library/Application Support/Knowledge/knowledgeC.db")
 
         guard FileManager.default.fileExists(atPath: knowledgePath.path) else {
@@ -131,27 +131,36 @@ enum HistoryStore {
             duration_seconds REAL NOT NULL,
             start_time TEXT NOT NULL,
             stream_type TEXT NOT NULL DEFAULT 'app_usage',
-            source_timestamp REAL
+            source_timestamp REAL,
+            device_id TEXT,
+            metadata_hash TEXT
         );
         """
         guard sqlite3_exec(db, createSQL, nil, nil, nil) == SQLITE_OK else {
             throw ScreenTimeDataError.sqlite(path: path, message: String(cString: sqlite3_errmsg(db)))
         }
 
-        // Migration: add source_timestamp if the table predates this column.
-        // ALTER TABLE ADD COLUMN errors when the column already exists — that's fine.
+        // Migrations: ADD COLUMN errors when the column already exists — that's fine.
         sqlite3_exec(db, "ALTER TABLE usage ADD COLUMN source_timestamp REAL", nil, nil, nil)
+        sqlite3_exec(db, "ALTER TABLE usage ADD COLUMN device_id TEXT", nil, nil, nil)
+        sqlite3_exec(db, "ALTER TABLE usage ADD COLUMN metadata_hash TEXT", nil, nil, nil)
 
         // Indexes (idempotent).
+        // Dedup key includes stream_type so the same app+timestamp from different
+        // streams (e.g. /app/usage vs /app/webUsage) aren't collapsed.
         let indexSQL = """
-        CREATE UNIQUE INDEX IF NOT EXISTS idx_usage_dedup ON usage(app_name, source_timestamp);
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_usage_dedup_v2 ON usage(app_name, source_timestamp, stream_type);
         CREATE INDEX IF NOT EXISTS idx_usage_start_time ON usage(start_time);
         CREATE INDEX IF NOT EXISTS idx_usage_app_name ON usage(app_name);
         CREATE INDEX IF NOT EXISTS idx_usage_stream_type ON usage(stream_type);
+        CREATE INDEX IF NOT EXISTS idx_usage_device_id ON usage(device_id);
         """
         guard sqlite3_exec(db, indexSQL, nil, nil, nil) == SQLITE_OK else {
             throw ScreenTimeDataError.sqlite(path: path, message: String(cString: sqlite3_errmsg(db)))
         }
+
+        // Drop the old dedup index that didn't include stream_type.
+        sqlite3_exec(db, "DROP INDEX IF EXISTS idx_usage_dedup", nil, nil, nil)
     }
 
     // MARK: - Read from knowledgeC.db
@@ -161,17 +170,32 @@ enum HistoryStore {
         let startTime: String       // ISO-8601 local datetime
         let durationSeconds: Double
         let sourceTimestamp: Double  // Original Apple-epoch timestamp (for dedup)
+        let streamType: String      // e.g. "app_usage", "web_usage", "media_usage"
+        let deviceId: String?       // Hardware UUID from ZSOURCE
+        let metadataHash: String?   // Hash from ZSTRUCTUREDMETADATA
     }
+
+    /// Maps knowledgeC.db ZSTREAMNAME values to our normalized stream_type keys.
+    private static let streamTypeMap: [String: String] = [
+        "/app/usage": "app_usage",
+        "/app/webUsage": "web_usage",
+        "/app/mediaUsage": "media_usage"
+    ]
 
     private static func readKnowledgeRows(from db: OpaquePointer) -> [UsageRow] {
         let sql = """
         SELECT
-            ZVALUESTRING,
-            ZSTARTDATE,
-            CASE WHEN ZENDDATE > ZSTARTDATE THEN (ZENDDATE - ZSTARTDATE) ELSE 0 END
-        FROM ZOBJECT
-        WHERE ZSTREAMNAME = '/app/usage'
-          AND ZVALUESTRING IS NOT NULL
+            o.ZVALUESTRING,
+            o.ZSTARTDATE,
+            CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END,
+            o.ZSTREAMNAME,
+            s.ZDEVICEID,
+            sm.ZMETADATAHASH
+        FROM ZOBJECT o
+        LEFT JOIN ZSOURCE s ON o.ZSOURCE = s.Z_PK
+        LEFT JOIN ZSTRUCTUREDMETADATA sm ON o.ZSTRUCTUREDMETADATA = sm.Z_PK
+        WHERE o.ZSTREAMNAME IN ('/app/usage', '/app/webUsage', '/app/mediaUsage')
+          AND o.ZVALUESTRING IS NOT NULL
         """
 
         var stmt: OpaquePointer?
@@ -193,6 +217,12 @@ enum HistoryStore {
             let appleTimestamp = sqlite3_column_double(statement, 1)
             let duration = sqlite3_column_double(statement, 2)
 
+            let rawStream = sqlite3_column_text(statement, 3).map { String(cString: $0) } ?? "/app/usage"
+            let streamType = streamTypeMap[rawStream] ?? "app_usage"
+
+            let deviceId = sqlite3_column_text(statement, 4).map { String(cString: $0) }
+            let metadataHash = sqlite3_column_text(statement, 5).map { String(cString: $0) }
+
             let date = Date(timeIntervalSince1970: appleTimestamp + appleEpochOffset)
             let iso = formatter.string(from: date)
 
@@ -200,7 +230,10 @@ enum HistoryStore {
                 appName: appName,
                 startTime: iso,
                 durationSeconds: duration,
-                sourceTimestamp: appleTimestamp
+                sourceTimestamp: appleTimestamp,
+                streamType: streamType,
+                deviceId: deviceId,
+                metadataHash: metadataHash
             ))
         }
 
@@ -211,8 +244,8 @@ enum HistoryStore {
 
     private static func insertRows(_ rows: [UsageRow], into db: OpaquePointer, path: String) throws {
         let sql = """
-        INSERT OR IGNORE INTO usage (app_name, duration_seconds, start_time, stream_type, source_timestamp)
-        VALUES (?, ?, ?, 'app_usage', ?)
+        INSERT OR IGNORE INTO usage (app_name, duration_seconds, start_time, stream_type, source_timestamp, device_id, metadata_hash)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         """
 
         var stmt: OpaquePointer?
@@ -233,7 +266,20 @@ enum HistoryStore {
             sqlite3_bind_text(statement, 1, row.appName, -1, sqliteTransient)
             sqlite3_bind_double(statement, 2, row.durationSeconds)
             sqlite3_bind_text(statement, 3, row.startTime, -1, sqliteTransient)
-            sqlite3_bind_double(statement, 4, row.sourceTimestamp)
+            sqlite3_bind_text(statement, 4, row.streamType, -1, sqliteTransient)
+            sqlite3_bind_double(statement, 5, row.sourceTimestamp)
+
+            if let deviceId = row.deviceId {
+                sqlite3_bind_text(statement, 6, deviceId, -1, sqliteTransient)
+            } else {
+                sqlite3_bind_null(statement, 6)
+            }
+
+            if let metadataHash = row.metadataHash {
+                sqlite3_bind_text(statement, 7, metadataHash, -1, sqliteTransient)
+            } else {
+                sqlite3_bind_null(statement, 7)
+            }
 
             let result = sqlite3_step(statement)
             if result != SQLITE_DONE {

@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import SQLite3
 
@@ -54,7 +55,7 @@ enum ScreenTimeHealthService {
     /// Check the health of Screen Time data collection.
     /// - Returns: Current health status of the Screen Time system.
     static func checkHealth() -> ScreenTimeHealthStatus {
-        let knowledgePath = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+        let knowledgePath = realHomeDirectory()
             .appendingPathComponent("Library/Application Support/Knowledge/knowledgeC.db")
 
         guard FileManager.default.fileExists(atPath: knowledgePath.path) else {
@@ -85,7 +86,7 @@ enum ScreenTimeHealthService {
         // Check for the most recent app usage record
         let sql = """
         SELECT MAX(ZSTARTDATE) FROM ZOBJECT
-        WHERE ZSTREAMNAME = '/app/usage'
+        WHERE ZSTREAMNAME IN ('/app/usage', '/app/webUsage', '/app/mediaUsage')
           AND ZVALUESTRING IS NOT NULL
         """
 

@@ -34,9 +34,6 @@ struct OverviewView: View {
     @State private var lastSyncDate: Date?
     @State private var isSyncing: Bool = false
     
-    // Screen Time health monitoring
-    @State private var screenTimeHealth: ScreenTimeHealthStatus = .healthy
-    
     // Loading state - progressive loading phases
     // Start with isLoadingPrimary = true so skeleton shows immediately on first render
     @State private var isLoadingPrimary: Bool = true
@@ -148,9 +145,6 @@ struct OverviewView: View {
                 // ─── Header Row: Title + Date | Granularity Picker ───
                 headerSection
                 
-                // ─── Screen Time Health Warning ───
-                ScreenTimeHealthBanner(status: screenTimeHealth)
-
                 if showSkeleton {
                     // ─── Skeleton loader during initial load ───
                     OverviewSkeletonView()
@@ -192,10 +186,6 @@ struct OverviewView: View {
             // Phase 4: Load sync payload only once on appear (not on filter changes)
             try? await Task.sleep(for: .milliseconds(200))
             await loadSyncPayload()
-        }
-        .task(id: "health\(filters.refreshToken)") {
-            // Phase 5: Check Screen Time health on appear and on refresh
-            screenTimeHealth = await ScreenTimeHealthService.checkHealthAsync()
         }
     }
 

@@ -10,8 +10,7 @@ struct TimeMdMenuBarExtra: View {
     @State private var isLoading = true
     @State private var isSyncing = false
     @State private var lastSyncTime: Date?
-    @State private var healthStatus: ScreenTimeHealthStatus = .healthy
-    
+
     private let refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
     
     var body: some View {
@@ -39,47 +38,6 @@ struct TimeMdMenuBarExtra: View {
                 }
             }
             .padding(.bottom, 4)
-            
-            // Health warning
-            if healthStatus.needsAttention {
-                Divider()
-                
-                HStack(spacing: 8) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.accentColor)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Screen Time paused")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                        
-                        if case .stale(_, let hours) = healthStatus {
-                            Text("No data for \(hours)h")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    Button {
-                        if let url = URL(string: "x-apple.systempreferences:com.apple.Screen-Time-Settings.extension") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    } label: {
-                        Text("Fix")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                }
-                .padding(8)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.accentColor.opacity(0.1))
-                )
-            }
             
             Divider()
             
@@ -161,10 +119,7 @@ struct TimeMdMenuBarExtra: View {
     
     private func loadData() async {
         isLoading = true
-        
-        // Check Screen Time health
-        healthStatus = await ScreenTimeHealthService.checkHealthAsync()
-        
+
         do {
             // Fetch today's summary
             let summary = try await appEnvironment.dataService.fetchTodaySummary()
@@ -240,23 +195,12 @@ struct TimeMdMenuBarExtra: View {
 struct MenuBarLabel: View {
     @Environment(\.appEnvironment) private var appEnvironment
     @State private var todayTotal: TimeInterval = 0
-    @State private var healthStatus: ScreenTimeHealthStatus = .healthy
-    
+
     private let refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
-    
+
     var body: some View {
         HStack(spacing: 4) {
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: "clock.fill")
-                
-                // Warning badge when health needs attention
-                if healthStatus.needsAttention {
-                    Circle()
-                        .fill(Color.accentColor)
-                        .frame(width: 6, height: 6)
-                        .offset(x: 2, y: -2)
-                }
-            }
+            Image(systemName: "clock.fill")
             Text(formatCompact(todayTotal))
                 .monospacedDigit()
         }
@@ -271,9 +215,6 @@ struct MenuBarLabel: View {
     }
     
     private func loadTotal() async {
-        // Check health status
-        healthStatus = await ScreenTimeHealthService.checkHealthAsync()
-        
         do {
             let summary = try await appEnvironment.dataService.fetchTodaySummary()
             todayTotal = summary.todayTotalSeconds

@@ -113,7 +113,6 @@
 				Features/Filters/AdvancedTimeFiltersView.swift,
 				Features/Overview/InsightCards.swift,
 				Features/Overview/OverviewView.swift,
-				Features/Overview/ScreenTimeHealthBanner.swift,
 				Features/Sessions/SessionsView.swift,
 				Features/Trends/TrendsView.swift,
 				Features/WebHistory/WebHistoryView.swift,

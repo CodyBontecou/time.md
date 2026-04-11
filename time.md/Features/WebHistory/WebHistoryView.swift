@@ -52,7 +52,7 @@ struct WebHistoryView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            LazyVStack(alignment: .leading, spacing: 24) {
 
                 // ─── Header ───
                 headerSection
@@ -394,7 +394,7 @@ struct WebHistoryView: View {
     }
 
     private var visitTable: some View {
-        VStack(spacing: 0) {
+        LazyVStack(spacing: 0, pinnedViews: []) {
             // Header
             HStack {
                 Text("TIME")
@@ -567,7 +567,7 @@ struct WebHistoryView: View {
     private var domainTable: some View {
         let totalVisits = topDomains.reduce(0) { $0 + $1.visitCount }
 
-        return VStack(spacing: 0) {
+        return LazyVStack(spacing: 0, pinnedViews: []) {
             // Header
             HStack {
                 Text("")

@@ -24,9 +24,12 @@ enum AppNameDisplayMode: String, CaseIterable, Identifiable {
 
 /// Resolves a raw app identifier (often a reverse-DNS bundle ID) to a display-friendly name.
 ///
-/// When the mode is `.short`, a bundle ID like `com.apple.Safari` becomes `Safari`.
+/// When the mode is `.short`, uses `AppIconProvider` to resolve the real app name
+/// (e.g. `com.apple.Safari` → "Safari", `com.google.Chrome` → "Google Chrome").
+/// Falls back to the last bundle-ID component when the app isn't installed.
 /// Identifiers that don't look like bundle IDs are returned as-is in both modes.
 enum AppNameDisplay {
+    @MainActor
     static func displayName(for rawName: String, mode: AppNameDisplayMode) -> String {
         guard mode == .short else { return rawName }
 
@@ -36,12 +39,13 @@ enum AppNameDisplay {
         // Only transform dotted reverse-DNS identifiers
         guard rawName.contains(".") else { return rawName }
 
+        #if os(macOS)
+        return AppIconProvider.shared.displayName(for: rawName)
+        #else
         let lastComponent = rawName.split(separator: ".").last.map(String.init) ?? rawName
-
-        // If the last component is empty or the same as the full string, return as-is
         guard !lastComponent.isEmpty, lastComponent != rawName else { return rawName }
-
         return lastComponent
+        #endif
     }
 }
 

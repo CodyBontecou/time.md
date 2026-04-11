@@ -366,9 +366,13 @@ struct AppsCategoriesView: View {
                     onTap(value)
                 } label: {
                     HStack(spacing: 6) {
+                        #if os(macOS)
+                        AppIconView(bundleID: value, size: 14)
+                        #else
                         Rectangle()
                             .fill(selected ? BrutalTheme.accent : BrutalTheme.border)
                             .frame(width: 8, height: 8)
+                        #endif
                         AppNameText(value)
                             .font(BrutalTheme.captionMono)
                             .foregroundColor(selected ? BrutalTheme.textPrimary : BrutalTheme.textSecondary)
@@ -472,11 +476,16 @@ struct AppsCategoriesView: View {
     @ViewBuilder
     private func mappingRow(for app: AppUsageSummary) -> some View {
         HStack(spacing: 10) {
-            AppNameText(app.appName)
-                .font(BrutalTheme.tableBody)
-                .foregroundColor(BrutalTheme.textPrimary)
-                .lineLimit(1)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            HStack(spacing: 6) {
+                #if os(macOS)
+                AppIconView(bundleID: app.appName, size: 16)
+                #endif
+                AppNameText(app.appName)
+                    .font(BrutalTheme.tableBody)
+                    .foregroundColor(BrutalTheme.textPrimary)
+                    .lineLimit(1)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             TextField("CATEGORY", text: draftBinding(for: app.appName))
                 .font(BrutalTheme.tableBody)

@@ -455,6 +455,10 @@ struct OverviewView: View {
                             .foregroundColor(BrutalTheme.textTertiary)
                             .frame(width: 28, alignment: .leading)
 
+                        #if os(macOS)
+                        AppIconView(bundleID: app.appName, size: 16)
+                        #endif
+
                         AppNameText(app.appName)
                             .font(BrutalTheme.tableBody)
                             .foregroundColor(BrutalTheme.textPrimary)

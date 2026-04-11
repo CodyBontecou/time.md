@@ -55,12 +55,14 @@ struct TimeMdMenuBarExtra: View {
                     .foregroundStyle(.secondary)
                 
                 ForEach(topApps) { app in
-                    HStack {
-                        Text(app.appName)
+                    HStack(spacing: 8) {
+                        AppIconView(bundleID: app.appName, size: 18)
+
+                        Text(AppNameDisplay.displayName(for: app.appName, mode: .short))
                             .lineLimit(1)
-                        
+
                         Spacer()
-                        
+
                         Text(formatDuration(app.totalSeconds))
                             .font(.caption)
                             .monospacedDigit()

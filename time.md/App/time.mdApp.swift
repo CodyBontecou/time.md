@@ -65,7 +65,10 @@ struct TimeMdApp: App {
                 .environment(\.appEnvironment, .live)
                 .environment(\.appNameDisplayMode, AppNameDisplayMode(rawValue: appNameDisplayMode) ?? .short)
                 .environment(navigation)
-                .task { await initialSync() }
+                .task {
+                    await initialSync()
+                    ActiveAppTracker.shared.start()
+                }
                 .task { await initialCloudSync() }
                 .task { installBackgroundAgent() }
                 .sheet(isPresented: $showOnboarding) {
@@ -80,6 +83,12 @@ struct TimeMdApp: App {
                     Task {
                         await performCloudSync()
                     }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+                    ActiveAppTracker.shared.stop()
+                }
+                .onReceive(NotificationCenter.default.publisher(for: ActiveAppTracker.didRecordSessionNotification)) { _ in
+                    filters.triggerRefresh()
                 }
         }
         .windowResizability(.contentSize)

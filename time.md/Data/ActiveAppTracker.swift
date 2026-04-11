@@ -31,6 +31,9 @@ final class ActiveAppTracker: @unchecked Sendable {
 
     private let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
+    /// Bundle IDs already checked for category mapping this session.
+    private var categorizedApps: Set<String> = []
+
     private init() {}
 
     // MARK: - Lifecycle
@@ -118,6 +121,16 @@ final class ActiveAppTracker: @unchecked Sendable {
 
         currentApp = newApp
         switchTime = Date()
+
+        // Auto-categorize newly seen apps on first switch
+        if let appID = newApp, !categorizedApps.contains(appID) {
+            categorizedApps.insert(appID)
+            DispatchQueue.global(qos: .utility).async {
+                if let category = AppCategorizer.resolveCategory(for: appID) {
+                    try? CategoryMappingStore.upsert(appName: appID, category: category)
+                }
+            }
+        }
     }
 
     private func handleScreenInactive() {

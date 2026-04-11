@@ -78,6 +78,9 @@ struct TimeMdApp: App {
                 await initialSync()
                 ActiveAppTracker.shared.start()
                 usageTracker.startSession()
+                Task.detached(priority: .utility) {
+                    AppCategorizer.autoPopulateCategories()
+                }
             }
             .task { await initialCloudSync() }
             .task { installBackgroundAgent() }

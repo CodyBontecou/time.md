@@ -1017,11 +1017,21 @@ private extension SQLiteScreenTimeDataService {
         WHERE u.stream_type IN ('app_usage', 'web_usage', 'media_usage')
           AND u.start_time >= ?
           AND u.start_time < ?
+          AND (u.metadata_hash = 'direct_observation'
+               OR NOT EXISTS (
+                   SELECT 1 FROM usage _dedup
+                   WHERE _dedup.metadata_hash = 'direct_observation'
+                     AND _dedup.start_time >= ?
+                     AND _dedup.start_time < ?
+                   LIMIT 1
+               ))
         GROUP BY hour, u.app_name
         ORDER BY hour, total_seconds DESC
         """
 
         return try SQLiteRunner.query(db: db, sql: sql, parameters: [
+            .text(range.startISO),
+            .text(range.endExclusiveISO),
             .text(range.startISO),
             .text(range.endExclusiveISO)
         ]) { statement in
@@ -1618,10 +1628,25 @@ private extension SQLiteScreenTimeDataService {
         var conditions: [String] = [
             "\(alias).stream_type IN ('app_usage', 'web_usage', 'media_usage')",
             "\(alias).start_time >= ?",
-            "\(alias).start_time < ?"
+            "\(alias).start_time < ?",
+            // Prefer direct_observation over knowledgeC to avoid double-counting.
+            // If any direct_observation records exist in this date range, exclude
+            // knowledgeC-sourced rows (which have a different source_timestamp epoch).
+            """
+            (\(alias).metadata_hash = 'direct_observation'
+             OR NOT EXISTS (
+                 SELECT 1 FROM usage _dedup
+                 WHERE _dedup.metadata_hash = 'direct_observation'
+                   AND _dedup.start_time >= ?
+                   AND _dedup.start_time < ?
+                 LIMIT 1
+             ))
+            """
         ]
 
         var parameters: [SQLiteBinding] = [
+            .text(range.startISO),
+            .text(range.endExclusiveISO),
             .text(range.startISO),
             .text(range.endExclusiveISO)
         ]

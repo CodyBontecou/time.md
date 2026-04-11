@@ -22,7 +22,7 @@ struct TimingOverviewView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 32) {
                 headerSection
 
                 if isLoading {
@@ -31,10 +31,11 @@ struct TimingOverviewView: View {
                     DataLoadErrorView(error: loadError)
                 } else {
                     summaryCards
-                    timelineBar
-                    topAppsBreakdown
+                    timelineSection
+                    topAppsSection
                 }
             }
+            .padding(.vertical, 8)
         }
         .scrollIndicators(.never)
         .scrollClipDisabled()
@@ -46,34 +47,26 @@ struct TimingOverviewView: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        HStack(alignment: .center) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 10) {
-                    Text("Overview")
-                        .font(.system(size: 26, weight: .bold, design: .default))
-                        .foregroundColor(BrutalTheme.textPrimary)
+        HStack(alignment: .firstTextBaseline) {
+            Text("Overview")
+                .font(.system(size: 32, weight: .bold, design: .default))
+                .foregroundColor(BrutalTheme.textPrimary)
 
-                    if let delta = periodDelta, delta.previousTotalSeconds > 0 {
-                        let pct = delta.percentChange
-                        let isUp = pct > 0
-                        HStack(spacing: 3) {
-                            Image(systemName: isUp ? "arrow.up.right" : "arrow.down.right")
-                                .font(.system(size: 10, weight: .bold))
-                            Text(String(format: "%.0f%%", abs(pct)))
-                                .font(.system(size: 11, weight: .bold, design: .monospaced))
-                        }
-                        .foregroundColor(isUp ? .red : .green)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(Capsule().fill((isUp ? Color.red : Color.green).opacity(0.12)))
-                    }
+            if let delta = periodDelta, delta.previousTotalSeconds > 0 {
+                let pct = delta.percentChange
+                let isUp = pct > 0
+                HStack(spacing: 4) {
+                    Image(systemName: isUp ? "arrow.up.right" : "arrow.down.right")
+                        .font(.system(size: 13, weight: .bold))
+                    Text(String(format: "%.0f%%", abs(pct)))
+                        .font(.system(size: 14, weight: .bold, design: .monospaced))
                 }
-
-                Text(filters.rangeLabel.uppercased())
-                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
-                    .foregroundColor(BrutalTheme.textTertiary)
-                    .tracking(0.8)
+                .foregroundColor(isUp ? .red : .green)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Capsule().fill((isUp ? Color.red : Color.green).opacity(0.12)))
             }
+
             Spacer()
         }
     }
@@ -82,32 +75,32 @@ struct TimingOverviewView: View {
 
     private var summaryCards: some View {
         let columns = [
-            GridItem(.flexible(), spacing: 12),
-            GridItem(.flexible(), spacing: 12),
-            GridItem(.flexible(), spacing: 12),
-            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible(), spacing: 16),
+            GridItem(.flexible(), spacing: 16),
+            GridItem(.flexible(), spacing: 16),
+            GridItem(.flexible(), spacing: 16),
         ]
 
-        return LazyVGrid(columns: columns, spacing: 12) {
-            StatCard(
+        return LazyVGrid(columns: columns, spacing: 16) {
+            TimingStatCard(
                 title: "TOTAL TIME",
                 value: DurationFormatter.short(totalSeconds),
                 icon: "clock.fill",
                 color: .blue
             )
-            StatCard(
+            TimingStatCard(
                 title: "DAILY AVG",
                 value: DurationFormatter.short(periodSummary?.totalSeconds ?? 0),
                 icon: "chart.line.uptrend.xyaxis",
                 color: .green
             )
-            StatCard(
+            TimingStatCard(
                 title: "PEAK HOUR",
                 value: formatHour(periodSummary?.peakHour ?? 0),
                 icon: "flame.fill",
                 color: .orange
             )
-            StatCard(
+            TimingStatCard(
                 title: "APPS USED",
                 value: "\(periodSummary?.appsUsedCount ?? 0)",
                 icon: "square.grid.2x2.fill",
@@ -116,34 +109,37 @@ struct TimingOverviewView: View {
         }
     }
 
-    // MARK: - Timeline Bar (Timing's signature feature)
+    // MARK: - Timeline
 
-    private var timelineBar: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("TIMELINE")
-                    .font(BrutalTheme.headingFont)
-                    .foregroundColor(BrutalTheme.textSecondary)
-                    .tracking(1)
+    private var timelineSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("TIMELINE")
+                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                .foregroundColor(BrutalTheme.textSecondary)
+                .tracking(1.5)
 
-                if hourlyUsage.isEmpty {
-                    Text("No activity recorded for this period.")
-                        .font(BrutalTheme.bodyMono)
-                        .foregroundColor(BrutalTheme.textTertiary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.vertical, 20)
-                } else {
-                    // Hour labels
-                    timelineHourLabels
+            if hourlyUsage.isEmpty {
+                Text("No activity recorded for this period.")
+                    .font(.system(size: 14))
+                    .foregroundColor(BrutalTheme.textTertiary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 40)
+            } else {
+                // Hour labels
+                timelineHourLabels
 
-                    // Stacked color-coded timeline
-                    timelineBarContent
+                // The timeline bar
+                timelineBarContent
 
-                    // Legend
-                    timelineLegend
-                }
+                // Legend
+                timelineLegend
             }
         }
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(BrutalTheme.surface.opacity(0.3))
+        )
     }
 
     private var timelineHourLabels: some View {
@@ -153,41 +149,39 @@ struct TimingOverviewView: View {
                 ForEach(0..<24, id: \.self) { hour in
                     if hour % 3 == 0 {
                         Text(formatHourShort(hour))
-                            .font(.system(size: 9, weight: .medium, design: .monospaced))
+                            .font(.system(size: 11, weight: .medium, design: .monospaced))
                             .foregroundColor(BrutalTheme.textTertiary)
                             .frame(width: width / 8, alignment: .leading)
                     }
                 }
             }
         }
-        .frame(height: 14)
+        .frame(height: 18)
     }
 
     private var timelineBarContent: some View {
         GeometryReader { geo in
             let width = geo.size.width
-            let barHeight: CGFloat = 32
+            let barHeight: CGFloat = 48
 
             ZStack(alignment: .leading) {
-                // Background track
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(BrutalTheme.surface.opacity(0.5))
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(BrutalTheme.surface.opacity(0.4))
                     .frame(height: barHeight)
 
-                // App usage blocks
                 ForEach(hourlyUsage) { entry in
                     let startX = CGFloat(entry.hour) / 24.0 * width
-                    let blockWidth = max(entry.totalSeconds / 3600.0 * (width / 24.0), 2)
+                    let blockWidth = max(entry.totalSeconds / 3600.0 * (width / 24.0), 3)
 
-                    RoundedRectangle(cornerRadius: 3)
+                    RoundedRectangle(cornerRadius: 4)
                         .fill(BrutalTheme.color(for: entry.appName))
-                        .frame(width: blockWidth, height: barHeight - 4)
+                        .frame(width: blockWidth, height: barHeight - 6)
                         .offset(x: startX)
                         .help("\(AppNameDisplay.displayName(for: entry.appName, mode: appNameDisplayMode)): \(DurationFormatter.short(entry.totalSeconds))")
                 }
             }
         }
-        .frame(height: 32)
+        .frame(height: 48)
     }
 
     private var timelineLegend: some View {
@@ -199,83 +193,94 @@ struct TimingOverviewView: View {
                 .map(\.key)
         )
 
-        return FlowLayout(spacing: 8) {
+        return HStack(spacing: 16) {
             ForEach(topAppNames, id: \.self) { appName in
-                HStack(spacing: 4) {
+                HStack(spacing: 6) {
                     Circle()
                         .fill(BrutalTheme.color(for: appName))
-                        .frame(width: 8, height: 8)
+                        .frame(width: 10, height: 10)
                     AppNameText(appName)
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundColor(BrutalTheme.textSecondary)
                 }
             }
         }
+        .padding(.top, 4)
     }
 
-    // MARK: - Top Apps Breakdown
+    // MARK: - Top Apps
 
-    private var topAppsBreakdown: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("TOP APPS")
-                    .font(BrutalTheme.headingFont)
-                    .foregroundColor(BrutalTheme.textSecondary)
-                    .tracking(1)
+    private var topAppsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("TOP APPS")
+                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                .foregroundColor(BrutalTheme.textSecondary)
+                .tracking(1.5)
 
-                if topApps.isEmpty {
-                    Text("No app data for this period.")
-                        .font(BrutalTheme.bodyMono)
-                        .foregroundColor(BrutalTheme.textTertiary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.vertical, 20)
-                } else {
+            if topApps.isEmpty {
+                Text("No app data for this period.")
+                    .font(.system(size: 14))
+                    .foregroundColor(BrutalTheme.textTertiary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 40)
+            } else {
+                VStack(spacing: 0) {
                     ForEach(Array(topApps.prefix(10).enumerated()), id: \.element.id) { index, app in
                         appRow(app: app, index: index)
+                        if index < min(topApps.count, 10) - 1 {
+                            Divider()
+                                .padding(.leading, 44)
+                        }
                     }
                 }
             }
         }
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(BrutalTheme.surface.opacity(0.3))
+        )
     }
 
     private func appRow(app: AppUsageSummary, index: Int) -> some View {
         let pct = totalSeconds > 0 ? app.totalSeconds / totalSeconds : 0
 
-        return HStack(spacing: 10) {
+        return HStack(spacing: 14) {
             #if os(macOS)
-            AppIconView(bundleID: app.appName, size: 20)
+            AppIconView(bundleID: app.appName, size: 28)
             #endif
 
             AppNameText(app.appName)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 15, weight: .medium))
                 .foregroundColor(BrutalTheme.textPrimary)
                 .lineLimit(1)
+                .frame(minWidth: 120, alignment: .leading)
 
             Spacer()
 
             // Progress bar
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(BrutalTheme.surface.opacity(0.5))
-                    RoundedRectangle(cornerRadius: 3)
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(BrutalTheme.surface.opacity(0.4))
+                    RoundedRectangle(cornerRadius: 4)
                         .fill(BrutalTheme.color(for: app.appName))
                         .frame(width: geo.size.width * pct)
                 }
             }
-            .frame(width: 120, height: 6)
+            .frame(width: 160, height: 8)
 
             Text(DurationFormatter.short(app.totalSeconds))
-                .font(BrutalTheme.captionMono)
-                .foregroundColor(BrutalTheme.textSecondary)
-                .frame(width: 60, alignment: .trailing)
+                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                .foregroundColor(BrutalTheme.textPrimary)
+                .frame(width: 70, alignment: .trailing)
 
             Text(String(format: "%.0f%%", pct * 100))
-                .font(BrutalTheme.captionMono)
+                .font(.system(size: 13, weight: .regular, design: .monospaced))
                 .foregroundColor(BrutalTheme.textTertiary)
-                .frame(width: 40, alignment: .trailing)
+                .frame(width: 44, alignment: .trailing)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 10)
     }
 
     // MARK: - Data Loading
@@ -296,7 +301,6 @@ struct TimingOverviewView: View {
             periodSummary = try await fetchedPeriod
             hourlyUsage = try await fetchedHourly
 
-            // Period comparison
             let calendar = Calendar.current
             let rangeDays = calendar.dateComponents([.day], from: snapshot.startDate, to: snapshot.endDate).day ?? 7
             if let prevEnd = calendar.date(byAdding: .day, value: -1, to: snapshot.startDate),
@@ -335,33 +339,34 @@ struct TimingOverviewView: View {
 
 // MARK: - Stat Card
 
-private struct StatCard: View {
+private struct TimingStatCard: View {
     let title: String
     let value: String
     let icon: String
     let color: Color
 
     var body: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Image(systemName: icon)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(color)
-                    Spacer()
-                }
+        VStack(alignment: .leading, spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(color)
 
-                Text(value)
-                    .font(.system(size: 20, weight: .bold, design: .monospaced))
-                    .foregroundColor(BrutalTheme.textPrimary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+            Text(value)
+                .font(.system(size: 32, weight: .bold, design: .default))
+                .foregroundColor(BrutalTheme.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
 
-                Text(title)
-                    .font(.system(size: 9, weight: .bold, design: .monospaced))
-                    .foregroundColor(BrutalTheme.textTertiary)
-                    .tracking(1)
-            }
+            Text(title)
+                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                .foregroundColor(BrutalTheme.textTertiary)
+                .tracking(1)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(BrutalTheme.surface.opacity(0.3))
+        )
     }
 }

@@ -97,7 +97,7 @@ struct TimingReviewView: View {
                 }
             }
             .pickerStyle(.segmented)
-            .frame(width: 180)
+            .fixedSize()
 
             // Chart mode picker
             Picker("Chart", selection: $chartMode) {

@@ -28,31 +28,30 @@ struct TimingDetailsView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                headerSection
-                filterBar
+        VStack(alignment: .leading, spacing: 20) {
+            headerSection
+            filterBar
 
-                if isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity, minHeight: 300)
-                } else if let loadError {
-                    DataLoadErrorView(error: loadError)
-                } else {
-                    HStack(alignment: .top, spacing: 20) {
-                        // Main timeline
-                        timelineSection
-                            .frame(maxWidth: .infinity)
+            if isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: 300)
+            } else if let loadError {
+                DataLoadErrorView(error: loadError)
+            } else {
+                HStack(alignment: .top, spacing: 20) {
+                    // Main timeline
+                    timelineSection
+                        .frame(maxWidth: .infinity)
 
-                        // Sidebar stats
+                    // Sidebar stats
+                    ScrollView {
                         sidebarStats
-                            .frame(width: 260)
                     }
+                    .scrollIndicators(.never)
+                    .frame(width: 260)
                 }
             }
         }
-        .scrollIndicators(.never)
-        .scrollClipDisabled()
         .task(id: "\(filters.rangeLabel)\(filters.granularity.rawValue)\(filters.refreshToken)") {
             await loadData()
         }
@@ -150,19 +149,22 @@ struct TimingDetailsView: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.vertical, 40)
                 } else {
-                    LazyVStack(alignment: .leading, spacing: 0) {
-                        ForEach(Array(filteredSessions.prefix(200).enumerated()), id: \.element.id) { index, session in
-                            timelineEntry(session: session, isLast: index == min(filteredSessions.count, 200) - 1)
-                        }
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 0) {
+                            ForEach(Array(filteredSessions.prefix(200).enumerated()), id: \.element.id) { index, session in
+                                timelineEntry(session: session, isLast: index == min(filteredSessions.count, 200) - 1)
+                            }
 
-                        if filteredSessions.count > 200 {
-                            Text("+ \(filteredSessions.count - 200) more sessions")
-                                .font(BrutalTheme.captionMono)
-                                .foregroundColor(BrutalTheme.textTertiary)
-                                .padding(.top, 12)
-                                .padding(.leading, 48)
+                            if filteredSessions.count > 200 {
+                                Text("+ \(filteredSessions.count - 200) more sessions")
+                                    .font(BrutalTheme.captionMono)
+                                    .foregroundColor(BrutalTheme.textTertiary)
+                                    .padding(.top, 12)
+                                    .padding(.leading, 48)
+                            }
                         }
                     }
+                    .scrollIndicators(.never)
                 }
             }
         }

@@ -15,6 +15,12 @@ struct TimingOverviewView: View {
     @State private var periodDelta: PeriodDelta?
     @State private var isLoading = true
     @State private var loadError: Error?
+    @State private var selectedApp: String?
+    @State private var hoveredApp: String?
+
+    private var focusedApp: String? {
+        selectedApp ?? hoveredApp
+    }
 
     private var totalSeconds: Double {
         periodSummary?.totalSeconds ?? 0
@@ -140,6 +146,12 @@ struct TimingOverviewView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(BrutalTheme.surface.opacity(0.3))
         )
+        .contentShape(Rectangle())
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                selectedApp = nil
+            }
+        }
     }
 
     private var timelineHourLabels: some View {
@@ -172,16 +184,37 @@ struct TimingOverviewView: View {
                 ForEach(hourlyUsage) { entry in
                     let startX = CGFloat(entry.hour) / 24.0 * width
                     let blockWidth = max(entry.totalSeconds / 3600.0 * (width / 24.0), 3)
+                    let isFocused = focusedApp == nil || focusedApp == entry.appName
 
                     RoundedRectangle(cornerRadius: 4)
                         .fill(BrutalTheme.color(for: entry.appName))
-                        .frame(width: blockWidth, height: barHeight - 6)
+                        .frame(width: blockWidth, height: isFocused && focusedApp != nil ? barHeight - 2 : barHeight - 6)
+                        .opacity(isFocused ? 1.0 : 0.15)
                         .offset(x: startX)
+                        .onHover { isHovering in
+                            if selectedApp == nil {
+                                hoveredApp = isHovering ? entry.appName : nil
+                            }
+                        }
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                if selectedApp == entry.appName {
+                                    selectedApp = nil
+                                } else {
+                                    selectedApp = entry.appName
+                                }
+                            }
+                        }
                         .help("\(AppNameDisplay.displayName(for: entry.appName, mode: appNameDisplayMode)): \(DurationFormatter.short(entry.totalSeconds))")
                 }
             }
         }
         .frame(height: 48)
+        .onHover { isHovering in
+            if !isHovering && selectedApp == nil {
+                hoveredApp = nil
+            }
+        }
     }
 
     private var timelineLegend: some View {
@@ -195,13 +228,29 @@ struct TimingOverviewView: View {
 
         return HStack(spacing: 16) {
             ForEach(topAppNames, id: \.self) { appName in
+                let isFocused = focusedApp == nil || focusedApp == appName
                 HStack(spacing: 6) {
                     Circle()
                         .fill(BrutalTheme.color(for: appName))
                         .frame(width: 10, height: 10)
                     AppNameText(appName)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(BrutalTheme.textSecondary)
+                        .font(.system(size: 13, weight: isFocused && focusedApp != nil ? .bold : .medium))
+                        .foregroundColor(isFocused ? BrutalTheme.textPrimary : BrutalTheme.textTertiary)
+                }
+                .opacity(isFocused ? 1.0 : 0.4)
+                .onHover { isHovering in
+                    if selectedApp == nil {
+                        hoveredApp = isHovering ? appName : nil
+                    }
+                }
+                .onTapGesture {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        if selectedApp == appName {
+                            selectedApp = nil
+                        } else {
+                            selectedApp = appName
+                        }
+                    }
                 }
             }
         }

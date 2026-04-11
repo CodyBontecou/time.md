@@ -244,7 +244,7 @@ struct OverviewView: View {
 
         return LazyVGrid(columns: columns, spacing: 12) {
                 // Row 1: Period delta, sparkline, peak hour, apps used
-                navCard(.trends) {
+                navCard(.review) {
                     TodayDeltaCard(
                         todaySeconds: periodSummary?.totalSeconds ?? 0,
                         deltaPercent: periodSummary?.deltaPercent ?? 0,
@@ -253,7 +253,7 @@ struct OverviewView: View {
                     )
                 }
 
-                navCard(.trends) {
+                navCard(.review) {
                     if isHourlyMode {
                         HourlyTrendCard(
                             hourlyPoints: hourlyTrendPoints,
@@ -268,14 +268,14 @@ struct OverviewView: View {
                     }
                 }
 
-                navCard(.heatmap) {
+                navCard(.review) {
                     PeakHourCard(
                         hour: periodSummary?.peakHour ?? 0,
                         seconds: periodSummary?.peakHourSeconds ?? 0
                     )
                 }
 
-                navCard(.appsCategories) {
+                navCard(.projects) {
                     AppsUsedCard(
                         count: periodSummary?.appsUsedCount ?? 0,
                         contextLabel: contextLabelForCurrentPeriod
@@ -283,27 +283,27 @@ struct OverviewView: View {
                 }
 
                 // Row 2: Top app, longest session, mini heatmap, calendar preview
-                navCard(.appsCategories) {
+                navCard(.projects) {
                     TopAppSpotlightCard(
                         appName: periodSummary?.topAppName ?? "None",
                         seconds: periodSummary?.topAppSeconds ?? 0
                     )
                 }
 
-                navCard(.sessions) {
+                navCard(.details) {
                     LongestSessionCard(
                         session: longestSession
                     )
                 }
 
-                navCard(.heatmap) {
+                navCard(.review) {
                     MiniHeatmapCard(
                         cells: heatmapCells,
                         maxSeconds: heatmapMax
                     )
                 }
-                
-                navCard(.calendar) {
+
+                navCard(.review) {
                     CalendarPreviewCard(
                         granularity: filters.granularity,
                         startDate: filters.startDate,

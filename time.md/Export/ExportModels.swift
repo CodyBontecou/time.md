@@ -811,21 +811,17 @@ struct ExportSettings: Codable {
     /// Get available fields for a given scope
     func availableFields(for scope: NavigationDestination) -> [ExportField] {
         switch scope {
-        case .rawSessions:
+        case .details:
             return ExportField.rawSessionFields
-        case .appsCategories:
+        case .projects:
             return ExportField.appFields + ExportField.categoryFields
-        case .trends:
-            return ExportField.trendFields
-        case .sessions:
-            return ExportField.sessionBucketFields
-        case .heatmap:
-            return ExportField.heatmapFields
+        case .review:
+            return ExportField.trendFields + ExportField.appFields
         case .overview:
             return ExportField.overviewFields + ExportField.trendFields
-        case .calendar:
-            return ExportField.heatmapFields
-        case .webHistory, .exports, .settings:
+        case .reports:
+            return ExportField.trendFields + ExportField.appFields
+        case .webHistory, .rules, .settings:
             return []
         }
     }

@@ -5,7 +5,6 @@ struct RootSplitView: View {
     let filters: GlobalFilterStore
     @Bindable var navigation: NavigationCoordinator
 
-    @State private var isCalendarExpanded = false
     @State private var isSyncingLocal = false
     @State private var showSyncSuccess = false
     @State private var syncError: String?
@@ -76,24 +75,19 @@ struct RootSplitView: View {
                     Group {
                         switch navigation.selectedDestination ?? .overview {
                         case .overview:
-                            OverviewView(filters: filters)
-                        case .calendar:
-                            AppleCalendarView(filters: filters, isExpanded: $isCalendarExpanded)
-                        case .trends:
-                            TrendsView(filters: filters)
-                        case .appsCategories:
-                            AppsCategoriesView(filters: filters)
-                        case .sessions:
-                            SessionsView(filters: filters)
-                        case .heatmap:
-                            DistractingHoursView(filters: filters)
-                        case .rawSessions:
-                            // Raw sessions is export-only, redirect to exports
-                            ExportsView(filters: filters)
+                            TimingOverviewView(filters: filters)
+                        case .review:
+                            TimingReviewView(filters: filters)
+                        case .details:
+                            TimingDetailsView(filters: filters)
+                        case .projects:
+                            TimingProjectsView(filters: filters)
+                        case .rules:
+                            TimingRulesView(filters: filters)
                         case .webHistory:
                             WebHistoryView(filters: filters)
-                        case .exports:
-                            ExportsView(filters: filters)
+                        case .reports:
+                            TimingReportsView(filters: filters)
                         case .settings:
                             SettingsScaffoldView(filters: filters)
                         }
@@ -121,11 +115,6 @@ struct RootSplitView: View {
                 }
             }
 
-            // Expanded calendar overlay
-            if isCalendarExpanded {
-                AppleCalendarView(filters: filters, isExpanded: $isCalendarExpanded)
-                    .background(CalendarColors.background)
-            }
         }
     }
     

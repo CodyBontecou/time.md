@@ -1,13 +1,18 @@
+import StoreKit
 import SwiftUI
 
 @main
 struct TimeMdIOSApp: App {
     @StateObject private var appState = IOSAppState()
-    
+    @StateObject private var storeManager = StoreManager.shared
+    @StateObject private var usageTracker = UsageTracker.shared
+
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
+                .environmentObject(storeManager)
+                .environmentObject(usageTracker)
         }
     }
 }
@@ -15,14 +20,19 @@ struct TimeMdIOSApp: App {
 /// Root content view with adaptive navigation (tabs on iPhone, sidebar on iPad)
 struct ContentView: View {
     @EnvironmentObject private var appState: IOSAppState
+    @EnvironmentObject private var storeManager: StoreManager
+    @EnvironmentObject private var usageTracker: UsageTracker
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.scenePhase) private var scenePhase
     @State private var selectedTab = 0
     @State private var selectedDestination: NavigationDestination? = .overview
     @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-    
+
     var body: some View {
         Group {
-            if horizontalSizeClass == .regular {
+            if usageTracker.isTrialExpired && !storeManager.isPurchased {
+                IOSPaywallView(store: storeManager, usage: usageTracker)
+            } else if horizontalSizeClass == .regular {
                 // iPad: Use sidebar navigation
                 iPadLayout
             } else {
@@ -40,6 +50,16 @@ struct ContentView: View {
                 Task {
                     await appState.onboardingCompleted()
                 }
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            switch newPhase {
+            case .active:
+                usageTracker.startSession()
+            case .inactive, .background:
+                usageTracker.pauseSession()
+            @unknown default:
+                break
             }
         }
     }

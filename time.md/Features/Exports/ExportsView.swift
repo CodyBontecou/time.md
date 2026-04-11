@@ -570,7 +570,7 @@ struct ExportsView: View {
             
             let url = try await coordinator.export(
                 format: selectedFormat,
-                from: .rawSessions,
+                from: .details,
                 filters: snapshot
             )
 

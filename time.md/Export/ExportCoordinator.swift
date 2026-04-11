@@ -121,8 +121,8 @@ struct ExportCoordinator: ExportCoordinating {
     }
 
     func export(format: ExportFormat, from destination: NavigationDestination, filters: FilterSnapshot, settings: ExportSettings, progress: ExportProgress?) async throws -> URL {
-        // For raw sessions, use specialized export path
-        if destination == .rawSessions {
+        // For details view, use specialized raw session export path
+        if destination == .details {
             return try await exportRawSessions(format: format, filters: filters, settings: settings, progress: progress)
         }
 
@@ -152,27 +152,21 @@ struct ExportCoordinator: ExportCoordinating {
         let rowCount: Int
 
         switch destination {
-        case .rawSessions:
-            rowCount = try await dataService.fetchRawSessionCount(filters: filters)
         case .overview:
-            // Summary + trend points
             let trend = try await dataService.fetchTrend(filters: filters)
-            rowCount = 4 + trend.count  // 4 summary metrics + trend points
-        case .appsCategories:
+            rowCount = 4 + trend.count
+        case .review:
             let apps = try await dataService.fetchTopApps(filters: filters, limit: 200)
             let categories = try await dataService.fetchTopCategories(filters: filters, limit: 200)
             rowCount = apps.count + categories.count
-        case .trends:
+        case .details:
+            rowCount = try await dataService.fetchRawSessionCount(filters: filters)
+        case .projects:
+            let apps = try await dataService.fetchTopApps(filters: filters, limit: 200)
+            rowCount = apps.count
+        case .reports:
             let trend = try await dataService.fetchTrend(filters: filters)
             rowCount = trend.count
-        case .sessions:
-            let buckets = try await dataService.fetchSessionBuckets(filters: filters)
-            rowCount = buckets.count
-        case .heatmap:
-            rowCount = 7 * 24  // Full heatmap grid
-        case .calendar:
-            let focusDays = try await dataService.fetchFocusDays(filters: filters)
-            rowCount = focusDays.count
         case .webHistory:
             let visits = try await browsingService.fetchVisits(
                 browser: .all,
@@ -182,7 +176,7 @@ struct ExportCoordinator: ExportCoordinating {
                 limit: 10000
             )
             rowCount = visits.count
-        case .exports, .settings:
+        case .rules, .settings:
             rowCount = 0
         }
 
@@ -336,7 +330,7 @@ struct ExportCoordinator: ExportCoordinating {
             let apps = try await dataService.fetchTopApps(filters: filters, limit: 200)
             return ExportReport(
                 title: "Top Apps",
-                destination: .appsCategories,
+                destination: .projects,
                 generatedAt: generatedAt,
                 filterSummary: filterSummary,
                 sections: [
@@ -352,7 +346,7 @@ struct ExportCoordinator: ExportCoordinating {
             let categories = try await dataService.fetchTopCategories(filters: filters, limit: 200)
             return ExportReport(
                 title: "Categories",
-                destination: .appsCategories,
+                destination: .projects,
                 generatedAt: generatedAt,
                 filterSummary: filterSummary,
                 sections: [
@@ -368,7 +362,7 @@ struct ExportCoordinator: ExportCoordinating {
             let trend = try await dataService.fetchTrend(filters: filters)
             return ExportReport(
                 title: "Trends",
-                destination: .trends,
+                destination: .review,
                 generatedAt: generatedAt,
                 filterSummary: filterSummary,
                 sections: [
@@ -384,7 +378,7 @@ struct ExportCoordinator: ExportCoordinating {
             let buckets = try await dataService.fetchSessionBuckets(filters: filters)
             return ExportReport(
                 title: "Session Distribution",
-                destination: .sessions,
+                destination: .details,
                 generatedAt: generatedAt,
                 filterSummary: filterSummary,
                 sections: [
@@ -400,7 +394,7 @@ struct ExportCoordinator: ExportCoordinating {
             let cells = try await dataService.fetchHeatmap(filters: filters)
             return ExportReport(
                 title: "Heatmap",
-                destination: .heatmap,
+                destination: .review,
                 generatedAt: generatedAt,
                 filterSummary: filterSummary,
                 sections: [
@@ -416,7 +410,7 @@ struct ExportCoordinator: ExportCoordinating {
             let sessions = try await dataService.fetchRawSessions(filters: filters)
             return ExportReport(
                 title: "Raw Sessions",
-                destination: .rawSessions,
+                destination: .details,
                 generatedAt: generatedAt,
                 filterSummary: filterSummary,
                 sections: [
@@ -839,7 +833,7 @@ struct ExportCoordinator: ExportCoordinating {
 
         let outputDirectory = try ensureOutputDirectory()
         let fileURL = outputDirectory
-            .appendingPathComponent(exportBaseName(destination: .rawSessions, filters: filters))
+            .appendingPathComponent(exportBaseName(destination: .details, filters: filters))
             .appendingPathExtension(format.fileExtension)
 
         switch format {
@@ -950,15 +944,17 @@ private extension ExportCoordinator {
                 sections: [summarySection, trendSection]
             )
 
-        case .appsCategories:
+        case .review:
             async let appsValue = dataService.fetchTopApps(filters: filters, limit: 200)
             async let categoriesValue = dataService.fetchTopCategories(filters: filters, limit: 200)
+            async let trendValue2 = dataService.fetchTrend(filters: filters)
 
             let apps = try await appsValue
             let categories = try await categoriesValue
+            let trend2 = try await trendValue2
 
             return ExportReport(
-                title: "Apps & Categories Export",
+                title: "Review Export",
                 destination: destination,
                 generatedAt: generatedAt,
                 filterSummary: filterSummary,
@@ -972,87 +968,79 @@ private extension ExportCoordinator {
                         title: "Categories",
                         headers: ["category", "total_seconds"],
                         rows: categories.map { [$0.category, formatSeconds($0.totalSeconds)] }
-                    )
-                ]
-            )
-
-        case .trends:
-            let trend = try await dataService.fetchTrend(filters: filters)
-            return ExportReport(
-                title: "Trends Export",
-                destination: destination,
-                generatedAt: generatedAt,
-                filterSummary: filterSummary,
-                sections: [
+                    ),
                     ExportSectionData(
                         title: "Trend",
                         headers: ["date", "total_seconds"],
-                        rows: trend.map { [isoDate($0.date), formatSeconds($0.totalSeconds)] }
+                        rows: trend2.map { [isoDate($0.date), formatSeconds($0.totalSeconds)] }
                     )
                 ]
             )
 
-        case .sessions:
-            let buckets = try await dataService.fetchSessionBuckets(filters: filters)
+        case .details:
+            let sessions = try await dataService.fetchRawSessions(filters: filters)
             return ExportReport(
-                title: "Sessions Export",
+                title: "Details Export",
                 destination: destination,
                 generatedAt: generatedAt,
                 filterSummary: filterSummary,
                 sections: [
                     ExportSectionData(
-                        title: "Session Distribution",
-                        headers: ["duration_range", "session_count"],
-                        rows: buckets.map { [$0.label, String($0.sessionCount)] }
+                        title: "Sessions",
+                        headers: ["app_name", "start_time", "end_time", "duration_seconds"],
+                        rows: sessions.map { [$0.appName, settings.timestampFormat.format($0.startTime), settings.timestampFormat.format($0.endTime), formatSeconds($0.durationSeconds)] }
                     )
                 ]
             )
 
-        case .heatmap:
-            let cells = try await dataService.fetchHeatmap(filters: filters)
+        case .projects:
+            async let appsValue2 = dataService.fetchTopApps(filters: filters, limit: 200)
+            async let categoriesValue2 = dataService.fetchTopCategories(filters: filters, limit: 200)
+
+            let apps2 = try await appsValue2
+            let categories2 = try await categoriesValue2
+
             return ExportReport(
-                title: "Heatmap Export",
+                title: "Projects Export",
                 destination: destination,
                 generatedAt: generatedAt,
                 filterSummary: filterSummary,
                 sections: [
                     ExportSectionData(
-                        title: "Heatmap",
-                        headers: ["weekday", "hour", "total_seconds"],
-                        rows: cells.map { [String($0.weekday), String($0.hour), formatSeconds($0.totalSeconds)] }
+                        title: "Apps",
+                        headers: ["app_name", "total_seconds", "session_count"],
+                        rows: apps2.map { [$0.appName, formatSeconds($0.totalSeconds), String($0.sessionCount)] }
+                    ),
+                    ExportSectionData(
+                        title: "Categories",
+                        headers: ["category", "total_seconds"],
+                        rows: categories2.map { [$0.category, formatSeconds($0.totalSeconds)] }
                     )
                 ]
             )
 
-        case .rawSessions:
-            // Raw sessions handled by dedicated export path; this is a fallback for summary
-            let buckets = try await dataService.fetchSessionBuckets(filters: filters)
+        case .reports:
+            async let appsValue3 = dataService.fetchTopApps(filters: filters, limit: 200)
+            async let trendValue3 = dataService.fetchTrend(filters: filters)
+
+            let apps3 = try await appsValue3
+            let trend3 = try await trendValue3
+
             return ExportReport(
-                title: "Raw Sessions Export",
+                title: "Report Export",
                 destination: destination,
                 generatedAt: generatedAt,
                 filterSummary: filterSummary,
                 sections: [
                     ExportSectionData(
-                        title: "Session Distribution (Use CSV/JSON for raw data)",
-                        headers: ["duration_range", "session_count"],
-                        rows: buckets.map { [$0.label, String($0.sessionCount)] }
-                    )
-                ]
-            )
-
-        case .calendar:
-            let focusDays = try await dataService.fetchFocusDays(filters: filters)
-            return ExportReport(
-                title: "Calendar Export",
-                destination: destination,
-                generatedAt: generatedAt,
-                filterSummary: filterSummary,
-                sections: [
+                        title: "Apps",
+                        headers: ["app_name", "total_seconds", "session_count"],
+                        rows: apps3.map { [$0.appName, formatSeconds($0.totalSeconds), String($0.sessionCount)] }
+                    ),
                     ExportSectionData(
-                        title: "Daily Usage",
-                        headers: ["date", "total_seconds", "focus_blocks"],
-                        rows: focusDays.map { [isoDate($0.date), formatSeconds($0.totalSeconds), String($0.focusBlocks)] }
+                        title: "Trend",
+                        headers: ["date", "total_seconds"],
+                        rows: trend3.map { [isoDate($0.date), formatSeconds($0.totalSeconds)] }
                     )
                 ]
             )
@@ -1100,7 +1088,7 @@ private extension ExportCoordinator {
                 ]
             )
 
-        case .exports, .settings:
+        case .rules, .settings:
             throw ExportError.unsupportedDestination
         }
     }
@@ -2085,7 +2073,7 @@ private extension ExportCoordinator {
     func writeRawSessionsCSV(sessions: [RawSession], to fileURL: URL, settings: ExportSettings, progress: ExportProgress?) throws {
         let csvOpts = settings.csvOptions
         let delimiter = csvOpts.delimiter.rawValue
-        let fieldSelection = settings.fieldSelection(for: .rawSessions)
+        let fieldSelection = settings.fieldSelection(for: .details)
         let selectedFields = fieldSelection.filter(ExportField.rawSessionFields)
         
         // If no fields selected, export all
@@ -2147,7 +2135,7 @@ private extension ExportCoordinator {
 
     func writeRawSessionsJSON(sessions: [RawSession], to fileURL: URL, settings: ExportSettings, progress: ExportProgress?) throws {
         let jsonOpts = settings.jsonOptions
-        let fieldSelection = settings.fieldSelection(for: .rawSessions)
+        let fieldSelection = settings.fieldSelection(for: .details)
         let selectedFields = fieldSelection.filter(ExportField.rawSessionFields)
         
         // If no fields selected, export all
@@ -2212,7 +2200,7 @@ private extension ExportCoordinator {
     }
 
     func writeRawSessionsYAML(sessions: [RawSession], to fileURL: URL, settings: ExportSettings, filters: FilterSnapshot, progress: ExportProgress?) throws {
-        let fieldSelection = settings.fieldSelection(for: .rawSessions)
+        let fieldSelection = settings.fieldSelection(for: .details)
         let selectedFields = fieldSelection.filter(ExportField.rawSessionFields)
         let fieldsToExport = selectedFields.isEmpty ? ExportField.rawSessionFields : selectedFields
         

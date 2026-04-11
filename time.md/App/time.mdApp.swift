@@ -3,6 +3,7 @@ import Combine
 #if !APPSTORE
 import Sparkle
 #endif
+import StoreKit
 import SwiftUI
 
 @main
@@ -14,7 +15,9 @@ struct TimeMdApp: App {
     @State private var lastCloudSyncDate: Date?
     @State private var cloudSyncError: String?
     @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedMacOnboarding")
-    
+    @StateObject private var storeManager = StoreManager.shared
+    @StateObject private var usageTracker = UsageTracker.shared
+
     #if !APPSTORE
     /// Sparkle updater controller for auto-updates
     @StateObject private var updaterController = UpdaterController()
@@ -61,35 +64,49 @@ struct TimeMdApp: App {
 
     var body: some Scene {
         WindowGroup {
-            RootSplitView(filters: filters, navigation: navigation)
-                .environment(\.appEnvironment, .live)
-                .environment(\.appNameDisplayMode, AppNameDisplayMode(rawValue: appNameDisplayMode) ?? .short)
-                .environment(navigation)
-                .task {
-                    await initialSync()
-                    ActiveAppTracker.shared.start()
+            Group {
+                if usageTracker.isTrialExpired && !storeManager.isPurchased {
+                    PaywallView(store: storeManager, usage: usageTracker)
+                } else {
+                    RootSplitView(filters: filters, navigation: navigation)
                 }
-                .task { await initialCloudSync() }
-                .task { installBackgroundAgent() }
-                .sheet(isPresented: $showOnboarding) {
-                    MacOnboardingView(isPresented: $showOnboarding)
+            }
+            .environment(\.appEnvironment, .live)
+            .environment(\.appNameDisplayMode, AppNameDisplayMode(rawValue: appNameDisplayMode) ?? .short)
+            .environment(navigation)
+            .task {
+                await initialSync()
+                ActiveAppTracker.shared.start()
+                usageTracker.startSession()
+            }
+            .task { await initialCloudSync() }
+            .task { installBackgroundAgent() }
+            .sheet(isPresented: $showOnboarding) {
+                MacOnboardingView(isPresented: $showOnboarding)
+            }
+            .onReceive(localSyncTimer) { _ in
+                Task.detached(priority: .utility) {
+                    HistoryStore.syncIfNeeded()
                 }
-                .onReceive(localSyncTimer) { _ in
-                    Task.detached(priority: .utility) {
-                        HistoryStore.syncIfNeeded()
-                    }
+            }
+            .onReceive(cloudSyncTimer) { _ in
+                Task {
+                    await performCloudSync()
                 }
-                .onReceive(cloudSyncTimer) { _ in
-                    Task {
-                        await performCloudSync()
-                    }
-                }
-                .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
-                    ActiveAppTracker.shared.stop()
-                }
-                .onReceive(NotificationCenter.default.publisher(for: ActiveAppTracker.didRecordSessionNotification)) { _ in
-                    filters.triggerRefresh()
-                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+                ActiveAppTracker.shared.stop()
+                usageTracker.pauseSession()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                usageTracker.startSession()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
+                usageTracker.pauseSession()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: ActiveAppTracker.didRecordSessionNotification)) { _ in
+                filters.triggerRefresh()
+            }
         }
         .windowResizability(.contentSize)
         .defaultSize(width: 1360, height: 860)

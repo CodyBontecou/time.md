@@ -44,50 +44,45 @@ struct TimeMdCommands: Commands {
                     navigation.selectedDestination = .overview
                 }
                 .keyboardShortcut("1", modifiers: .command)
-                
-                Button("Calendar") {
-                    navigation.selectedDestination = .calendar
+
+                Button("Review") {
+                    navigation.selectedDestination = .review
                 }
                 .keyboardShortcut("2", modifiers: .command)
-                
-                Button("Trends") {
-                    navigation.selectedDestination = .trends
+
+                Button("Details") {
+                    navigation.selectedDestination = .details
                 }
                 .keyboardShortcut("3", modifiers: .command)
-                
-                Button("Apps & Categories") {
-                    navigation.selectedDestination = .appsCategories
+
+                Button("Projects") {
+                    navigation.selectedDestination = .projects
                 }
                 .keyboardShortcut("4", modifiers: .command)
-                
-                Button("Sessions") {
-                    navigation.selectedDestination = .sessions
+
+                Button("Rules") {
+                    navigation.selectedDestination = .rules
                 }
                 .keyboardShortcut("5", modifiers: .command)
-                
-                Button("Heatmap") {
-                    navigation.selectedDestination = .heatmap
-                }
-                .keyboardShortcut("6", modifiers: .command)
-                
+
                 Divider()
-                
+
                 Button("Web History") {
                     navigation.selectedDestination = .webHistory
                 }
-                .keyboardShortcut("7", modifiers: .command)
-                
-                Button("Exports") {
-                    navigation.selectedDestination = .exports
+                .keyboardShortcut("6", modifiers: .command)
+
+                Button("Reports") {
+                    navigation.selectedDestination = .reports
                 }
-                .keyboardShortcut("8", modifiers: .command)
+                .keyboardShortcut("7", modifiers: .command)
                 
                 Divider()
                 
                 Button("Settings") {
                     navigation.selectedDestination = .settings
                 }
-                .keyboardShortcut("9", modifiers: .command)
+                .keyboardShortcut("8", modifiers: .command)
                 
                 Divider()
                 
@@ -190,14 +185,13 @@ struct TimeMdCommands: Commands {
  Navigation:
  ⌘B          Toggle Sidebar
  ⌘1          Overview
- ⌘2          Calendar
- ⌘3          Trends
- ⌘4          Apps & Categories
- ⌘5          Sessions
- ⌘6          Heatmap
- ⌘7          Web History
- ⌘8          Exports
- ⌘9          Settings
+ ⌘2          Review
+ ⌘3          Details
+ ⌘4          Projects
+ ⌘5          Rules
+ ⌘6          Web History
+ ⌘7          Reports
+ ⌘8          Settings
  
  View:
  (toggle)    Show Menu Bar Item

@@ -2,14 +2,12 @@ import Foundation
 
 enum NavigationDestination: String, CaseIterable, Identifiable {
     case overview
-    case calendar
-    case trends
-    case appsCategories
-    case sessions
-    case heatmap
-    case rawSessions   // Export-only: individual session records
+    case review
+    case details
+    case projects
+    case rules
     case webHistory
-    case exports
+    case reports
     case settings
 
     var id: String { rawValue }
@@ -17,29 +15,25 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .overview: "Overview"
-        case .calendar: "Calendar"
-        case .trends: "Trends"
-        case .appsCategories: "Apps & Categories"
-        case .sessions: "Sessions"
-        case .heatmap: "Heatmap"
-        case .rawSessions: "Raw Sessions"
+        case .review: "Review"
+        case .details: "Details"
+        case .projects: "Projects"
+        case .rules: "Rules"
         case .webHistory: "Web History"
-        case .exports: "Exports"
+        case .reports: "Reports"
         case .settings: "Settings"
         }
     }
 
     var systemImage: String {
         switch self {
-        case .overview: "square.grid.2x2"
-        case .calendar: "calendar"
-        case .trends: "chart.xyaxis.line"
-        case .appsCategories: "chart.bar.doc.horizontal"
-        case .sessions: "timer"
-        case .heatmap: "square.grid.3x3.fill"
-        case .rawSessions: "list.bullet.rectangle"
+        case .overview: "clock.fill"
+        case .review: "chart.bar.fill"
+        case .details: "list.bullet.rectangle.fill"
+        case .projects: "folder.fill"
+        case .rules: "gearshape.2.fill"
         case .webHistory: "globe"
-        case .exports: "square.and.arrow.up"
+        case .reports: "doc.text.fill"
         case .settings: "gear"
         }
     }
@@ -47,15 +41,13 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
     /// Sidebar section grouping
     var section: NavigationSection {
         switch self {
-        case .overview: .analytics
-        case .calendar: .analytics
-        case .trends: .analytics
-        case .appsCategories: .analytics
-        case .sessions: .analytics
-        case .heatmap: .analytics
-        case .rawSessions: .hidden  // Not shown in sidebar, only in export scope
+        case .overview: .tracking
+        case .review: .tracking
+        case .details: .tracking
+        case .projects: .organize
+        case .rules: .organize
         case .webHistory: .data
-        case .exports: .data
+        case .reports: .data
         case .settings: .system
         }
     }
@@ -63,24 +55,24 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
     /// Whether this destination can be exported
     var isExportable: Bool {
         switch self {
-        case .overview, .calendar, .appsCategories, .trends, .sessions, .heatmap, .rawSessions, .webHistory:
+        case .overview, .review, .details, .projects, .webHistory, .reports:
             return true
-        case .exports, .settings:
+        case .rules, .settings:
             return false
         }
     }
 }
 
 enum NavigationSection: String, CaseIterable, Identifiable {
-    case analytics = "Analytics"
+    case tracking = "Tracking"
+    case organize = "Organize"
     case data = "Data"
     case system = "System"
-    case hidden = "Hidden"  // Not displayed in sidebar
 
     var id: String { rawValue }
 
     /// Sections that should be displayed in the sidebar
     static var visibleSections: [NavigationSection] {
-        [.analytics, .data, .system]
+        [.tracking, .organize, .data, .system]
     }
 }

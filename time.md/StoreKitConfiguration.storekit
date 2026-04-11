@@ -1,0 +1,26 @@
+{
+  "identifier" : "com.codybontecou.Timeprint.storekit",
+  "type" : "local",
+  "version" : 4,
+  "products" : [
+    {
+      "displayPrice" : "19.99",
+      "familyShareable" : true,
+      "internalID" : "1",
+      "localizations" : [
+        {
+          "description" : "Unlock unlimited access to time.md forever.",
+          "displayName" : "Lifetime Access",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.codybontecou.Timeprint.lifetime",
+      "referenceName" : "Lifetime Access",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "0",
+    "_developerTeamID" : ""
+  }
+}

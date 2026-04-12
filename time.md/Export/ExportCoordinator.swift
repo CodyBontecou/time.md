@@ -1928,6 +1928,8 @@ private extension ExportCoordinator {
         }
     }
     
+    private static let maxTableColumnWidth = 200
+
     private func formatGFMTable(headers: [String], rows: [[String]], linkApps: Bool, appFolder: String) -> [String] {
         var lines: [String] = []
 
@@ -1956,9 +1958,15 @@ private extension ExportCoordinator {
                 widths[i] = max(widths[i], cell.count)
             }
         }
+        // Cap column widths so a single pathological cell (e.g. a 40 KB data
+        // URI accidentally logged as a page visit) doesn't force every row
+        // in the table to be padded out to tens of thousands of characters.
+        // Cells longer than the cap are emitted unpadded; GFM parsers
+        // tolerate ragged columns.
+        widths = widths.map { min($0, Self.maxTableColumnWidth) }
 
         let headerLine = "| " + zip(headers, widths).map { header, width in
-            header.padding(toLength: width, withPad: " ", startingAt: 0)
+            Self.padCell(header, to: width)
         }.joined(separator: " | ") + " |"
         lines.append(headerLine)
 
@@ -1968,13 +1976,20 @@ private extension ExportCoordinator {
         for row in displayRows {
             var cells: [String] = []
             for (i, cell) in row.enumerated() where i < widths.count {
-                cells.append(cell.padding(toLength: widths[i], withPad: " ", startingAt: 0))
+                cells.append(Self.padCell(cell, to: widths[i]))
             }
             let rowLine = "| " + cells.joined(separator: " | ") + " |"
             lines.append(rowLine)
         }
 
         return lines
+    }
+
+    /// Pads cells up to `width`, but leaves longer cells unmodified so
+    /// padding(toLength:) never truncates them.
+    private static func padCell(_ cell: String, to width: Int) -> String {
+        if cell.count >= width { return cell }
+        return cell.padding(toLength: width, withPad: " ", startingAt: 0)
     }
     
     private func formatSimpleTable(headers: [String], rows: [[String]], linkApps: Bool, appFolder: String) -> [String] {
@@ -1998,9 +2013,10 @@ private extension ExportCoordinator {
                 widths[i] = max(widths[i], cell.count)
             }
         }
+        widths = widths.map { min($0, Self.maxTableColumnWidth) }
 
         let headerLine = zip(headers, widths).map { header, width in
-            header.padding(toLength: width + 2, withPad: " ", startingAt: 0)
+            Self.padCell(header, to: width + 2)
         }.joined()
         lines.append(headerLine)
 
@@ -2010,7 +2026,7 @@ private extension ExportCoordinator {
         for row in displayRows {
             var cells: [String] = []
             for (i, cell) in row.enumerated() where i < widths.count {
-                cells.append(cell.padding(toLength: widths[i] + 2, withPad: " ", startingAt: 0))
+                cells.append(Self.padCell(cell, to: widths[i] + 2))
             }
             lines.append(cells.joined())
         }

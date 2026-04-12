@@ -383,6 +383,33 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
         return f
     }
 
+    // MARK: - URL sanitization
+
+    /// Non-web-page URL schemes we never want in browsing history exports.
+    /// `data:` URIs are the main offender — browsers occasionally log them
+    /// as visits and the base64 payload can be tens of kilobytes, which
+    /// blows up both the url and domain columns in downstream exports.
+    private static let blockedURLSchemes: Set<String> = [
+        "data", "blob", "javascript", "about",
+        "chrome", "chrome-extension", "edge", "brave", "arc",
+        "file", "filesystem", "view-source",
+    ]
+    private static let maxURLLength = 2048
+
+    /// Drops URLs with non-page schemes and caps the length. Returns nil if
+    /// the URL should be skipped entirely.
+    private static func sanitizeURL(_ raw: String) -> String? {
+        guard !raw.isEmpty else { return nil }
+        let lower = raw.lowercased()
+        for scheme in blockedURLSchemes where lower.hasPrefix("\(scheme):") {
+            return nil
+        }
+        if raw.count > maxURLLength {
+            return String(raw.prefix(maxURLLength))
+        }
+        return raw
+    }
+
     // MARK: - Domain extraction
 
     private static func extractDomain(from urlString: String) -> String {
@@ -393,7 +420,9 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
                 let host = after.prefix(while: { $0 != "/" && $0 != ":" && $0 != "?" })
                 return String(host)
             }
-            return urlString
+            // Last-ditch fallback: cap length so a malformed URL that slips
+            // past sanitizeURL can't bloat the domain column.
+            return urlString.count > 256 ? String(urlString.prefix(256)) : urlString
         }
         // Strip www. prefix
         if host.hasPrefix("www.") {
@@ -616,7 +645,7 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
 
         var visits: [BrowsingVisit] = []
         while sqlite3_step(statement) == SQLITE_ROW {
-            let url = Self.columnText(statement, 0) ?? ""
+            guard let url = Self.sanitizeURL(Self.columnText(statement, 0) ?? "") else { continue }
             let title = Self.columnText(statement, 1) ?? ""
             let visitTime = sqlite3_column_double(statement, 2)
             let domainExpansion = Self.columnText(statement, 3) ?? ""
@@ -677,7 +706,7 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
 
         var visits: [BrowsingVisit] = []
         while sqlite3_step(statement) == SQLITE_ROW {
-            let url = Self.columnText(statement, 0) ?? ""
+            guard let url = Self.sanitizeURL(Self.columnText(statement, 0) ?? "") else { continue }
             let title = Self.columnText(statement, 1) ?? ""
             let visitTimeMicros = sqlite3_column_int64(statement, 2)
             let durationMicros = sqlite3_column_int64(statement, 3)

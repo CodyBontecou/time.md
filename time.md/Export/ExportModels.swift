@@ -774,7 +774,10 @@ struct ExportSettings: Codable {
     var jsonOptions: JSONExportOptions = JSONExportOptions()
     var markdownOptions: MarkdownExportOptions = MarkdownExportOptions()
     var obsidianOptions: ObsidianExportOptions = ObsidianExportOptions()
-    
+
+    /// Custom default export directory path chosen by the user (nil = ~/Downloads/time.md Exports/)
+    var defaultExportDirectoryPath: String?
+
     /// Per-scope field selections (persisted separately for flexibility)
     var fieldSelections: [String: ExportFieldSelection] = [:]
     
@@ -793,7 +796,24 @@ struct ExportSettings: Codable {
             UserDefaults.standard.set(data, forKey: Self.key)
         }
     }
-    
+
+    /// Resolve the saved default export directory to a URL
+    func resolveDefaultExportDirectory() -> URL? {
+        guard let path = defaultExportDirectoryPath else { return nil }
+        let url = URL(fileURLWithPath: path, isDirectory: true)
+        var isDirectory: ObjCBool = false
+        if FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory), isDirectory.boolValue {
+            return url
+        }
+        return url
+    }
+
+    /// Save a user-chosen directory
+    mutating func setDefaultExportDirectory(_ url: URL?) {
+        defaultExportDirectoryPath = url?.path
+        save()
+    }
+
     /// Get field selection for a specific scope, with defaults
     func fieldSelection(for scope: NavigationDestination) -> ExportFieldSelection {
         if let selection = fieldSelections[scope.rawValue] {

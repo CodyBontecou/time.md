@@ -1098,6 +1098,11 @@ private extension ExportCoordinator {
             return try createDirectoryIfNeeded(outputDirectoryOverride)
         }
 
+        let settings = ExportSettings.load()
+        if let customDir = settings.resolveDefaultExportDirectory() {
+            return try createDirectoryIfNeeded(customDir)
+        }
+
         let fileManager = FileManager.default
         let base = fileManager.urls(for: .downloadsDirectory, in: .userDomainMask).first
             ?? fileManager.temporaryDirectory

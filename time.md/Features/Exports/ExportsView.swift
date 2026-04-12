@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ExportsView: View {
     let filters: GlobalFilterStore
@@ -35,6 +36,10 @@ struct ExportsView: View {
     @State private var showAppPicker = false
     @State private var showCategoryPicker = false
 
+    // Export destination
+    @State private var exportDirectory: URL? = ExportSettings.load().resolveDefaultExportDirectory()
+    @State private var showDirectoryPicker = false
+
     // Progress
     @State private var exportProgress = ExportProgress()
 
@@ -46,6 +51,7 @@ struct ExportsView: View {
                 sectionSelectionSection
                 filterSection
                 formatSelectionSection
+                destinationSection
                 exportButtonSection
 
                 if showSuccess || showError {
@@ -733,6 +739,83 @@ struct ExportsView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - Destination
+
+    private var destinationSection: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("DESTINATION")
+                    .font(BrutalTheme.headingFont)
+                    .foregroundColor(BrutalTheme.textSecondary)
+                    .tracking(1)
+
+                HStack(spacing: 12) {
+                    Image(systemName: "folder")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(BrutalTheme.accent)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(exportDirectory?.lastPathComponent ?? "time.md Exports")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(BrutalTheme.textPrimary)
+                            .lineLimit(1)
+
+                        Text(exportDirectoryDisplayPath)
+                            .font(.system(size: 10, weight: .medium, design: .monospaced))
+                            .foregroundColor(BrutalTheme.textTertiary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+
+                    Spacer()
+
+                    if exportDirectory != nil {
+                        Button {
+                            var settings = ExportSettings.load()
+                            settings.setDefaultExportDirectory(nil)
+                            exportDirectory = nil
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(BrutalTheme.textTertiary)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Reset to default (~/Downloads/time.md Exports)")
+                    }
+
+                    Button {
+                        showDirectoryPicker = true
+                    } label: {
+                        Text("Choose…")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(BrutalTheme.accent)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+        }
+        .fileImporter(
+            isPresented: $showDirectoryPicker,
+            allowedContentTypes: [.folder],
+            allowsMultipleSelection: false
+        ) { result in
+            if case .success(let urls) = result, let url = urls.first {
+                var settings = ExportSettings.load()
+                settings.setDefaultExportDirectory(url)
+                exportDirectory = url
+            }
+        }
+    }
+
+    private var exportDirectoryDisplayPath: String {
+        if let dir = exportDirectory {
+            return dir.path.replacingOccurrences(of: NSHomeDirectory(), with: "~")
+        }
+        return "~/Downloads/time.md Exports"
     }
 
     // MARK: - Export Button

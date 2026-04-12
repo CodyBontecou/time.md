@@ -8,6 +8,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
     case rules
     case webHistory
     case reports
+    case export
     case settings
 
     var id: String { rawValue }
@@ -21,6 +22,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         case .rules: "Rules"
         case .webHistory: "Web History"
         case .reports: "Reports"
+        case .export: "Export"
         case .settings: "Settings"
         }
     }
@@ -34,6 +36,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         case .rules: "gearshape.2.fill"
         case .webHistory: "globe"
         case .reports: "doc.text.fill"
+        case .export: "square.and.arrow.up"
         case .settings: "gear"
         }
     }
@@ -48,6 +51,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         case .rules: .organize
         case .webHistory: .data
         case .reports: .data
+        case .export: .data
         case .settings: .system
         }
     }
@@ -55,7 +59,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
     /// Whether this destination can be exported
     var isExportable: Bool {
         switch self {
-        case .overview, .review, .details, .projects, .webHistory, .reports:
+        case .overview, .review, .details, .projects, .webHistory, .reports, .export:
             return true
         case .rules, .settings:
             return false

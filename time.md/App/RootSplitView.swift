@@ -88,6 +88,8 @@ struct RootSplitView: View {
                             WebHistoryView(filters: filters)
                         case .reports:
                             TimingReportsView(filters: filters)
+                        case .export:
+                            ExportsView(filters: filters)
                         case .settings:
                             SettingsScaffoldView(filters: filters)
                         }

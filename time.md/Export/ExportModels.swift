@@ -821,7 +821,7 @@ struct ExportSettings: Codable {
             return ExportField.overviewFields + ExportField.trendFields
         case .reports:
             return ExportField.trendFields + ExportField.appFields
-        case .webHistory, .rules, .settings:
+        case .webHistory, .rules, .settings, .export:
             return []
         }
     }

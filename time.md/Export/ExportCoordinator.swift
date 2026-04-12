@@ -176,7 +176,7 @@ struct ExportCoordinator: ExportCoordinating {
                 limit: 10000
             )
             rowCount = visits.count
-        case .rules, .settings:
+        case .rules, .settings, .export:
             rowCount = 0
         }
 
@@ -1088,7 +1088,7 @@ private extension ExportCoordinator {
                 ]
             )
 
-        case .rules, .settings:
+        case .rules, .settings, .export:
             throw ExportError.unsupportedDestination
         }
     }

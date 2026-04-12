@@ -271,7 +271,7 @@ private struct AuthorizationStep: View {
                         .padding(.horizontal, 24)
                     
                     if let error = authService.errorMessage {
-                        Text(error)
+                        Text(LocalizedStringKey(error))
                             .font(.caption)
                             .foregroundStyle(.red)
                             .multilineTextAlignment(.center)
@@ -423,20 +423,20 @@ private struct CompletionStep: View {
 
 private struct ScreenTimeFeatureRow: View {
     let icon: String
-    let title: String
-    let description: String
-    
+    let title: LocalizedStringKey
+    let description: LocalizedStringKey
+
     var body: some View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundStyle(.tint)
                 .frame(width: 32)
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.subheadline.bold())
-                
+
                 Text(description)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -448,13 +448,13 @@ private struct ScreenTimeFeatureRow: View {
 private struct ScreenTimePrivacyPoint: View {
     let icon: String
     let iconColor: Color
-    let text: String
-    
+    let text: LocalizedStringKey
+
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .foregroundStyle(iconColor)
-            
+
             Text(text)
                 .font(.subheadline)
         }

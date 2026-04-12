@@ -155,11 +155,11 @@ enum ScreenTimeAuthStatus: String, Sendable {
     var displayName: String {
         switch self {
         case .notDetermined:
-            return "Not Requested"
+            return String(localized: "Not Requested")
         case .approved:
-            return "Authorized"
+            return String(localized: "Authorized")
         case .denied:
-            return "Denied"
+            return String(localized: "Denied")
         }
     }
     

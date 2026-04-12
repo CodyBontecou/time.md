@@ -7,7 +7,12 @@ private enum BreakdownMode: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var title: String { rawValue.capitalized }
+    var title: String {
+        switch self {
+        case .apps: return String(localized: "Apps")
+        case .categories: return String(localized: "Categories")
+        }
+    }
 }
 
 struct AppsCategoriesView: View {
@@ -127,7 +132,7 @@ struct AppsCategoriesView: View {
                     AxisMarks(position: .leading) { value in
                         AxisValueLabel {
                             if let name = value.as(String.self) {
-                                Text(name)
+                                Text(verbatim: name)
                                     .font(BrutalTheme.captionMono)
                                     .lineLimit(1)
                                     .truncationMode(.tail)
@@ -188,7 +193,7 @@ struct AppsCategoriesView: View {
                     AxisMarks(position: .leading) { value in
                         AxisValueLabel {
                             if let name = value.as(String.self) {
-                                Text(name)
+                                Text(verbatim: name)
                                     .font(BrutalTheme.captionMono)
                                     .lineLimit(1)
                                     .truncationMode(.tail)
@@ -327,7 +332,7 @@ struct AppsCategoriesView: View {
                     .tracking(0.5)
 
                 if let mappingError {
-                    Text(mappingError)
+                    Text(LocalizedStringKey(mappingError))
                         .font(BrutalTheme.captionMono)
                         .foregroundColor(BrutalTheme.danger)
                 }

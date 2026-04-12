@@ -9,8 +9,8 @@ enum AppNameDisplayMode: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .short: "SHORT NAME"
-        case .full: "BUNDLE IDENTIFIER"
+        case .short: String(localized: "SHORT NAME")
+        case .full: String(localized: "BUNDLE IDENTIFIER")
         }
     }
 
@@ -61,7 +61,7 @@ struct AppNameText: View {
     }
 
     var body: some View {
-        Text(AppNameDisplay.displayName(for: rawName, mode: mode))
+        Text(verbatim: AppNameDisplay.displayName(for: rawName, mode: mode))
     }
 }
 

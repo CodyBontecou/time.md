@@ -35,7 +35,7 @@ struct BlockHoverTooltip: View {
             HStack(spacing: 4) {
                 Image(systemName: "clock")
                     .font(.system(size: 9))
-                Text(timeRange)
+                Text(verbatim: timeRange)
                     .font(.system(size: 10))
 
                 Text("·")
@@ -187,7 +187,7 @@ struct BlockDetailSidebar: View {
         )
     }
 
-    private func statRow(icon: String, label: String, value: String, isFirst: Bool) -> some View {
+    private func statRow(icon: String, label: LocalizedStringKey, value: String, isFirst: Bool) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 11))
@@ -200,7 +200,7 @@ struct BlockDetailSidebar: View {
 
             Spacer()
 
-            Text(value)
+            Text(verbatim: value)
                 .font(.system(size: 11, weight: .medium))
                 .foregroundColor(.primary)
         }
@@ -359,7 +359,7 @@ struct BlockDetailSidebar: View {
 
     // MARK: Helpers
 
-    private func sectionHeader(_ title: String) -> some View {
+    private func sectionHeader(_ title: LocalizedStringKey) -> some View {
         Text(title)
             .font(.system(size: 9, weight: .heavy, design: .monospaced))
             .foregroundColor(.secondary)

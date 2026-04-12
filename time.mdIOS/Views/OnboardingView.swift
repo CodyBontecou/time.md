@@ -184,12 +184,12 @@ struct OnboardingPageView: View {
             
             // Title & subtitle
             VStack(spacing: 12) {
-                Text(page.title)
+                Text(LocalizedStringKey(page.title))
                     .font(.title)
                     .fontWeight(.bold)
                     .multilineTextAlignment(.center)
-                
-                Text(page.subtitle)
+
+                Text(LocalizedStringKey(page.subtitle))
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -226,7 +226,7 @@ struct FeatureRow: View {
                 .foregroundStyle(.tint)
                 .frame(width: 32)
             
-            Text(feature.text)
+            Text(LocalizedStringKey(feature.text))
                 .font(.subheadline)
                 .foregroundColor(.primary)
             

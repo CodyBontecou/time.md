@@ -216,7 +216,7 @@ struct ExportFilterPresetEditor: View {
     
     private func appChip(_ app: String) -> some View {
         HStack(spacing: 4) {
-            Text(app)
+            Text(verbatim: app)
                 .font(.system(size: 11, weight: .medium))
                 .lineLimit(1)
             
@@ -298,11 +298,11 @@ struct ExportFilterPresetEditor: View {
                 .font(.system(size: 12))
                 .foregroundColor(BrutalTheme.accent)
             
-            Text(range.displayName)
+            Text(verbatim: range.displayName)
                 .font(.system(size: 13, weight: .medium))
-            
+
             Spacer()
-            
+
             Button {
                 editingTimeRange = range
             } label: {
@@ -475,7 +475,7 @@ struct ExportFilterPresetEditor: View {
         HStack {
             // Preview of filters
             if preset.hasFilters {
-                Text(preset.filterSummary)
+                Text(verbatim: preset.filterSummary)
                     .font(.system(size: 11))
                     .foregroundColor(BrutalTheme.textTertiary)
                     .lineLimit(1)
@@ -512,7 +512,7 @@ struct DurationPicker: View {
     var body: some View {
         HStack(spacing: 4) {
             Picker("Hours", selection: $hours) {
-                Text(placeholder).tag(0)
+                Text(LocalizedStringKey(placeholder)).tag(0)
                 ForEach(1..<24, id: \.self) { h in
                     Text("\(h)h").tag(h)
                 }
@@ -653,7 +653,7 @@ struct AppPickerSheet: View {
                     .font(.system(size: 16))
                     .foregroundColor(isSelected ? BrutalTheme.accent : BrutalTheme.textTertiary)
                 
-                Text(app)
+                Text(verbatim: app)
                     .font(.system(size: 13))
                     .foregroundColor(BrutalTheme.textPrimary)
                 
@@ -691,7 +691,7 @@ struct TimeRangeEditorSheet: View {
                     
                     Picker("Start Hour", selection: $range.startHour) {
                         ForEach(0..<24, id: \.self) { hour in
-                            Text(formatHour(hour)).tag(hour)
+                            Text(verbatim: formatHour(hour)).tag(hour)
                         }
                     }
                     .labelsHidden()
@@ -705,7 +705,7 @@ struct TimeRangeEditorSheet: View {
                     
                     Picker("End Hour", selection: $range.endHour) {
                         ForEach(0..<24, id: \.self) { hour in
-                            Text(formatHour(hour)).tag(hour)
+                            Text(verbatim: formatHour(hour)).tag(hour)
                         }
                     }
                     .labelsHidden()
@@ -723,7 +723,7 @@ struct TimeRangeEditorSheet: View {
             }
             .cornerRadius(4)
             
-            Text(range.displayName)
+            Text(verbatim: range.displayName)
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(BrutalTheme.textSecondary)
             

@@ -195,7 +195,7 @@ struct CalendarWeekTimelineView: View {
         let totalSeconds = dayData.reduce(0) { $0 + $1.totalSeconds }
 
         return VStack(spacing: 3) {
-            Text(weekday)
+            Text(verbatim: weekday)
                 .font(.system(size: 10, weight: .medium))
                 .foregroundColor(isToday ? CalendarColors.todayRed : CalendarColors.weekdayLabel)
 

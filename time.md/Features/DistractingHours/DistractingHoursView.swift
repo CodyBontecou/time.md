@@ -11,6 +11,15 @@ private enum HeatmapPreset: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    var displayName: String {
+        switch self {
+        case .all: return String(localized: "All")
+        case .workHours: return String(localized: "Work")
+        case .evening: return String(localized: "Evening")
+        case .weekend: return String(localized: "Weekend")
+        }
+    }
+
     func cells() -> Set<HeatmapCellCoordinate>? {
         switch self {
         case .all: return nil
@@ -54,7 +63,7 @@ private struct HeatmapGridContent: View {
                     .frame(width: labelWidth)
 
                 ForEach(0..<24, id: \.self) { hour in
-                    Text(hour % 3 == 0 ? hourHeader(hour) : "")
+                    Text(verbatim: hour % 3 == 0 ? hourHeader(hour) : "")
                         .font(.system(size: 8, weight: .medium, design: .monospaced))
                         .foregroundColor(BrutalTheme.textTertiary)
                         .frame(width: cellSize, alignment: .center)
@@ -64,7 +73,7 @@ private struct HeatmapGridContent: View {
             // Rows
             ForEach(0..<7, id: \.self) { weekday in
                 HStack(spacing: cellSpacing) {
-                    Text(weekdayLabels[weekday])
+                    Text(verbatim: weekdayLabels[weekday])
                         .font(.system(size: 10, weight: .semibold, design: .monospaced))
                         .foregroundColor(BrutalTheme.textTertiary)
                         .frame(width: labelWidth, alignment: .leading)
@@ -235,7 +244,7 @@ struct DistractingHoursView: View {
                         }
                     }
                 } label: {
-                    Text(preset.rawValue)
+                    Text(preset.displayName)
                         .font(.system(size: 12, weight: isActive ? .bold : .medium, design: .monospaced))
                         .foregroundColor(isActive ? BrutalTheme.activeButtonText : BrutalTheme.textTertiary)
                         .padding(.horizontal, 12)

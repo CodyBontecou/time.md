@@ -403,7 +403,7 @@ struct OverviewView: View {
             AxisMarks(position: .leading) { value in
                 AxisValueLabel {
                     if let name = value.as(String.self) {
-                        Text(name)
+                        Text(verbatim: name)
                             .font(BrutalTheme.captionMono)
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -583,7 +583,7 @@ struct OverviewView: View {
                                         RoundedRectangle(cornerRadius: 5)
                                             .fill(insightColor(insight.sentiment).opacity(0.12))
                                     )
-                                Text(insight.text)
+                                Text(LocalizedStringKey(insight.text))
                                     .font(.system(size: 12, weight: .medium))
                                     .foregroundColor(BrutalTheme.textPrimary)
                                     .lineLimit(1)

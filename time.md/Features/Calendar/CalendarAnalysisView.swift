@@ -162,7 +162,7 @@ struct CalendarAnalysisView: View {
             }
             .buttonStyle(.plain)
 
-            Text(monthTitle)
+            Text(verbatim: monthTitle)
                 .font(BrutalTheme.headingFont)
                 .foregroundColor(BrutalTheme.textPrimary)
                 .tracking(2)
@@ -354,12 +354,12 @@ struct CalendarAnalysisView: View {
         .background(BrutalTheme.surfaceAlt)
     }
 
-    private func inlineStat(label: String, value: String) -> some View {
+    private func inlineStat(label: LocalizedStringKey, value: String) -> some View {
         HStack(spacing: 4) {
             Text(label)
                 .font(.system(size: 8, weight: .medium, design: .monospaced))
                 .foregroundColor(BrutalTheme.textTertiary)
-            Text(value)
+            Text(verbatim: value)
                 .font(.system(size: 9, weight: .bold, design: .monospaced))
                 .foregroundColor(BrutalTheme.textPrimary)
         }
@@ -455,13 +455,13 @@ struct CalendarAnalysisView: View {
         }
     }
 
-    private func panelMetric(label: String, value: String) -> some View {
+    private func panelMetric(label: LocalizedStringKey, value: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(label)
                 .font(.system(size: 8, weight: .medium, design: .monospaced))
                 .foregroundColor(BrutalTheme.textTertiary)
                 .tracking(0.5)
-            Text(value)
+            Text(verbatim: value)
                 .font(.system(size: 14, weight: .black, design: .monospaced))
                 .foregroundColor(BrutalTheme.textPrimary)
         }

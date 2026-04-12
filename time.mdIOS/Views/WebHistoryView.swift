@@ -151,18 +151,19 @@ struct WebHistoryView: View {
         }
     }
     
-    private func metricCard(icon: String, title: String, value: String) -> some View {
+    private func metricCard(icon: String, title: LocalizedStringKey, value: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: icon)
                     .font(.caption)
                     .foregroundColor(.accentColor)
-                Text(title.uppercased())
+                Text(title)
                     .font(.caption2.weight(.semibold))
                     .foregroundColor(.secondary)
+                    .textCase(.uppercase)
             }
-            
-            Text(value)
+
+            Text(verbatim: value)
                 .font(.title2.weight(.bold).monospacedDigit())
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -208,7 +209,7 @@ struct WebHistoryView: View {
                 .frame(width: 24)
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(domain.domain)
+                Text(verbatim: domain.domain)
                     .font(.subheadline.weight(.medium))
                     .lineLimit(1)
                 

@@ -1,3 +1,4 @@
+#if canImport(AppKit)
 import AppKit
 import Foundation
 import SQLite3
@@ -170,3 +171,4 @@ enum AppCategorizer {
         "public.app-category.weather": "Weather",
     ]
 }
+#endif

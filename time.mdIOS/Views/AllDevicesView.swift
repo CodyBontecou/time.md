@@ -89,7 +89,7 @@ struct AllDevicesView: View {
             .buttonStyle(.plain)
             
             // Date label
-            Text(filterStore.dateRangeLabel)
+            Text(LocalizedStringKey(filterStore.dateRangeLabel))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             
@@ -116,7 +116,7 @@ struct AllDevicesView: View {
                 .font(.caption)
             
             if let label = filterStore.activeFiltersLabel {
-                Text(label)
+                Text(LocalizedStringKey(label))
                     .font(.caption)
                     .fontWeight(.medium)
             }
@@ -156,19 +156,19 @@ struct AllDevicesView: View {
                     .font(.title2)
                     .foregroundStyle(.tint)
                 
-                Text(headerText)
+                Text(LocalizedStringKey(headerText))
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)
                     .tracking(1)
             }
-            
-            Text(appState.filteredTodayFormatted)
+
+            Text(verbatim: appState.filteredTodayFormatted)
                 .font(.system(size: 48, weight: .bold, design: .rounded))
                 .contentTransition(.numericText())
                 .animation(.spring(response: 0.3), value: appState.filteredTodayTotalSeconds)
-            
-            Text(subtitleText)
+
+            Text(LocalizedStringKey(subtitleText))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -330,7 +330,7 @@ struct AllDevicesView: View {
                 // Device info
                 VStack(alignment: .leading, spacing: 2) {
                     HStack {
-                        Text(appState.currentDevice.name)
+                        Text(verbatim: appState.currentDevice.name)
                             .font(.subheadline)
                             .fontWeight(.medium)
                         
@@ -420,7 +420,7 @@ struct AllDevicesView: View {
             // Device info
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
-                    Text(deviceData.device.name)
+                    Text(verbatim: deviceData.device.name)
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
@@ -556,13 +556,13 @@ struct AllDevicesView: View {
                         .fill(Color(.systemGray4))
                         .frame(width: 36, height: 36)
                         .overlay {
-                            Text(String(app.appName.prefix(1)))
+                            Text(verbatim: String(app.appName.prefix(1)))
                                 .font(.headline)
                                 .foregroundStyle(.secondary)
                         }
-                    
+
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(app.appName)
+                        Text(verbatim: app.appName)
                             .font(.subheadline)
                             .fontWeight(.medium)
                             .lineLimit(1)

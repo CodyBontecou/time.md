@@ -164,15 +164,15 @@ enum AppFilterMode: String, Codable, CaseIterable, Identifiable {
     
     var displayName: String {
         switch self {
-        case .include: return "Include only"
-        case .exclude: return "Exclude"
+        case .include: return String(localized: "Include only")
+        case .exclude: return String(localized: "Exclude")
         }
     }
-    
+
     var description: String {
         switch self {
-        case .include: return "Export only selected apps"
-        case .exclude: return "Export all apps except selected"
+        case .include: return String(localized: "Export only selected apps")
+        case .exclude: return String(localized: "Export all apps except selected")
         }
     }
 }

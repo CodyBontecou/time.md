@@ -173,10 +173,10 @@ struct AdvancedTimeFiltersView: View {
         }
     }
     
-    private func hourPicker(label: String, hour: Binding<Int>) -> some View {
+    private func hourPicker(label: LocalizedStringKey, hour: Binding<Int>) -> some View {
         Picker(label, selection: hour) {
             ForEach(0..<24, id: \.self) { h in
-                Text(formatHour(h))
+                Text(verbatim: formatHour(h))
                     .tag(h)
             }
         }
@@ -185,7 +185,7 @@ struct AdvancedTimeFiltersView: View {
         .frame(width: 80)
     }
     
-    private func quickTimePreset(label: String, start: Int, end: Int) -> some View {
+    private func quickTimePreset(label: LocalizedStringKey, start: Int, end: Int) -> some View {
         Button {
             withAnimation(.easeInOut(duration: 0.15)) {
                 // Clear existing and add preset
@@ -253,7 +253,7 @@ struct AdvancedTimeFiltersView: View {
                 }
             }
         } label: {
-            Text(weekdayNames[day])
+            Text(LocalizedStringKey(weekdayNames[day]))
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 .foregroundColor(isSelected ? .white : (isEmpty ? BrutalTheme.textSecondary : BrutalTheme.textTertiary))
                 .frame(width: 36, height: 32)
@@ -262,9 +262,9 @@ struct AdvancedTimeFiltersView: View {
         .tint(isSelected ? BrutalTheme.accent : (isEmpty ? BrutalTheme.accent.opacity(0.3) : .clear))
     }
     
-    private func weekdayPreset(label: String, days: [Int]) -> some View {
+    private func weekdayPreset(label: LocalizedStringKey, days: [Int]) -> some View {
         let isActive = Set(days) == filters.weekdayFilter
-        
+
         return Button {
             withAnimation(.easeInOut(duration: 0.15)) {
                 filters.weekdayFilter = Set(days)
@@ -321,7 +321,7 @@ struct AdvancedTimeFiltersView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "timer")
                         .font(.system(size: 10))
-                    Text(durationFilterLabel)
+                    Text(LocalizedStringKey(durationFilterLabel))
                         .font(.system(size: 10, weight: .medium, design: .monospaced))
                 }
                 .foregroundColor(BrutalTheme.accent)
@@ -332,13 +332,13 @@ struct AdvancedTimeFiltersView: View {
     
     private func durationPresetButton(label: String, value: Double?, isMin: Bool) -> some View {
         let isSelected = filters.minDurationSeconds == value
-        
+
         return Button {
             withAnimation(.easeInOut(duration: 0.1)) {
                 filters.minDurationSeconds = value
             }
         } label: {
-            Text(label)
+            Text(LocalizedStringKey(label))
                 .font(.system(size: 9, weight: .semibold, design: .monospaced))
                 .foregroundColor(isSelected ? .white : BrutalTheme.textTertiary)
                 .padding(.horizontal, 8)
@@ -347,10 +347,10 @@ struct AdvancedTimeFiltersView: View {
         .buttonStyle(.bordered)
         .tint(isSelected ? BrutalTheme.accent : .clear)
     }
-    
-    private func maxDurationPresetButton(label: String, value: Double?) -> some View {
+
+    private func maxDurationPresetButton(label: LocalizedStringKey, value: Double?) -> some View {
         let isSelected = filters.maxDurationSeconds == value
-        
+
         return Button {
             withAnimation(.easeInOut(duration: 0.1)) {
                 filters.maxDurationSeconds = value
@@ -413,7 +413,7 @@ struct AdvancedFiltersBadge: View {
                 
                 if filters.hasAdvancedFilters {
                     if let label = filters.advancedFiltersLabel {
-                        Text(label)
+                        Text(verbatim: label)
                             .font(.system(size: 10, weight: .medium, design: .monospaced))
                     }
                 } else {

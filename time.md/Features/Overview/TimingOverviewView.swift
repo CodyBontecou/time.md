@@ -389,7 +389,7 @@ struct TimingOverviewView: View {
 // MARK: - Stat Card
 
 private struct TimingStatCard: View {
-    let title: String
+    let title: LocalizedStringKey
     let value: String
     let icon: String
     let color: Color
@@ -400,7 +400,7 @@ private struct TimingStatCard: View {
                 .font(.system(size: 18, weight: .semibold))
                 .foregroundColor(color)
 
-            Text(value)
+            Text(verbatim: value)
                 .font(.system(size: 32, weight: .bold, design: .default))
                 .foregroundColor(BrutalTheme.textPrimary)
                 .lineLimit(1)

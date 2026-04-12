@@ -100,15 +100,15 @@ struct ExportsView: View {
 
         var title: String {
             switch self {
-            case .general: return "General"
-            case .extensive: return "Extensive"
+            case .general: return String(localized: "General")
+            case .extensive: return String(localized: "Extensive")
             }
         }
 
         var description: String {
             switch self {
-            case .general: return "Summary, top apps, categories, and trends"
-            case .extensive: return "Everything including raw sessions, heatmaps, web history, and analytics"
+            case .general: return String(localized: "Summary, top apps, categories, and trends")
+            case .extensive: return String(localized: "Everything including raw sessions, heatmaps, web history, and analytics")
             }
         }
 
@@ -157,7 +157,7 @@ struct ExportsView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "calendar")
                             .font(.system(size: 11, weight: .semibold))
-                        Text(dateRangeLabel)
+                        Text(LocalizedStringKey(dateRangeLabel))
                             .font(.system(size: 11, weight: .bold, design: .monospaced))
 
                         if hasCustomDateRange {
@@ -450,7 +450,7 @@ struct ExportsView: View {
                 Image(systemName: icon)
                     .font(.system(size: 11, weight: .medium))
 
-                Text(name)
+                Text(verbatim: name)
                     .font(.system(size: 12, weight: .medium))
                     .lineLimit(1)
 
@@ -521,14 +521,14 @@ struct ExportsView: View {
                 .font(.system(size: 12))
                 .foregroundColor(BrutalTheme.accent)
 
-            Text(preset.filterSummary)
+            Text(LocalizedStringKey(preset.filterSummary))
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(BrutalTheme.textSecondary)
 
             Spacer()
 
             if let desc = preset.description {
-                Text(desc)
+                Text(verbatim: desc)
                     .font(.system(size: 10))
                     .foregroundColor(BrutalTheme.textTertiary)
                     .lineLimit(1)
@@ -757,12 +757,12 @@ struct ExportsView: View {
                         .foregroundColor(BrutalTheme.accent)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(exportDirectory?.lastPathComponent ?? "time.md Exports")
+                        Text(verbatim: exportDirectory?.lastPathComponent ?? "time.md Exports")
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(BrutalTheme.textPrimary)
                             .lineLimit(1)
 
-                        Text(exportDirectoryDisplayPath)
+                        Text(verbatim: exportDirectoryDisplayPath)
                             .font(.system(size: 10, weight: .medium, design: .monospaced))
                             .foregroundColor(BrutalTheme.textTertiary)
                             .lineLimit(1)
@@ -828,7 +828,7 @@ struct ExportsView: View {
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(BrutalTheme.textTertiary)
 
-                    Text(exportDescription)
+                    Text(LocalizedStringKey(exportDescription))
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(BrutalTheme.textTertiary)
                 }
@@ -838,7 +838,7 @@ struct ExportsView: View {
                         ProgressView(value: exportProgress.fractionComplete)
                             .tint(BrutalTheme.accent)
 
-                        Text(exportProgress.statusText)
+                        Text(LocalizedStringKey(exportProgress.statusText))
                             .font(.system(size: 11, weight: .medium, design: .monospaced))
                             .foregroundColor(BrutalTheme.textTertiary)
                     }
@@ -913,7 +913,7 @@ struct ExportsView: View {
                                 .font(.system(size: 14, weight: .bold))
                                 .foregroundColor(BrutalTheme.textPrimary)
 
-                            Text(url.lastPathComponent)
+                            Text(verbatim: url.lastPathComponent)
                                 .font(.system(size: 11, weight: .medium, design: .monospaced))
                                 .foregroundColor(BrutalTheme.textTertiary)
                         }
@@ -948,7 +948,7 @@ struct ExportsView: View {
                                 .font(.system(size: 14, weight: .bold))
                                 .foregroundColor(BrutalTheme.textPrimary)
 
-                            Text(errorMessage)
+                            Text(LocalizedStringKey(errorMessage))
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(BrutalTheme.textTertiary)
                         }
@@ -1026,7 +1026,7 @@ struct ExportsView: View {
                             Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                                 .foregroundColor(isSelected ? BrutalTheme.accent : BrutalTheme.textTertiary)
 
-                            Text(app)
+                            Text(verbatim: app)
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(BrutalTheme.textPrimary)
 
@@ -1097,7 +1097,7 @@ struct ExportsView: View {
                             Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                                 .foregroundColor(isSelected ? BrutalTheme.accent : BrutalTheme.textTertiary)
 
-                            Text(category)
+                            Text(verbatim: category)
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(BrutalTheme.textPrimary)
 
@@ -1327,7 +1327,7 @@ struct ExportDateRangePicker: View {
         .frame(width: 280)
     }
 
-    private func quickPresetButton(_ title: String, action: @escaping () -> Void) -> some View {
+    private func quickPresetButton(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 10, weight: .medium))

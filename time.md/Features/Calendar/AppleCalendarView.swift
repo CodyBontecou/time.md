@@ -387,7 +387,7 @@ struct AppleCalendarView: View {
             .buttonStyle(.plain)
 
             // Title
-            Text(headerTitle)
+            Text(verbatim: headerTitle)
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundColor(.primary)
 

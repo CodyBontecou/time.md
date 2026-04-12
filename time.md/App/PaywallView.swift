@@ -32,11 +32,11 @@ struct PaywallView: View {
                 // Price
                 VStack(spacing: 4) {
                     if let product = store.product {
-                        Text(product.displayPrice)
+                        Text(verbatim: product.displayPrice)
                             .font(.system(size: 36, weight: .black, design: .monospaced))
                             .foregroundColor(BrutalTheme.textPrimary)
                     } else {
-                        Text("$19.99")
+                        Text(verbatim: "$19.99")
                             .font(.system(size: 36, weight: .black, design: .monospaced))
                             .foregroundColor(BrutalTheme.textPrimary)
                     }
@@ -89,7 +89,7 @@ struct PaywallView: View {
 
                 // Error
                 if let error = store.purchaseError {
-                    Text(error)
+                    Text(LocalizedStringKey(error))
                         .font(.system(size: 11, weight: .medium, design: .monospaced))
                         .foregroundColor(.orange)
                         .multilineTextAlignment(.center)
@@ -102,7 +102,7 @@ struct PaywallView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func featureRow(icon: String, text: String) -> some View {
+    private func featureRow(icon: String, text: LocalizedStringKey) -> some View {
         HStack(spacing: 10) {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .semibold))

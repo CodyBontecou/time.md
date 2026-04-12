@@ -12,6 +12,17 @@ enum BrowserSource: String, CaseIterable, Identifiable, Sendable {
 
     var id: String { rawValue }
 
+    var displayName: String {
+        switch self {
+        case .all: return String(localized: "All")
+        case .safari: return "Safari"
+        case .chrome: return "Chrome"
+        case .arc: return "Arc"
+        case .brave: return "Brave"
+        case .edge: return "Edge"
+        }
+    }
+
     var systemImage: String {
         switch self {
         case .all: return "globe"

@@ -86,7 +86,7 @@ struct CalendarView: View {
 
                             Spacer()
 
-                            Text(monthTitle)
+                            Text(verbatim: monthTitle)
                                 .font(BrutalTheme.headingFont)
                                 .foregroundColor(BrutalTheme.textPrimary)
                                 .tracking(2)
@@ -123,7 +123,7 @@ struct CalendarView: View {
                         // Weekday header
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 0) {
                             ForEach(weekdaySymbols, id: \.self) { symbol in
-                                Text(symbol.uppercased())
+                                Text(verbatim: symbol.uppercased())
                                     .font(BrutalTheme.captionMono)
                                     .foregroundColor(BrutalTheme.textTertiary)
                                     .tracking(0.5)
@@ -284,13 +284,13 @@ struct CalendarView: View {
         }
     }
 
-    private func summaryMetric(title: String, value: String) -> some View {
+    private func summaryMetric(title: LocalizedStringKey, value: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
                 .font(BrutalTheme.captionMono)
                 .foregroundColor(BrutalTheme.textTertiary)
                 .tracking(0.5)
-            Text(value)
+            Text(verbatim: value)
                 .font(BrutalTheme.metricSmall)
                 .foregroundColor(BrutalTheme.textPrimary)
         }

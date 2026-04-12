@@ -13,11 +13,11 @@ enum ExportFormat: String, CaseIterable, Identifiable, Codable {
 
     var displayName: String {
         switch self {
-        case .csv: return "CSV"
-        case .json: return "JSON"
-        case .yaml: return "YAML"
-        case .markdown: return "Markdown"
-        case .obsidian: return "Obsidian"
+        case .csv: return String(localized: "CSV")
+        case .json: return String(localized: "JSON")
+        case .yaml: return String(localized: "YAML")
+        case .markdown: return String(localized: "Markdown")
+        case .obsidian: return String(localized: "Obsidian")
         }
     }
 
@@ -42,11 +42,11 @@ enum ExportFormat: String, CaseIterable, Identifiable, Codable {
     
     var description: String {
         switch self {
-        case .csv: return "Spreadsheet-compatible"
-        case .json: return "Structured data"
-        case .yaml: return "Human-readable config"
-        case .markdown: return "Notes & docs"
-        case .obsidian: return "Knowledge base"
+        case .csv: return String(localized: "Spreadsheet-compatible")
+        case .json: return String(localized: "Structured data")
+        case .yaml: return String(localized: "Human-readable config")
+        case .markdown: return String(localized: "Notes & docs")
+        case .obsidian: return String(localized: "Knowledge base")
         }
     }
     

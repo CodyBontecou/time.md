@@ -117,6 +117,12 @@
 				Features/Filters/AdvancedTimeFiltersView.swift,
 				Features/Overview/InsightCards.swift,
 				Features/Overview/OverviewView.swift,
+				Features/Overview/TimingOverviewView.swift,
+				Features/Projects/TimingProjectsView.swift,
+				Features/Reports/TimingReportsView.swift,
+				Features/Review/TimingReviewView.swift,
+				Features/Rules/TimingRulesView.swift,
+				Features/Details/TimingDetailsView.swift,
 				Features/Sessions/SessionsView.swift,
 				Features/Trends/TrendsView.swift,
 				Features/WebHistory/WebHistoryView.swift,
@@ -324,6 +330,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				es,
 				Base,
 			);
 			mainGroup = 62B65C0B2F4C534F00A5B243;

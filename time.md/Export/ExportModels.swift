@@ -34,19 +34,19 @@ enum ExportField: String, CaseIterable, Identifiable, Codable, Hashable {
     
     var displayName: String {
         switch self {
-        case .appName: return "App Name"
-        case .startTime: return "Start Time"
-        case .endTime: return "End Time"
-        case .durationSeconds: return "Duration (seconds)"
-        case .totalSeconds: return "Total Seconds"
-        case .sessionCount: return "Session Count"
-        case .category: return "Category"
-        case .date: return "Date"
-        case .weekday: return "Weekday"
-        case .hour: return "Hour"
-        case .focusBlocks: return "Focus Blocks"
-        case .metric: return "Metric"
-        case .value: return "Value"
+        case .appName: return String(localized: "App Name")
+        case .startTime: return String(localized: "Start Time")
+        case .endTime: return String(localized: "End Time")
+        case .durationSeconds: return String(localized: "Duration (seconds)")
+        case .totalSeconds: return String(localized: "Total Seconds")
+        case .sessionCount: return String(localized: "Session Count")
+        case .category: return String(localized: "Category")
+        case .date: return String(localized: "Date")
+        case .weekday: return String(localized: "Weekday")
+        case .hour: return String(localized: "Hour")
+        case .focusBlocks: return String(localized: "Focus Blocks")
+        case .metric: return String(localized: "Metric")
+        case .value: return String(localized: "Value")
         }
     }
     
@@ -119,26 +119,26 @@ struct CSVExportOptions: Codable, Equatable {
         
         var displayName: String {
             switch self {
-            case .comma: return "Comma (,)"
-            case .tab: return "Tab"
-            case .semicolon: return "Semicolon (;)"
-            case .pipe: return "Pipe (|)"
+            case .comma: return String(localized: "Comma (,)")
+            case .tab: return String(localized: "Tab")
+            case .semicolon: return String(localized: "Semicolon (;)")
+            case .pipe: return String(localized: "Pipe (|)")
             }
         }
     }
-    
+
     enum CSVQuoteStyle: String, CaseIterable, Identifiable, Codable {
         case always
         case whenNeeded
         case never
-        
+
         var id: String { rawValue }
-        
+
         var displayName: String {
             switch self {
-            case .always: return "Always"
-            case .whenNeeded: return "When Needed"
-            case .never: return "Never"
+            case .always: return String(localized: "Always")
+            case .whenNeeded: return String(localized: "When Needed")
+            case .never: return String(localized: "Never")
             }
         }
     }
@@ -182,11 +182,11 @@ struct JSONExportOptions: Codable, Equatable {
         
         var displayName: String {
             switch self {
-            case .flat: return "Flat Array"
-            case .nested: return "Nested with Metadata"
+            case .flat: return String(localized: "Flat Array")
+            case .nested: return String(localized: "Nested with Metadata")
             }
         }
-        
+
         var description: String {
             switch self {
             case .flat: return "[{...}, {...}]"
@@ -224,23 +224,23 @@ struct MarkdownExportOptions: Codable, Equatable {
         
         var displayName: String {
             switch self {
-            case .github: return "GitHub (GFM)"
-            case .simple: return "Simple Text"
-            case .html: return "HTML Tables"
+            case .github: return String(localized: "GitHub (GFM)")
+            case .simple: return String(localized: "Simple Text")
+            case .html: return String(localized: "HTML Tables")
             }
         }
     }
-    
+
     enum MarkdownHeadingStyle: String, CaseIterable, Identifiable, Codable {
         case atx        // # Heading
         case setext     // Heading\n======
-        
+
         var id: String { rawValue }
-        
+
         var displayName: String {
             switch self {
-            case .atx: return "ATX (# style)"
-            case .setext: return "Setext (underline)"
+            case .atx: return String(localized: "ATX (# style)")
+            case .setext: return String(localized: "Setext (underline)")
             }
         }
     }
@@ -269,8 +269,8 @@ struct ObsidianExportOptions: Codable, Equatable {
         
         var displayName: String {
             switch self {
-            case .yaml: return "YAML (---)"
-            case .toml: return "TOML (+++)"
+            case .yaml: return String(localized: "YAML (---)")
+            case .toml: return String(localized: "TOML (+++)")
             }
         }
         
@@ -411,18 +411,18 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
     
     var displayName: String {
         switch self {
-        case .summary: return "Summary"
-        case .apps: return "Top Apps"
-        case .categories: return "Categories"
-        case .trends: return "Trends"
-        case .sessions: return "Session Distribution"
-        case .heatmap: return "Heatmap"
-        case .rawSessions: return "Raw Sessions"
-        case .webHistory: return "Web History"
-        case .topDomains: return "Top Domains"
-        case .contextSwitches: return "Context Switches"
-        case .appTransitions: return "App Transitions"
-        case .periodComparison: return "Period Comparison"
+        case .summary: return String(localized: "Summary")
+        case .apps: return String(localized: "Top Apps")
+        case .categories: return String(localized: "Categories")
+        case .trends: return String(localized: "Trends")
+        case .sessions: return String(localized: "Session Distribution")
+        case .heatmap: return String(localized: "Heatmap")
+        case .rawSessions: return String(localized: "Raw Sessions")
+        case .webHistory: return String(localized: "Web History")
+        case .topDomains: return String(localized: "Top Domains")
+        case .contextSwitches: return String(localized: "Context Switches")
+        case .appTransitions: return String(localized: "App Transitions")
+        case .periodComparison: return String(localized: "Period Comparison")
         }
     }
     
@@ -445,18 +445,18 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
     
     var description: String {
         switch self {
-        case .summary: return "Total time and averages"
-        case .apps: return "Usage time per application"
-        case .categories: return "Usage time by category"
-        case .trends: return "Daily/weekly usage over time"
-        case .sessions: return "Session length distribution"
-        case .heatmap: return "Usage by weekday and hour"
-        case .rawSessions: return "Individual session records"
-        case .webHistory: return "Browser history visits"
-        case .topDomains: return "Most visited domains"
-        case .contextSwitches: return "App switching frequency by hour"
-        case .appTransitions: return "Most common app-to-app switches"
-        case .periodComparison: return "Current vs previous period delta"
+        case .summary: return String(localized: "Total time and averages")
+        case .apps: return String(localized: "Usage time per application")
+        case .categories: return String(localized: "Usage time by category")
+        case .trends: return String(localized: "Daily/weekly usage over time")
+        case .sessions: return String(localized: "Session length distribution")
+        case .heatmap: return String(localized: "Usage by weekday and hour")
+        case .rawSessions: return String(localized: "Individual session records")
+        case .webHistory: return String(localized: "Browser history visits")
+        case .topDomains: return String(localized: "Most visited domains")
+        case .contextSwitches: return String(localized: "App switching frequency by hour")
+        case .appTransitions: return String(localized: "Most common app-to-app switches")
+        case .periodComparison: return String(localized: "Current vs previous period delta")
         }
     }
     
@@ -634,10 +634,10 @@ enum ExportTimestampFormat: String, CaseIterable, Identifiable, Codable {
 
     var displayName: String {
         switch self {
-        case .iso8601Full: return "ISO 8601 Full"
-        case .iso8601DateHour: return "ISO 8601 Date+Hour"
-        case .dateOnly: return "Date Only"
-        case .unixEpoch: return "Unix Timestamp"
+        case .iso8601Full: return String(localized: "ISO 8601 Full")
+        case .iso8601DateHour: return String(localized: "ISO 8601 Date+Hour")
+        case .dateOnly: return String(localized: "Date Only")
+        case .unixEpoch: return String(localized: "Unix Timestamp")
         }
     }
 
@@ -858,8 +858,8 @@ enum PresetDateRangeType: String, Codable, CaseIterable, Identifiable {
     
     var displayName: String {
         switch self {
-        case .relative: return "Relative"
-        case .absolute: return "Fixed Dates"
+        case .relative: return String(localized: "Relative")
+        case .absolute: return String(localized: "Fixed Dates")
         }
     }
 }
@@ -880,15 +880,15 @@ enum RelativeDateRange: String, Codable, CaseIterable, Identifiable {
     
     var displayName: String {
         switch self {
-        case .today: return "Today"
-        case .yesterday: return "Yesterday"
-        case .last7Days: return "Last 7 Days"
-        case .last30Days: return "Last 30 Days"
-        case .thisWeek: return "This Week"
-        case .lastWeek: return "Last Week"
-        case .thisMonth: return "This Month"
-        case .lastMonth: return "Last Month"
-        case .thisYear: return "This Year"
+        case .today: return String(localized: "Today")
+        case .yesterday: return String(localized: "Yesterday")
+        case .last7Days: return String(localized: "Last 7 Days")
+        case .last30Days: return String(localized: "Last 30 Days")
+        case .thisWeek: return String(localized: "This Week")
+        case .lastWeek: return String(localized: "Last Week")
+        case .thisMonth: return String(localized: "This Month")
+        case .lastMonth: return String(localized: "Last Month")
+        case .thisYear: return String(localized: "This Year")
         }
     }
     
@@ -1182,9 +1182,9 @@ enum ScheduleFrequency: String, Codable, CaseIterable, Identifiable {
     
     var displayName: String {
         switch self {
-        case .daily: return "Daily"
-        case .weekly: return "Weekly"
-        case .monthly: return "Monthly"
+        case .daily: return String(localized: "Daily")
+        case .weekly: return String(localized: "Weekly")
+        case .monthly: return String(localized: "Monthly")
         }
     }
 }

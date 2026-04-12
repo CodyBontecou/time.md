@@ -1,0 +1,6992 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ""
+          }
+        }
+      }
+    },
+    " ": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": " "
+          }
+        }
+      }
+    },
+    "#": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "#"
+          }
+        }
+      }
+    },
+    "%": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%"
+          }
+        }
+      }
+    },
+    "%@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@"
+          }
+        }
+      }
+    },
+    "%@ %@ — %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ — %3$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@ — %3$@"
+          }
+        }
+      }
+    },
+    "%@ %@, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@, %3$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@, %3$@"
+          }
+        }
+      }
+    },
+    "%@ %@: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@: %3$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ %2$@: %3$@"
+          }
+        }
+      }
+    },
+    "%@ BREAKDOWN": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DESGLOSE DE %@"
+          }
+        }
+      }
+    },
+    "%@ USAGE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "USO DE %@"
+          }
+        }
+      }
+    },
+    "%@ screen time: %@, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ screen time: %2$@, %3$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo de pantalla de %1$@: %2$@, %3$@"
+          }
+        }
+      }
+    },
+    "%@ • %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ • %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ • %2$@"
+          }
+        }
+      }
+    },
+    "%@ • %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ • %2$@ %3$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ • %2$@ %3$@"
+          }
+        }
+      }
+    },
+    "%@ → %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ → %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ → %2$@"
+          }
+        }
+      }
+    },
+    "%@, %@, %@ percent of total": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@ percent of total"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@, %2$@, %3$@ por ciento del total"
+          }
+        }
+      }
+    },
+    "%@. Tap to manage device selection.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@. Toca para gestionar la selección de dispositivos."
+          }
+        }
+      }
+    },
+    "%@: %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@: %2$@"
+          }
+        }
+      }
+    },
+    "%lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld"
+          }
+        }
+      }
+    },
+    "%lld / %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld / %2$lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld / %2$lld"
+          }
+        }
+      }
+    },
+    "%lld Apps": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld apps"
+          }
+        }
+      }
+    },
+    "%lld SELECTED": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld SELECCIONADOS"
+          }
+        }
+      }
+    },
+    "%lld app%@ selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld app%2$@ selected"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld app%2$@ seleccionada%2$@"
+          }
+        }
+      }
+    },
+    "%lld apps": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld apps"
+          }
+        }
+      }
+    },
+    "%lld apps used %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld apps used %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld apps usadas %2$@"
+          }
+        }
+      }
+    },
+    "%lld categor%@ selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld categor%2$@ selected"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld categor%2$@ seleccionada%2$@"
+          }
+        }
+      }
+    },
+    "%lld cells": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld celdas"
+          }
+        }
+      }
+    },
+    "%lld day%@ selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld day%2$@ selected"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld día%2$@ seleccionado%2$@"
+          }
+        }
+      }
+    },
+    "%lld device%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld device%2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld dispositivo%2$@"
+          }
+        }
+      }
+    },
+    "%lld device%@ synced": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld device%2$@ synced"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld dispositivo%2$@ sincronizado%2$@"
+          }
+        }
+      }
+    },
+    "%lld devices": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld dispositivos"
+          }
+        }
+      }
+    },
+    "%lld devices, total %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld devices, total %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld dispositivos, total %2$@"
+          }
+        }
+      }
+    },
+    "%lld of %lld installed browser%@ enabled for tracking": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld installed browser%3$@ enabled for tracking"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld de %2$lld navegador%3$@ instalado%3$@ habilitado%3$@ para rastreo"
+          }
+        }
+      }
+    },
+    "%lld of %lld selected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld of %2$lld selected"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld de %2$lld seleccionado"
+          }
+        }
+      }
+    },
+    "%lld schedules": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld programaciones"
+          }
+        }
+      }
+    },
+    "%lld selected": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld seleccionado"
+          }
+        }
+      }
+    },
+    "%lld session%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld session%2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld sesión%2$@"
+          }
+        }
+      }
+    },
+    "%lld sessions": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld sesiones"
+          }
+        }
+      }
+    },
+    "%lld synced device%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld synced device%2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld dispositivo%2$@ sincronizado%2$@"
+          }
+        }
+      }
+    },
+    "%lldh": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lldh"
+          }
+        }
+      }
+    },
+    "%lldm": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lldm"
+          }
+        }
+      }
+    },
+    "%lldx": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lldx"
+          }
+        }
+      }
+    },
+    "%lld×": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld×"
+          }
+        }
+      }
+    },
+    "(%lld)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(%lld)"
+          }
+        }
+      }
+    },
+    "+ %lld more sessions": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+ %lld sesiones más"
+          }
+        }
+      }
+    },
+    "+%lld more": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%lld más"
+          }
+        }
+      }
+    },
+    "--": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "--"
+          }
+        }
+      }
+    },
+    "0m": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "0m"
+          }
+        }
+      }
+    },
+    "11p": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "23"
+          }
+        }
+      }
+    },
+    "12a": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "00"
+          }
+        }
+      }
+    },
+    "12p": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "12"
+          }
+        }
+      }
+    },
+    "30+ min": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30+ min"
+          }
+        }
+      }
+    },
+    "5-30 min": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5-30 min"
+          }
+        }
+      }
+    },
+    "< 5 min": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "< 5 min"
+          }
+        }
+      }
+    },
+    "<15m": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<15m"
+          }
+        }
+      }
+    },
+    "<1h": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<1h"
+          }
+        }
+      }
+    },
+    "<1m": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<1m"
+          }
+        }
+      }
+    },
+    "<5m": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "<5m"
+          }
+        }
+      }
+    },
+    "A system dialog will appear asking for Screen Time access.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aparecerá un cuadro de diálogo del sistema solicitando acceso al Tiempo de pantalla."
+          }
+        }
+      }
+    },
+    "A-Z": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A-Z"
+          }
+        }
+      }
+    },
+    "ACTIVE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ACTIVO"
+          }
+        }
+      }
+    },
+    "ACTIVE DAYS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DÍAS ACTIVOS"
+          }
+        }
+      }
+    },
+    "ACTIVITY HEATMAP": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MAPA DE CALOR DE ACTIVIDAD"
+          }
+        }
+      }
+    },
+    "ACTIVITY MAP": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MAPA DE ACTIVIDAD"
+          }
+        }
+      }
+    },
+    "ALL APPS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TODAS LAS APPS"
+          }
+        }
+      }
+    },
+    "ALL CATEGORIES": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TODAS LAS CATEGORÍAS"
+          }
+        }
+      }
+    },
+    "ALL DEVICES": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TODOS LOS DISPOSITIVOS"
+          }
+        }
+      }
+    },
+    "APP": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "APP"
+          }
+        }
+      }
+    },
+    "APP BREAKDOWN": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DESGLOSE POR APP"
+          }
+        }
+      }
+    },
+    "APP TRANSITIONS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRANSICIONES DE APP"
+          }
+        }
+      }
+    },
+    "APP USAGE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "USO DE APP"
+          }
+        }
+      }
+    },
+    "APPS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "APPS"
+          }
+        }
+      }
+    },
+    "APPS TRACKED": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "APPS RASTREADAS"
+          }
+        }
+      }
+    },
+    "APPS USED": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "APPS USADAS"
+          }
+        }
+      }
+    },
+    "ATX (# style)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ATX (estilo #)"
+          }
+        }
+      }
+    },
+    "AVG": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PROM"
+          }
+        }
+      }
+    },
+    "About": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acerca de"
+          }
+        }
+      }
+    },
+    "About time.md": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acerca de time.md"
+          }
+        }
+      }
+    },
+    "Across %lld selected device%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Across %1$lld selected device%2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A través de %1$lld dispositivo%2$@ seleccionado%2$@"
+          }
+        }
+      }
+    },
+    "Active": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activo"
+          }
+        }
+      }
+    },
+    "Activity": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actividad"
+          }
+        }
+      }
+    },
+    "Activity heatmap: %lld cells": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapa de calor de actividad: %lld celdas"
+          }
+        }
+      }
+    },
+    "Add": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir"
+          }
+        }
+      }
+    },
+    "Add Custom Range": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir rango personalizado"
+          }
+        }
+      }
+    },
+    "Add Range": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir rango"
+          }
+        }
+      }
+    },
+    "Advanced Filters": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtros avanzados"
+          }
+        }
+      }
+    },
+    "Afternoon": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarde"
+          }
+        }
+      }
+    },
+    "All": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo"
+          }
+        }
+      }
+    },
+    "All Apps": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las apps"
+          }
+        }
+      }
+    },
+    "All Days": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos los días"
+          }
+        }
+      }
+    },
+    "All Devices": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos los dispositivos"
+          }
+        }
+      }
+    },
+    "All apps included": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las apps incluidas"
+          }
+        }
+      }
+    },
+    "All categories included": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las categorías incluidas"
+          }
+        }
+      }
+    },
+    "All data stays on your device": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos los datos permanecen en tu dispositivo"
+          }
+        }
+      }
+    },
+    "All days included": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos los días incluidos"
+          }
+        }
+      }
+    },
+    "All future updates included": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las actualizaciones futuras incluidas"
+          }
+        }
+      }
+    },
+    "Already at current period": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya estás en el período actual"
+          }
+        }
+      }
+    },
+    "Always": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siempre"
+          }
+        }
+      }
+    },
+    "Any": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cualquiera"
+          }
+        }
+      }
+    },
+    "App": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App"
+          }
+        }
+      }
+    },
+    "App Name": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre de app"
+          }
+        }
+      }
+    },
+    "App Transitions": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transiciones de app"
+          }
+        }
+      }
+    },
+    "App switching frequency by hour": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frecuencia de cambio de app por hora"
+          }
+        }
+      }
+    },
+    "Apply to Date Range": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplicar al rango de fechas"
+          }
+        }
+      }
+    },
+    "Apps": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps"
+          }
+        }
+      }
+    },
+    "Apps & Categories": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps y categorías"
+          }
+        }
+      }
+    },
+    "Assign": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asignar"
+          }
+        }
+      }
+    },
+    "Assign Category": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asignar categoría"
+          }
+        }
+      }
+    },
+    "Assign apps to categories for organized time tracking": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asigna apps a categorías para un rastreo de tiempo organizado"
+          }
+        }
+      }
+    },
+    "Authorization Status": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estado de autorización"
+          }
+        }
+      }
+    },
+    "Authorized": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorizado"
+          }
+        }
+      }
+    },
+    "Auto-scroll": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desplazamiento automático"
+          }
+        }
+      }
+    },
+    "Avg Session": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesión prom."
+          }
+        }
+      }
+    },
+    "BRUSH SELECTION": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SELECCIÓN POR PINCEL"
+          }
+        }
+      }
+    },
+    "BUNDLE IDENTIFIER": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IDENTIFICADOR DE PAQUETE"
+          }
+        }
+      }
+    },
+    "Back": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atrás"
+          }
+        }
+      }
+    },
+    "Bar": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Barras"
+          }
+        }
+      }
+    },
+    "Browser history visits": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visitas del historial del navegador"
+          }
+        }
+      }
+    },
+    "By App": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por app"
+          }
+        }
+      }
+    },
+    "By Category": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por categoría"
+          }
+        }
+      }
+    },
+    "By Day": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por día"
+          }
+        }
+      }
+    },
+    "CALENDAR": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CALENDARIO"
+          }
+        }
+      }
+    },
+    "CALENDAR.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CALENDARIO."
+          }
+        }
+      }
+    },
+    "CATEGORIES": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CATEGORÍAS"
+          }
+        }
+      }
+    },
+    "CATEGORY": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CATEGORÍA"
+          }
+        }
+      }
+    },
+    "CLEAR": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LIMPIAR"
+          }
+        }
+      }
+    },
+    "CLR": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LMP"
+          }
+        }
+      }
+    },
+    "CONTEXT SWITCHES": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CAMBIOS DE CONTEXTO"
+          }
+        }
+      }
+    },
+    "CONTEXT SWITCHES BY HOUR (AVG)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CAMBIOS DE CONTEXTO POR HORA (PROM)"
+          }
+        }
+      }
+    },
+    "COVERAGE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "COBERTURA"
+          }
+        }
+      }
+    },
+    "CSV": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CSV"
+          }
+        }
+      }
+    },
+    "Calendar preview: %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista previa del calendario: %@"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        }
+      }
+    },
+    "Categories": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Categorías"
+          }
+        }
+      }
+    },
+    "Category": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Categoría"
+          }
+        }
+      }
+    },
+    "Category mappings saved at ~/Library/Application Support/time.md/category-mappings.db.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las asignaciones de categorías se guardan en ~/Library/Application Support/time.md/category-mappings.db."
+          }
+        }
+      }
+    },
+    "Category name": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre de categoría"
+          }
+        }
+      }
+    },
+    "Chart": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gráfico"
+          }
+        }
+      }
+    },
+    "Check for Updates...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar actualizaciones..."
+          }
+        }
+      }
+    },
+    "Check your screen time for today or this week": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisa tu tiempo de pantalla de hoy o de esta semana"
+          }
+        }
+      }
+    },
+    "Choose how app names appear throughout time.md.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige cómo aparecen los nombres de las apps en time.md."
+          }
+        }
+      }
+    },
+    "Choose which browsers to include in Web History tracking. Only installed browsers can be enabled.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige qué navegadores incluir en el rastreo del historial web. Solo se pueden habilitar los instalados."
+          }
+        }
+      }
+    },
+    "Choose…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir…"
+          }
+        }
+      }
+    },
+    "Clear": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpiar"
+          }
+        }
+      }
+    },
+    "Clear All": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limpiar todo"
+          }
+        }
+      }
+    },
+    "Click to open System Settings and grant access.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haz clic para abrir Configuración del Sistema y conceder acceso."
+          }
+        }
+      }
+    },
+    "Click to see app breakdown": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haz clic para ver el desglose por app"
+          }
+        }
+      }
+    },
+    "Cloud Sync Only": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo sincronización en la nube"
+          }
+        }
+      }
+    },
+    "Collapse All": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraer todo"
+          }
+        }
+      }
+    },
+    "Collapse calendar": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraer calendario"
+          }
+        }
+      }
+    },
+    "Comma (,)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coma (,)"
+          }
+        }
+      }
+    },
+    "Common categories:": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Categorías comunes:"
+          }
+        }
+      }
+    },
+    "Configure what data to include and choose your preferred format.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configura qué datos incluir y elige tu formato preferido."
+          }
+        }
+      }
+    },
+    "Connected": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado"
+          }
+        }
+      }
+    },
+    "Context Switches": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambios de contexto"
+          }
+        }
+      }
+    },
+    "Context Switching": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambio de contexto"
+          }
+        }
+      }
+    },
+    "Continue": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar"
+          }
+        }
+      }
+    },
+    "Continue without tracking": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar sin rastreo"
+          }
+        }
+      }
+    },
+    "Control how the insight bar scrolls on the Overview screen.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controla cómo se desplaza la barra de información en la pantalla Resumen."
+          }
+        }
+      }
+    },
+    "Cross-Device": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entre dispositivos"
+          }
+        }
+      }
+    },
+    "Current vs previous period delta": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delta del período actual vs anterior"
+          }
+        }
+      }
+    },
+    "Custom Range...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rango personalizado..."
+          }
+        }
+      }
+    },
+    "Custom Time Range": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rango de tiempo personalizado"
+          }
+        }
+      }
+    },
+    "Custom Time Ranges": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rangos de tiempo personalizados"
+          }
+        }
+      }
+    },
+    "Customize": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizar"
+          }
+        }
+      }
+    },
+    "DAILY ACTIVITY": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ACTIVIDAD DIARIA"
+          }
+        }
+      }
+    },
+    "DAILY AVERAGE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PROMEDIO DIARIO"
+          }
+        }
+      }
+    },
+    "DAILY AVG": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PROM. DIARIO"
+          }
+        }
+      }
+    },
+    "DAILY VISITS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VISITAS DIARIAS"
+          }
+        }
+      }
+    },
+    "DATA SECTIONS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SECCIONES DE DATOS"
+          }
+        }
+      }
+    },
+    "DATE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FECHA"
+          }
+        }
+      }
+    },
+    "DAYS OF WEEK": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DÍAS DE LA SEMANA"
+          }
+        }
+      }
+    },
+    "DESTINATION": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DESTINO"
+          }
+        }
+      }
+    },
+    "DETAILED BREAKDOWN": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DESGLOSE DETALLADO"
+          }
+        }
+      }
+    },
+    "DISTRIBUTION": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DISTRIBUCIÓN"
+          }
+        }
+      }
+    },
+    "DOMAIN": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DOMINIO"
+          }
+        }
+      }
+    },
+    "DURATION": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DURACIÓN"
+          }
+        }
+      }
+    },
+    "Daily": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diario"
+          }
+        }
+      }
+    },
+    "Daily Avg": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prom. diario"
+          }
+        }
+      }
+    },
+    "Daily Summary": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumen diario"
+          }
+        }
+      }
+    },
+    "Daily Tracking": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rastreo diario"
+          }
+        }
+      }
+    },
+    "Daily/weekly usage over time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uso diario/semanal a lo largo del tiempo"
+          }
+        }
+      }
+    },
+    "Dashboard": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel"
+          }
+        }
+      }
+    },
+    "Data": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos"
+          }
+        }
+      }
+    },
+    "Data loads from local SQLite only (normalized screentime.db or knowledgeC.db fallback).": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los datos se cargan solo desde SQLite local (screentime.db normalizado o knowledgeC.db como alternativa)."
+          }
+        }
+      }
+    },
+    "Data stays on your device": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los datos permanecen en tu dispositivo"
+          }
+        }
+      }
+    },
+    "Date": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fecha"
+          }
+        }
+      }
+    },
+    "Date Only": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo fecha"
+          }
+        }
+      }
+    },
+    "Date Range": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rango de fechas"
+          }
+        }
+      }
+    },
+    "Day": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Día"
+          }
+        }
+      }
+    },
+    "Days Tracked": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Días rastreados"
+          }
+        }
+      }
+    },
+    "Days of Week": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Días de la semana"
+          }
+        }
+      }
+    },
+    "Debug": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Depuración"
+          }
+        }
+      }
+    },
+    "Delete": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar"
+          }
+        }
+      }
+    },
+    "Denied": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denegado"
+          }
+        }
+      }
+    },
+    "Description (optional)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descripción (opcional)"
+          }
+        }
+      }
+    },
+    "Details": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detalles"
+          }
+        }
+      }
+    },
+    "Device ID": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ID del dispositivo"
+          }
+        }
+      }
+    },
+    "Device ID: %@...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ID del dispositivo: %@..."
+          }
+        }
+      }
+    },
+    "Devices": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivos"
+          }
+        }
+      }
+    },
+    "Displayed separately due to iOS privacy restrictions": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se muestra por separado debido a las restricciones de privacidad de iOS"
+          }
+        }
+      }
+    },
+    "Distribution": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Distribución"
+          }
+        }
+      }
+    },
+    "Domains": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dominios"
+          }
+        }
+      }
+    },
+    "Done": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hecho"
+          }
+        }
+      }
+    },
+    "Drag to scroll through insights": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrastra para desplazarte por las perspectivas"
+          }
+        }
+      }
+    },
+    "Duplicate": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duplicar"
+          }
+        }
+      }
+    },
+    "Duration": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duración"
+          }
+        }
+      }
+    },
+    "Duration (seconds)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duración (segundos)"
+          }
+        }
+      }
+    },
+    "END DATE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FECHA DE FIN"
+          }
+        }
+      }
+    },
+    "ERR": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ERR"
+          }
+        }
+      }
+    },
+    "EXPORT MODE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MODO DE EXPORTACIÓN"
+          }
+        }
+      }
+    },
+    "Early Morning (5 AM – 9 AM)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Madrugada (5 a.m. – 9 a.m.)"
+          }
+        }
+      }
+    },
+    "Edit": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar"
+          }
+        }
+      }
+    },
+    "Edit Filter Preset": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar ajuste de filtro"
+          }
+        }
+      }
+    },
+    "Edit Selection": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar selección"
+          }
+        }
+      }
+    },
+    "Enable": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activar"
+          }
+        }
+      }
+    },
+    "Enable Screen Time access to track iPhone usage": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permite el acceso al Tiempo de pantalla para rastrear el uso del iPhone"
+          }
+        }
+      }
+    },
+    "Enable Screen Time access to track your iPhone usage alongside your Mac data.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permite el acceso al Tiempo de pantalla para rastrear el uso de tu iPhone junto con los datos de tu Mac."
+          }
+        }
+      }
+    },
+    "Enable Tracking": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Habilitar rastreo"
+          }
+        }
+      }
+    },
+    "Enable iPhone Screen Time tracking": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Habilitar rastreo del tiempo de pantalla del iPhone"
+          }
+        }
+      }
+    },
+    "Enable iPhone Tracking": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Habilitar rastreo del iPhone"
+          }
+        }
+      }
+    },
+    "Enable in Settings app": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Habilitar en la app Ajustes"
+          }
+        }
+      }
+    },
+    "End": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fin"
+          }
+        }
+      }
+    },
+    "End Hour": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hora de fin"
+          }
+        }
+      }
+    },
+    "End Time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hora de fin"
+          }
+        }
+      }
+    },
+    "Enter preset name": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduce el nombre del ajuste"
+          }
+        }
+      }
+    },
+    "Evening": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noche"
+          }
+        }
+      }
+    },
+    "Evening (5 PM – 10 PM)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noche (5 p.m. – 10 p.m.)"
+          }
+        }
+      }
+    },
+    "Everything including raw sessions, heatmaps, web history, and analytics": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo, incluyendo sesiones sin procesar, mapas de calor, historial web y analíticas"
+          }
+        }
+      }
+    },
+    "Exclude": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Excluir"
+          }
+        }
+      }
+    },
+    "Expand All": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expandir todo"
+          }
+        }
+      }
+    },
+    "Expand calendar": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expandir calendario"
+          }
+        }
+      }
+    },
+    "Export": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar"
+          }
+        }
+      }
+    },
+    "Export %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar %@"
+          }
+        }
+      }
+    },
+    "Export Complete": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportación completa"
+          }
+        }
+      }
+    },
+    "Export Data": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar datos"
+          }
+        }
+      }
+    },
+    "Export Date Range": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rango de fechas de exportación"
+          }
+        }
+      }
+    },
+    "Export Failed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportación fallida"
+          }
+        }
+      }
+    },
+    "Export all apps except selected": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar todas las apps excepto las seleccionadas"
+          }
+        }
+      }
+    },
+    "Export as CSV": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar como CSV"
+          }
+        }
+      }
+    },
+    "Export as JSON": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar como JSON"
+          }
+        }
+      }
+    },
+    "Export only selected apps": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportar solo las apps seleccionadas"
+          }
+        }
+      }
+    },
+    "Export your synced screen time data or share summaries.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exporta tus datos de tiempo de pantalla sincronizados o comparte resúmenes."
+          }
+        }
+      }
+    },
+    "Exporting...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exportando..."
+          }
+        }
+      }
+    },
+    "Extensive": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extensivo"
+          }
+        }
+      }
+    },
+    "FILTERS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FILTROS"
+          }
+        }
+      }
+    },
+    "FORMAT": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FORMATO"
+          }
+        }
+      }
+    },
+    "FROM": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DESDE"
+          }
+        }
+      }
+    },
+    "FULL DISK ACCESS REQUIRED": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SE REQUIERE ACCESO AL DISCO COMPLETO"
+          }
+        }
+      }
+    },
+    "Filter": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtro"
+          }
+        }
+      }
+    },
+    "Filter Mode": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo de filtro"
+          }
+        }
+      }
+    },
+    "Filter by how long each session lasted": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtrar por la duración de cada sesión"
+          }
+        }
+      }
+    },
+    "Filter data to specific times of day": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtrar datos a horas específicas del día"
+          }
+        }
+      }
+    },
+    "Filtered": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtrado"
+          }
+        }
+      }
+    },
+    "Filtering: %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtrando: %@"
+          }
+        }
+      }
+    },
+    "Filters": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtros"
+          }
+        }
+      }
+    },
+    "Fixed Dates": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fechas fijas"
+          }
+        }
+      }
+    },
+    "Flat Array": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Matriz plana"
+          }
+        }
+      }
+    },
+    "Focus Blocks": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bloques de concentración"
+          }
+        }
+      }
+    },
+    "For developers and automation": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para desarrolladores y automatización"
+          }
+        }
+      }
+    },
+    "Force Local Sync": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forzar sincronización local"
+          }
+        }
+      }
+    },
+    "Format": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formato"
+          }
+        }
+      }
+    },
+    "From": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desde"
+          }
+        }
+      }
+    },
+    "From synced devices": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desde dispositivos sincronizados"
+          }
+        }
+      }
+    },
+    "General": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "General"
+          }
+        }
+      }
+    },
+    "Get Screen Time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtener Tiempo de pantalla"
+          }
+        }
+      }
+    },
+    "Get Started": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empezar"
+          }
+        }
+      }
+    },
+    "Get notified about usage patterns": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recibe notificaciones sobre patrones de uso"
+          }
+        }
+      }
+    },
+    "Get reminders to check your screen time.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recibe recordatorios para revisar tu tiempo de pantalla."
+          }
+        }
+      }
+    },
+    "GitHub (GFM)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GitHub (GFM)"
+          }
+        }
+      }
+    },
+    "Grant Permission": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conceder permiso"
+          }
+        }
+      }
+    },
+    "Group by": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agrupar por"
+          }
+        }
+      }
+    },
+    "HOUR": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HORA"
+          }
+        }
+      }
+    },
+    "HOURLY": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "POR HORA"
+          }
+        }
+      }
+    },
+    "HOURLY BREAKDOWN": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DESGLOSE POR HORA"
+          }
+        }
+      }
+    },
+    "HOURLY BREAKDOWN — TOP 5 APPS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DESGLOSE POR HORA — 5 PRINCIPALES APPS"
+          }
+        }
+      }
+    },
+    "HOURLY DISTRIBUTION": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DISTRIBUCIÓN POR HORA"
+          }
+        }
+      }
+    },
+    "HOURLY USAGE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "USO POR HORA"
+          }
+        }
+      }
+    },
+    "HTML Tables": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tablas HTML"
+          }
+        }
+      }
+    },
+    "Heatmap": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mapa de calor"
+          }
+        }
+      }
+    },
+    "Hidden": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oculto"
+          }
+        }
+      }
+    },
+    "Hour": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hora"
+          }
+        }
+      }
+    },
+    "Hourly usage: %@ total": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uso por hora: %@ total"
+          }
+        }
+      }
+    },
+    "Hours": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horas"
+          }
+        }
+      }
+    },
+    "How often you switch between apps each hour": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Con qué frecuencia cambias entre apps cada hora"
+          }
+        }
+      }
+    },
+    "Human-readable config": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuración legible"
+          }
+        }
+      }
+    },
+    "INSIGHTS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PERSPECTIVAS"
+          }
+        }
+      }
+    },
+    "ISO 8601 Date+Hour": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ISO 8601 fecha+hora"
+          }
+        }
+      }
+    },
+    "ISO 8601 Full": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ISO 8601 completo"
+          }
+        }
+      }
+    },
+    "Inactive": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inactivo"
+          }
+        }
+      }
+    },
+    "Include only": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incluir solo"
+          }
+        }
+      }
+    },
+    "Individual session records": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registros individuales de sesiones"
+          }
+        }
+      }
+    },
+    "Insight %lld: Some interesting data point": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Insight %lld: Un dato interesante"
+          }
+        }
+      }
+    },
+    "Insights scroll continuously, pause on hover": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las perspectivas se desplazan continuamente; pausa al pasar el cursor"
+          }
+        }
+      }
+    },
+    "JSON": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON"
+          }
+        }
+      }
+    },
+    "Jump to Now": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saltar a ahora"
+          }
+        }
+      }
+    },
+    "Jump to Today": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saltar a hoy"
+          }
+        }
+      }
+    },
+    "Jump to today": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saltar a hoy"
+          }
+        }
+      }
+    },
+    "Knowledge base": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base de conocimiento"
+          }
+        }
+      }
+    },
+    "LAST SEEN": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ÚLTIMA VEZ"
+          }
+        }
+      }
+    },
+    "LESS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MENOS"
+          }
+        }
+      }
+    },
+    "LONGEST SESSION": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SESIÓN MÁS LARGA"
+          }
+        }
+      }
+    },
+    "Last 30 Days": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Últimos 30 días"
+          }
+        }
+      }
+    },
+    "Last 7 Days": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Últimos 7 días"
+          }
+        }
+      }
+    },
+    "Last Month": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mes pasado"
+          }
+        }
+      }
+    },
+    "Last Week": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semana pasada"
+          }
+        }
+      }
+    },
+    "Last sync: %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última sincronización: %@"
+          }
+        }
+      }
+    },
+    "Last updated %@ ago": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizado hace %@"
+          }
+        }
+      }
+    },
+    "Late Night": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Madrugada"
+          }
+        }
+      }
+    },
+    "Late Night (10 PM – 5 AM)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Madrugada (10 p.m. – 5 a.m.)"
+          }
+        }
+      }
+    },
+    "Least Used": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menos usado"
+          }
+        }
+      }
+    },
+    "Less": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menos"
+          }
+        }
+      }
+    },
+    "Loading Screen Time...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando tiempo de pantalla..."
+          }
+        }
+      }
+    },
+    "Loading pages...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando páginas..."
+          }
+        }
+      }
+    },
+    "Loading web history...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando historial web..."
+          }
+        }
+      }
+    },
+    "Longest session: %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesión más larga: %@"
+          }
+        }
+      }
+    },
+    "MAP APPS TO CATEGORIES LOCALLY. LEAVE BLANK FOR UNCATEGORIZED.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ASIGNA APPS A CATEGORÍAS LOCALMENTE. DEJA EN BLANCO PARA SIN CATEGORÍA."
+          }
+        }
+      }
+    },
+    "MONTH OVERVIEW": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RESUMEN DEL MES"
+          }
+        }
+      }
+    },
+    "MORE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MÁS"
+          }
+        }
+      }
+    },
+    "Manual scroll": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desplazamiento manual"
+          }
+        }
+      }
+    },
+    "Mapped": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asignado"
+          }
+        }
+      }
+    },
+    "Mappings are edited from the Apps & Categories view. Single source of truth — no conflicting state.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las asignaciones se editan desde la vista Apps y categorías. Fuente única de verdad — sin estados conflictivos."
+          }
+        }
+      }
+    },
+    "Markdown": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Markdown"
+          }
+        }
+      }
+    },
+    "Maximum": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Máximo"
+          }
+        }
+      }
+    },
+    "Maybe Later": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quizás más tarde"
+          }
+        }
+      }
+    },
+    "Menu bar item is hidden": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El ítem de la barra de menús está oculto"
+          }
+        }
+      }
+    },
+    "Menu bar item shows today's screen time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El ítem de la barra de menús muestra el tiempo de pantalla de hoy"
+          }
+        }
+      }
+    },
+    "Metric": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Métrica"
+          }
+        }
+      }
+    },
+    "Minimum": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mínimo"
+          }
+        }
+      }
+    },
+    "Minutes": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minutos"
+          }
+        }
+      }
+    },
+    "Month": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mes"
+          }
+        }
+      }
+    },
+    "Monthly": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mensual"
+          }
+        }
+      }
+    },
+    "Monthly Trend": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tendencia mensual"
+          }
+        }
+      }
+    },
+    "More": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más"
+          }
+        }
+      }
+    },
+    "Morning": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mañana"
+          }
+        }
+      }
+    },
+    "Most Frequent": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más frecuente"
+          }
+        }
+      }
+    },
+    "Most Used": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más usado"
+          }
+        }
+      }
+    },
+    "Most common app-to-app switches": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambios de app a app más comunes"
+          }
+        }
+      }
+    },
+    "Most frequent app switches in this period": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambios de app más frecuentes en este período"
+          }
+        }
+      }
+    },
+    "Most visited domains": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dominios más visitados"
+          }
+        }
+      }
+    },
+    "N/A": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "N/D"
+          }
+        }
+      }
+    },
+    "NAME": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NOMBRE"
+          }
+        }
+      }
+    },
+    "NO ACTIVITY RECORDED.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NO HAY ACTIVIDAD REGISTRADA."
+          }
+        }
+      }
+    },
+    "NO APP DATA": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIN DATOS DE APP"
+          }
+        }
+      }
+    },
+    "NO APP DATA FOR THIS PERIOD.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NO HAY DATOS DE APPS PARA ESTE PERÍODO."
+          }
+        }
+      }
+    },
+    "NO APP DATA.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIN DATOS DE APP."
+          }
+        }
+      }
+    },
+    "NO APP USAGE IN THIS RANGE.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIN USO DE APPS EN ESTE RANGO."
+          }
+        }
+      }
+    },
+    "NO APPS AVAILABLE.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NO HAY APPS DISPONIBLES."
+          }
+        }
+      }
+    },
+    "NO BROWSING HISTORY FOR THIS PERIOD.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NO HAY HISTORIAL DE NAVEGACIÓN PARA ESTE PERÍODO."
+          }
+        }
+      }
+    },
+    "NO CATEGORIES AVAILABLE.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NO HAY CATEGORÍAS DISPONIBLES."
+          }
+        }
+      }
+    },
+    "NO DATA FOR THIS PERIOD.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NO HAY DATOS PARA ESTE PERÍODO."
+          }
+        }
+      }
+    },
+    "NO DATA YET": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AÚN NO HAY DATOS"
+          }
+        }
+      }
+    },
+    "NO DOMAIN DATA FOR THIS PERIOD.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NO HAY DATOS DE DOMINIOS PARA ESTE PERÍODO."
+          }
+        }
+      }
+    },
+    "NO SCREEN TIME": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SIN TIEMPO DE PANTALLA"
+          }
+        }
+      }
+    },
+    "NO SCREEN TIME RECORDED.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NO HAY TIEMPO DE PANTALLA REGISTRADO."
+          }
+        }
+      }
+    },
+    "Name (optional)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre (opcional)"
+          }
+        }
+      }
+    },
+    "Nested with Metadata": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anidado con metadatos"
+          }
+        }
+      }
+    },
+    "Never": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nunca"
+          }
+        }
+      }
+    },
+    "New Filter Preset": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo ajuste de filtro"
+          }
+        }
+      }
+    },
+    "New Preset": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo ajuste"
+          }
+        }
+      }
+    },
+    "Next %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siguiente %@"
+          }
+        }
+      }
+    },
+    "Next Period": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Período siguiente"
+          }
+        }
+      }
+    },
+    "Night": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Madrugada"
+          }
+        }
+      }
+    },
+    "No App Data": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin datos de app"
+          }
+        }
+      }
+    },
+    "No Devices Selected": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay dispositivos seleccionados"
+          }
+        }
+      }
+    },
+    "No Web History": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin historial web"
+          }
+        }
+      }
+    },
+    "No activity data": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin datos de actividad"
+          }
+        }
+      }
+    },
+    "No activity recorded for this period.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay actividad registrada para este período."
+          }
+        }
+      }
+    },
+    "No app data for this period.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay datos de apps para este período."
+          }
+        }
+      }
+    },
+    "No apps match your filters.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ninguna app coincide con tus filtros."
+          }
+        }
+      }
+    },
+    "No categories defined yet.\nAssign apps to categories using the edit button.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay categorías definidas.\nAsigna apps a categorías usando el botón de editar."
+          }
+        }
+      }
+    },
+    "No data": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin datos"
+          }
+        }
+      }
+    },
+    "No data available": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay datos disponibles"
+          }
+        }
+      }
+    },
+    "No data for selected cells.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay datos para las celdas seleccionadas."
+          }
+        }
+      }
+    },
+    "No data for this period": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay datos para este período"
+          }
+        }
+      }
+    },
+    "No device data": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin datos del dispositivo"
+          }
+        }
+      }
+    },
+    "No devices synced yet": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay dispositivos sincronizados"
+          }
+        }
+      }
+    },
+    "No page details available": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay detalles de página disponibles"
+          }
+        }
+      }
+    },
+    "No screen time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin tiempo de pantalla"
+          }
+        }
+      }
+    },
+    "No screen time recorded yet": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún no hay tiempo de pantalla registrado"
+          }
+        }
+      }
+    },
+    "No sessions": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin sesiones"
+          }
+        }
+      }
+    },
+    "No sessions recorded for this period.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay sesiones registradas para este período."
+          }
+        }
+      }
+    },
+    "No subscriptions, ever": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin suscripciones, nunca"
+          }
+        }
+      }
+    },
+    "No time filters – all hours included": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin filtros de tiempo – todas las horas incluidas"
+          }
+        }
+      }
+    },
+    "No time ranges set — showing all hours": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin rangos de tiempo definidos — mostrando todas las horas"
+          }
+        }
+      }
+    },
+    "No transitions recorded": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay transiciones registradas"
+          }
+        }
+      }
+    },
+    "No trend data available.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay datos de tendencias disponibles."
+          }
+        }
+      }
+    },
+    "Not Requested": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No solicitado"
+          }
+        }
+      }
+    },
+    "Not available": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No disponible"
+          }
+        }
+      }
+    },
+    "Not enough data for weekday averages.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos insuficientes para los promedios por día."
+          }
+        }
+      }
+    },
+    "Not installed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No instalado"
+          }
+        }
+      }
+    },
+    "Not synced": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No sincronizado"
+          }
+        }
+      }
+    },
+    "Notes & docs": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notas y documentos"
+          }
+        }
+      }
+    },
+    "Notifications": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notificaciones"
+          }
+        }
+      }
+    },
+    "Notifications Disabled": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notificaciones deshabilitadas"
+          }
+        }
+      }
+    },
+    "Number of sessions grouped by how long each lasted": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Número de sesiones agrupadas por su duración"
+          }
+        }
+      }
+    },
+    "OK": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "Obsidian": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obsidian"
+          }
+        }
+      }
+    },
+    "Only aggregate usage times": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo tiempos de uso agregados"
+          }
+        }
+      }
+    },
+    "Only aggregated daily summaries are synced. Raw session data stays local.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo se sincronizan resúmenes diarios agregados. Los datos de sesiones sin procesar permanecen locales."
+          }
+        }
+      }
+    },
+    "Open Settings": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Ajustes"
+          }
+        }
+      }
+    },
+    "Open time.md": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir time.md"
+          }
+        }
+      }
+    },
+    "Open time.md on your Mac to sync data": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre time.md en tu Mac para sincronizar los datos"
+          }
+        }
+      }
+    },
+    "Opens the Devices tab to toggle which devices are included": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre la pestaña Dispositivos para alternar qué dispositivos se incluyen"
+          }
+        }
+      }
+    },
+    "Other": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otro"
+          }
+        }
+      }
+    },
+    "Overview": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumen"
+          }
+        }
+      }
+    },
+    "PAGE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PÁGINA"
+          }
+        }
+      }
+    },
+    "PEAK": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PICO"
+          }
+        }
+      }
+    },
+    "PEAK DAY": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DÍA PICO"
+          }
+        }
+      }
+    },
+    "PEAK HOUR": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HORA PICO"
+          }
+        }
+      }
+    },
+    "PROJECTS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PROYECTOS"
+          }
+        }
+      }
+    },
+    "Peak Avg": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prom. pico"
+          }
+        }
+      }
+    },
+    "Peak Hour": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hora pico"
+          }
+        }
+      }
+    },
+    "Peak Switches": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambios pico"
+          }
+        }
+      }
+    },
+    "Peak hour: %@, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peak hour: %1$@, %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hora pico: %1$@, %2$@"
+          }
+        }
+      }
+    },
+    "Period": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Período"
+          }
+        }
+      }
+    },
+    "Period Comparison": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comparación de períodos"
+          }
+        }
+      }
+    },
+    "Permission Granted!": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Permiso concedido!"
+          }
+        }
+      }
+    },
+    "Pie": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pastel"
+          }
+        }
+      }
+    },
+    "Pipe (|)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Barra vertical (|)"
+          }
+        }
+      }
+    },
+    "Previous %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anterior %@"
+          }
+        }
+      }
+    },
+    "Previous Period": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Período anterior"
+          }
+        }
+      }
+    },
+    "Privacy First": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacidad primero"
+          }
+        }
+      }
+    },
+    "Privacy Policy": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Política de privacidad"
+          }
+        }
+      }
+    },
+    "Processing...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Procesando..."
+          }
+        }
+      }
+    },
+    "Projects": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proyectos"
+          }
+        }
+      }
+    },
+    "QUICK SELECT": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SELECCIÓN RÁPIDA"
+          }
+        }
+      }
+    },
+    "Quick Select": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selección rápida"
+          }
+        }
+      }
+    },
+    "Quit": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salir"
+          }
+        }
+      }
+    },
+    "REPORT DATA": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DATOS DEL INFORME"
+          }
+        }
+      }
+    },
+    "Range": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rango"
+          }
+        }
+      }
+    },
+    "Rate on App Store": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valorar en el App Store"
+          }
+        }
+      }
+    },
+    "Raw Sessions": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesiones sin procesar"
+          }
+        }
+      }
+    },
+    "Refresh": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizar"
+          }
+        }
+      }
+    },
+    "Refresh Data": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizar datos"
+          }
+        }
+      }
+    },
+    "Relative": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relativo"
+          }
+        }
+      }
+    },
+    "Reminder Time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hora del recordatorio"
+          }
+        }
+      }
+    },
+    "Reminder at %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recordatorio a las %@"
+          }
+        }
+      }
+    },
+    "Remove": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar"
+          }
+        }
+      }
+    },
+    "Reports": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Informes"
+          }
+        }
+      }
+    },
+    "Request Permission": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitar permiso"
+          }
+        }
+      }
+    },
+    "Requesting permission...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicitando permiso..."
+          }
+        }
+      }
+    },
+    "Requests permission to track your iPhone usage": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solicita permiso para rastrear el uso de tu iPhone"
+          }
+        }
+      }
+    },
+    "Reset": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer"
+          }
+        }
+      }
+    },
+    "Reset Onboarding": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer introducción"
+          }
+        }
+      }
+    },
+    "Reset to default (~/Downloads/time.md Exports)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer al predeterminado (~/Downloads/time.md Exports)"
+          }
+        }
+      }
+    },
+    "Restore Purchase": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar compra"
+          }
+        }
+      }
+    },
+    "Review": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisar"
+          }
+        }
+      }
+    },
+    "Rich Analytics": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analíticas avanzadas"
+          }
+        }
+      }
+    },
+    "Rules": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reglas"
+          }
+        }
+      }
+    },
+    "SAVE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GUARDAR"
+          }
+        }
+      }
+    },
+    "SELECT A DAY FOR DETAILS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SELECCIONA UN DÍA PARA VER LOS DETALLES"
+          }
+        }
+      }
+    },
+    "SELECT APPS BELOW TO CROSS-FILTER ALL VIEWS.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SELECCIONA APPS ABAJO PARA FILTRAR TODAS LAS VISTAS."
+          }
+        }
+      }
+    },
+    "SELECT CATEGORIES BELOW TO CROSS-FILTER ALL VIEWS.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SELECCIONA CATEGORÍAS ABAJO PARA FILTRAR TODAS LAS VISTAS."
+          }
+        }
+      }
+    },
+    "SELECTED": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SELECCIONADO"
+          }
+        }
+      }
+    },
+    "SELECTED CELLS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CELDAS SELECCIONADAS"
+          }
+        }
+      }
+    },
+    "SESS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SESIO"
+          }
+        }
+      }
+    },
+    "SESSION DURATION": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DURACIÓN DE SESIÓN"
+          }
+        }
+      }
+    },
+    "SESSION DURATION DISTRIBUTION": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DISTRIBUCIÓN DE DURACIÓN DE SESIÓN"
+          }
+        }
+      }
+    },
+    "SESSIONS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SESIONES"
+          }
+        }
+      }
+    },
+    "SHARE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "COMPARTIR"
+          }
+        }
+      }
+    },
+    "SHORT NAME": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NOMBRE CORTO"
+          }
+        }
+      }
+    },
+    "SHOWING LATEST 500 VISITS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MOSTRANDO LAS ÚLTIMAS 500 VISITAS"
+          }
+        }
+      }
+    },
+    "SRC": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ORG"
+          }
+        }
+      }
+    },
+    "START DATE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FECHA DE INICIO"
+          }
+        }
+      }
+    },
+    "STATS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ESTADÍSTICAS"
+          }
+        }
+      }
+    },
+    "SUGGESTIONS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SUGERENCIAS"
+          }
+        }
+      }
+    },
+    "SUMMARY": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RESUMEN"
+          }
+        }
+      }
+    },
+    "SYNC STATUS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ESTADO DE SINCRONIZACIÓN"
+          }
+        }
+      }
+    },
+    "Same as %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Igual que %@"
+          }
+        }
+      }
+    },
+    "Save": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar"
+          }
+        }
+      }
+    },
+    "Screen Time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo de pantalla"
+          }
+        }
+      }
+    },
+    "Screen Time Analytics": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analíticas de Tiempo de pantalla"
+          }
+        }
+      }
+    },
+    "Screen Time tracking is active. Your iPhone usage data will be captured and synced.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El rastreo del Tiempo de pantalla está activo. Los datos de uso de tu iPhone se capturarán y sincronizarán."
+          }
+        }
+      }
+    },
+    "Search URLs, titles, domains…": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar URLs, títulos, dominios…"
+          }
+        }
+      }
+    },
+    "Search apps": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar apps"
+          }
+        }
+      }
+    },
+    "Search apps or categories...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar apps o categorías..."
+          }
+        }
+      }
+    },
+    "Search apps...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar apps..."
+          }
+        }
+      }
+    },
+    "Seconds": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segundos"
+          }
+        }
+      }
+    },
+    "See All": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver todo"
+          }
+        }
+      }
+    },
+    "See all devices in one view": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver todos los dispositivos en una sola vista"
+          }
+        }
+      }
+    },
+    "See your data on all devices": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ve tus datos en todos los dispositivos"
+          }
+        }
+      }
+    },
+    "Select All": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionar todo"
+          }
+        }
+      }
+    },
+    "Select Apps": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionar apps"
+          }
+        }
+      }
+    },
+    "Select Categories": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionar categorías"
+          }
+        }
+      }
+    },
+    "Select apps to filter": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionar apps para filtrar"
+          }
+        }
+      }
+    },
+    "Select devices in the Devices tab to see app usage": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona dispositivos en la pestaña Dispositivos para ver el uso de apps"
+          }
+        }
+      }
+    },
+    "Select devices to see trends": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona dispositivos para ver tendencias"
+          }
+        }
+      }
+    },
+    "Select synced devices to see trends": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona dispositivos sincronizados para ver tendencias"
+          }
+        }
+      }
+    },
+    "Selected": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionado"
+          }
+        }
+      }
+    },
+    "Semicolon (;)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Punto y coma (;)"
+          }
+        }
+      }
+    },
+    "Session Count": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recuento de sesiones"
+          }
+        }
+      }
+    },
+    "Session Distribution": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Distribución de sesiones"
+          }
+        }
+      }
+    },
+    "Session Duration": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duración de sesión"
+          }
+        }
+      }
+    },
+    "Session length distribution": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Distribución de duración de sesiones"
+          }
+        }
+      }
+    },
+    "Sessions": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesiones"
+          }
+        }
+      }
+    },
+    "Setext (underline)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setext (subrayado)"
+          }
+        }
+      }
+    },
+    "Settings": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes"
+          }
+        }
+      }
+    },
+    "Setup Screen Time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurar Tiempo de pantalla"
+          }
+        }
+      }
+    },
+    "Share Today's Summary": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir resumen de hoy"
+          }
+        }
+      }
+    },
+    "Share Weekly Summary": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir resumen semanal"
+          }
+        }
+      }
+    },
+    "Share a text summary of today": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir un resumen de hoy en texto"
+          }
+        }
+      }
+    },
+    "Share your week's screen time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compartir el tiempo de pantalla de tu semana"
+          }
+        }
+      }
+    },
+    "Short name extracts the last component of a bundle identifier (com.apple.Safari → Safari).": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El nombre corto extrae el último componente de un identificador de paquete (com.apple.Safari → Safari)."
+          }
+        }
+      }
+    },
+    "Show": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar"
+          }
+        }
+      }
+    },
+    "Show Menu Bar Item": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar ítem en la barra de menús"
+          }
+        }
+      }
+    },
+    "Show a menu bar icon for quick access to today's screen time.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muestra un icono en la barra de menús para acceder rápido al tiempo de pantalla de hoy."
+          }
+        }
+      }
+    },
+    "Shows your total screen time for %@ across selected devices": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muestra tu tiempo total de pantalla para %@ en los dispositivos seleccionados"
+          }
+        }
+      }
+    },
+    "Simple Text": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Texto simple"
+          }
+        }
+      }
+    },
+    "Skip": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Omitir"
+          }
+        }
+      }
+    },
+    "Skip for now": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Omitir por ahora"
+          }
+        }
+      }
+    },
+    "Smart Insights": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perspectivas inteligentes"
+          }
+        }
+      }
+    },
+    "Spreadsheet-compatible": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compatible con hojas de cálculo"
+          }
+        }
+      }
+    },
+    "Spreadsheet-compatible format": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Formato compatible con hojas de cálculo"
+          }
+        }
+      }
+    },
+    "Start": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicio"
+          }
+        }
+      }
+    },
+    "Start Hour": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hora de inicio"
+          }
+        }
+      }
+    },
+    "Start Time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hora de inicio"
+          }
+        }
+      }
+    },
+    "Step-by-step guide": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guía paso a paso"
+          }
+        }
+      }
+    },
+    "Structured data": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datos estructurados"
+          }
+        }
+      }
+    },
+    "Summary": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumen"
+          }
+        }
+      }
+    },
+    "Summary, top apps, categories, and trends": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumen, principales apps, categorías y tendencias"
+          }
+        }
+      }
+    },
+    "Supported browsers: Safari, Chrome, Arc, Brave, Edge": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navegadores compatibles: Safari, Chrome, Arc, Brave, Edge"
+          }
+        }
+      }
+    },
+    "Switches": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambios"
+          }
+        }
+      }
+    },
+    "Sync": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizar"
+          }
+        }
+      }
+    },
+    "Sync Error": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error de sincronización"
+          }
+        }
+      }
+    },
+    "Sync Everywhere": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizar en todos"
+          }
+        }
+      }
+    },
+    "Sync Failed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronización fallida"
+          }
+        }
+      }
+    },
+    "Sync Now": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizar ahora"
+          }
+        }
+      }
+    },
+    "Sync allows you to see combined screen time from all your devices in one place.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sincronización te permite ver el tiempo de pantalla combinado de todos tus dispositivos en un solo lugar."
+          }
+        }
+      }
+    },
+    "Sync complete!": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Sincronización completa!"
+          }
+        }
+      }
+    },
+    "Sync from your Mac to see app usage here": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincroniza desde tu Mac para ver el uso de apps aquí"
+          }
+        }
+      }
+    },
+    "Sync is end-to-end encrypted": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La sincronización está cifrada de extremo a extremo"
+          }
+        }
+      }
+    },
+    "Sync status: %lld devices, last synced %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sync status: %1$lld devices, last synced %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estado de sincronización: %1$lld dispositivos, última sincronización %2$@"
+          }
+        }
+      }
+    },
+    "Sync your screen time data across devices. View combined usage from your Mac, iPhone, and iPad in one place.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincroniza tus datos de tiempo de pantalla entre dispositivos. Visualiza el uso combinado de tu Mac, iPhone e iPad en un solo lugar."
+          }
+        }
+      }
+    },
+    "Synced": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizado"
+          }
+        }
+      }
+    },
+    "Synced %@ ago": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizado hace %@"
+          }
+        }
+      }
+    },
+    "Synced Devices: %lld": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivos sincronizados: %lld"
+          }
+        }
+      }
+    },
+    "Synced from %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizado desde %@"
+          }
+        }
+      }
+    },
+    "Synced successfully": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizado correctamente"
+          }
+        }
+      }
+    },
+    "Syncing...": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronizando..."
+          }
+        }
+      }
+    },
+    "THIS WEEK": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ESTA SEMANA"
+          }
+        }
+      }
+    },
+    "TIME": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TIEMPO"
+          }
+        }
+      }
+    },
+    "TIME DISTRIBUTION": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DISTRIBUCIÓN DE TIEMPO"
+          }
+        }
+      }
+    },
+    "TIME OF DAY": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HORA DEL DÍA"
+          }
+        }
+      }
+    },
+    "TIME TREND": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TENDENCIA DE TIEMPO"
+          }
+        }
+      }
+    },
+    "TIMELINE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CRONOLOGÍA"
+          }
+        }
+      }
+    },
+    "TITLE / URL": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TÍTULO / URL"
+          }
+        }
+      }
+    },
+    "TO": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HASTA"
+          }
+        }
+      }
+    },
+    "TODAY": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HOY"
+          }
+        }
+      }
+    },
+    "TOML (+++)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TOML (+++)"
+          }
+        }
+      }
+    },
+    "TOP APP": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "APP PRINCIPAL"
+          }
+        }
+      }
+    },
+    "TOP APPS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PRINCIPALES APPS"
+          }
+        }
+      }
+    },
+    "TOP APPS IN SELECTION": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PRINCIPALES APPS EN LA SELECCIÓN"
+          }
+        }
+      }
+    },
+    "TOP DOMAINS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PRINCIPALES DOMINIOS"
+          }
+        }
+      }
+    },
+    "TOP TRANSITIONS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PRINCIPALES TRANSICIONES"
+          }
+        }
+      }
+    },
+    "TOTAL": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TOTAL"
+          }
+        }
+      }
+    },
+    "TOTAL SCREEN TIME": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TIEMPO TOTAL DE PANTALLA"
+          }
+        }
+      }
+    },
+    "TOTAL TIME": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TIEMPO TOTAL"
+          }
+        }
+      }
+    },
+    "TOTAL: %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TOTAL: %@"
+          }
+        }
+      }
+    },
+    "TYPICAL DAY — HOURLY USAGE": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DÍA TÍPICO — USO POR HORA"
+          }
+        }
+      }
+    },
+    "Tab": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tabulación"
+          }
+        }
+      }
+    },
+    "Tap to Allow": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toca para permitir"
+          }
+        }
+      }
+    },
+    "The menu bar item displays your daily screen time and allows quick sync.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El ítem de la barra de menús muestra tu tiempo de pantalla diario y permite sincronización rápida."
+          }
+        }
+      }
+    },
+    "This Device": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo"
+          }
+        }
+      }
+    },
+    "This Month": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este mes"
+          }
+        }
+      }
+    },
+    "This Week": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta semana"
+          }
+        }
+      }
+    },
+    "This Year": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este año"
+          }
+        }
+      }
+    },
+    "This device": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este dispositivo"
+          }
+        }
+      }
+    },
+    "Time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo"
+          }
+        }
+      }
+    },
+    "Time Period": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Período de tiempo"
+          }
+        }
+      }
+    },
+    "Time Range": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rango de tiempo"
+          }
+        }
+      }
+    },
+    "Time of Day": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hora del día"
+          }
+        }
+      }
+    },
+    "Time spent in each app per hour of day": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo en cada app por hora del día"
+          }
+        }
+      }
+    },
+    "Timeline": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cronología"
+          }
+        }
+      }
+    },
+    "To": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hasta"
+          }
+        }
+      }
+    },
+    "To track your iPhone usage, time.md needs Screen Time permission. Here's what that means:": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para rastrear el uso de tu iPhone, time.md necesita permiso de Tiempo de pantalla. Esto significa:"
+          }
+        }
+      }
+    },
+    "Today": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hoy"
+          }
+        }
+      }
+    },
+    "Today Total: %lfs": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total de hoy: %lfs"
+          }
+        }
+      }
+    },
+    "Toggle Sidebar": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alternar barra lateral"
+          }
+        }
+      }
+    },
+    "Toggle Sidebar ⌘B": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alternar barra lateral ⌘B"
+          }
+        }
+      }
+    },
+    "Top Apps": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Principales apps"
+          }
+        }
+      }
+    },
+    "Top Domains": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Principales dominios"
+          }
+        }
+      }
+    },
+    "Top Project": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Proyecto principal"
+          }
+        }
+      }
+    },
+    "Top app: %@, %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top app: %1$@, %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App principal: %1$@, %2$@"
+          }
+        }
+      }
+    },
+    "Total": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total"
+          }
+        }
+      }
+    },
+    "Total Apps": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total de apps"
+          }
+        }
+      }
+    },
+    "Total Screen Time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo total de pantalla"
+          }
+        }
+      }
+    },
+    "Total Seconds": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Segundos totales"
+          }
+        }
+      }
+    },
+    "Total Sessions": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesiones totales"
+          }
+        }
+      }
+    },
+    "Total Switches": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambios totales"
+          }
+        }
+      }
+    },
+    "Total Time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo total"
+          }
+        }
+      }
+    },
+    "Total Transitions": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transiciones totales"
+          }
+        }
+      }
+    },
+    "Total Visits": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visitas totales"
+          }
+        }
+      }
+    },
+    "Total screen time per hour, averaged across selected days": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo total de pantalla por hora, promediado en los días seleccionados"
+          }
+        }
+      }
+    },
+    "Total time and averages": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo total y promedios"
+          }
+        }
+      }
+    },
+    "Track Your Screen Time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rastrea tu tiempo de pantalla"
+          }
+        }
+      }
+    },
+    "Track time spent in each app": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rastrea el tiempo en cada app"
+          }
+        }
+      }
+    },
+    "Track usage 24/7": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rastrea el uso 24/7"
+          }
+        }
+      }
+    },
+    "Tracking Status": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estado del rastreo"
+          }
+        }
+      }
+    },
+    "Tracking disabled": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rastreo desactivado"
+          }
+        }
+      }
+    },
+    "Tracking enabled": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rastreo activado"
+          }
+        }
+      }
+    },
+    "Transitions": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Transiciones"
+          }
+        }
+      }
+    },
+    "Trend": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tendencia"
+          }
+        }
+      }
+    },
+    "Trends": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tendencias"
+          }
+        }
+      }
+    },
+    "Trends, heatmaps, and insights": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tendencias, mapas de calor y perspectivas"
+          }
+        }
+      }
+    },
+    "Typical Day": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Día típico"
+          }
+        }
+      }
+    },
+    "UNABLE TO LOAD HISTORY": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NO SE PUDO CARGAR EL HISTORIAL"
+          }
+        }
+      }
+    },
+    "Understand your digital habits with beautiful visualizations of your screen time data. Privacy-first, local-only analytics for your Apple devices.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprende tus hábitos digitales con bellas visualizaciones de tus datos de tiempo de pantalla. Privacidad primero, analíticas solo locales para tus dispositivos Apple."
+          }
+        }
+      }
+    },
+    "Unique Apps": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps únicas"
+          }
+        }
+      }
+    },
+    "Unique Pairs": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pares únicos"
+          }
+        }
+      }
+    },
+    "Unix Timestamp": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marca de tiempo Unix"
+          }
+        }
+      }
+    },
+    "Unlimited screen time analytics": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analíticas ilimitadas de tiempo de pantalla"
+          }
+        }
+      }
+    },
+    "Unlock time.md": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquea time.md"
+          }
+        }
+      }
+    },
+    "Unmapped only (%lld)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo sin asignar (%lld)"
+          }
+        }
+      }
+    },
+    "Usage by weekday and hour": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uso por día de la semana y hora"
+          }
+        }
+      }
+    },
+    "Usage time by category": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo de uso por categoría"
+          }
+        }
+      }
+    },
+    "Usage time per application": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo de uso por aplicación"
+          }
+        }
+      }
+    },
+    "Using %@ preset": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usando ajuste %@"
+          }
+        }
+      }
+    },
+    "VISITS": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VISITAS"
+          }
+        }
+      }
+    },
+    "Value": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Valor"
+          }
+        }
+      }
+    },
+    "Version 1.0.0 (Build 1)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versión 1.0.0 (Compilación 1)"
+          }
+        }
+      }
+    },
+    "Viewing current period": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Viendo el período actual"
+          }
+        }
+      }
+    },
+    "Visible": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visible"
+          }
+        }
+      }
+    },
+    "Visits": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visitas"
+          }
+        }
+      }
+    },
+    "WEEK TOTAL": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TOTAL SEMANAL"
+          }
+        }
+      }
+    },
+    "WEEKDAY AVERAGES": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PROMEDIOS POR DÍA"
+          }
+        }
+      }
+    },
+    "WEEKDAY × HOUR ACTIVITY": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ACTIVIDAD POR DÍA × HORA"
+          }
+        }
+      }
+    },
+    "We can't see your content": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No podemos ver tu contenido"
+          }
+        }
+      }
+    },
+    "Web": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Web"
+          }
+        }
+      }
+    },
+    "Web History": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Historial web"
+          }
+        }
+      }
+    },
+    "Web browsing history is collected from your Mac and synced via iCloud. Open time.md on your Mac to start tracking.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El historial de navegación web se recopila en tu Mac y se sincroniza vía iCloud. Abre time.md en tu Mac para empezar a rastrear."
+          }
+        }
+      }
+    },
+    "Week": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semana"
+          }
+        }
+      }
+    },
+    "Weekday": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Día de la semana"
+          }
+        }
+      }
+    },
+    "Weekdays": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Días laborables"
+          }
+        }
+      }
+    },
+    "Weekdays Only": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo días laborables"
+          }
+        }
+      }
+    },
+    "Weekend": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fin de semana"
+          }
+        }
+      }
+    },
+    "Weekends Only": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo fines de semana"
+          }
+        }
+      }
+    },
+    "Weekly": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Semanal"
+          }
+        }
+      }
+    },
+    "Weekly Trend": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tendencia semanal"
+          }
+        }
+      }
+    },
+    "When Needed": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando sea necesario"
+          }
+        }
+      }
+    },
+    "When auto-scroll is enabled, hover over the ticker to pause it.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuando el desplazamiento automático está activado, pasa el cursor sobre el marcador para pausarlo."
+          }
+        }
+      }
+    },
+    "Work": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trabajo"
+          }
+        }
+      }
+    },
+    "Work Hours": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horas laborales"
+          }
+        }
+      }
+    },
+    "Work Hours (9 AM – 5 PM)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horas laborales (9 a.m. – 5 p.m.)"
+          }
+        }
+      }
+    },
+    "YAML": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YAML"
+          }
+        }
+      }
+    },
+    "YAML (---)": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "YAML (---)"
+          }
+        }
+      }
+    },
+    "Year": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Año"
+          }
+        }
+      }
+    },
+    "Yearly Trend": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tendencia anual"
+          }
+        }
+      }
+    },
+    "Yesterday": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayer"
+          }
+        }
+      }
+    },
+    "You can still view your Mac's screen time data synced via iCloud. Enable iPhone tracking anytime in Settings.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aún puedes ver los datos del tiempo de pantalla de tu Mac sincronizados mediante iCloud. Habilita el rastreo del iPhone en cualquier momento en Ajustes."
+          }
+        }
+      }
+    },
+    "You're All Set!": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Todo listo!"
+          }
+        }
+      }
+    },
+    "You've used time.md for over 12 hours.\nUnlock lifetime access with a one-time purchase.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Has usado time.md por más de 12 horas.\nDesbloquea el acceso de por vida con una compra única."
+          }
+        }
+      }
+    },
+    "Your free trial has ended": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu período de prueba ha terminado"
+          }
+        }
+      }
+    },
+    "e.g. %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "p. ej. %@"
+          }
+        }
+      }
+    },
+    "iCloud Available": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud disponible"
+          }
+        }
+      }
+    },
+    "iCloud Sync": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronización con iCloud"
+          }
+        }
+      }
+    },
+    "iCloud Sync Active": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronización con iCloud activa"
+          }
+        }
+      }
+    },
+    "iCloud Sync Disabled": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronización con iCloud deshabilitada"
+          }
+        }
+      }
+    },
+    "iCloud Unavailable": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud no disponible"
+          }
+        }
+      }
+    },
+    "iCloud sync across devices": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sincronización con iCloud entre dispositivos"
+          }
+        }
+      }
+    },
+    "iPhone": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhone"
+          }
+        }
+      }
+    },
+    "iPhone Apps": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps del iPhone"
+          }
+        }
+      }
+    },
+    "iPhone Screen Time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo de pantalla del iPhone"
+          }
+        }
+      }
+    },
+    "iPhone Screen Time for today": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiempo de pantalla del iPhone para hoy"
+          }
+        }
+      }
+    },
+    "iPhone Tracking Unavailable": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rastreo del iPhone no disponible"
+          }
+        }
+      }
+    },
+    "iPhone Usage": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uso del iPhone"
+          }
+        }
+      }
+    },
+    "iPhone tracking is not enabled": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El rastreo del iPhone no está habilitado"
+          }
+        }
+      }
+    },
+    "iPhone • Live Screen Time": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iPhone • Tiempo de pantalla en vivo"
+          }
+        }
+      }
+    },
+    "one-time purchase, forever yours": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "compra única, tuyo para siempre"
+          }
+        }
+      }
+    },
+    "time.md": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "time.md"
+          }
+        }
+      }
+    },
+    "time.md can now track your screen time.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "time.md ahora puede rastrear tu tiempo de pantalla."
+          }
+        }
+      }
+    },
+    "time.md can track your iPhone screen time directly, giving you detailed insights into your digital habits.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "time.md puede rastrear directamente el tiempo de pantalla de tu iPhone, dándote información detallada sobre tus hábitos digitales."
+          }
+        }
+      }
+    },
+    "time.md is local-first. Your raw data stays on this machine. iCloud sync only shares aggregated daily summaries.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "time.md es local primero. Tus datos sin procesar permanecen en esta máquina. La sincronización con iCloud solo comparte resúmenes diarios agregados."
+          }
+        }
+      }
+    },
+    "time.md will now track your screen time and sync it across your devices.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "time.md ahora rastreará tu tiempo de pantalla y lo sincronizará entre tus dispositivos."
+          }
+        }
+      }
+    },
+    "v1.0": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "v1.0"
+          }
+        }
+      }
+    },
+    "vs. previous period": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vs. período anterior"
+          }
+        }
+      }
+    },
+    "© 2026 Cody Bontecou": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "© 2026 Cody Bontecou"
+          }
+        }
+      }
+    },
+    "·": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "·"
+          }
+        }
+      }
+    },
+    "—": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "—"
+          }
+        }
+      }
+    },
+    "•": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "•"
+          }
+        }
+      }
+    },
+    "←": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "←"
+          }
+        }
+      }
+    },
+    "→": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "→"
+          }
+        }
+      }
+    },
+    "▸": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "▸"
+          }
+        }
+      }
+    },
+    "⚠": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⚠"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

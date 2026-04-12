@@ -320,13 +320,13 @@ struct TimingDetailsView: View {
         }
     }
 
-    private func statRow(label: String, value: String) -> some View {
+    private func statRow(label: LocalizedStringKey, value: String) -> some View {
         HStack {
             Text(label)
                 .font(BrutalTheme.captionMono)
                 .foregroundColor(BrutalTheme.textTertiary)
             Spacer()
-            Text(value)
+            Text(verbatim: value)
                 .font(.system(size: 12, weight: .semibold, design: .monospaced))
                 .foregroundColor(BrutalTheme.textPrimary)
         }

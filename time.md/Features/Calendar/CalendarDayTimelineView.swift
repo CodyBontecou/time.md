@@ -279,16 +279,16 @@ struct CalendarDayTimelineView: View {
     private var dayHeader: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(spacing: 0) {
-                Text(dayNumber)
+                Text(verbatim: dayNumber)
                     .font(.system(size: 34, weight: .light))
                     .foregroundColor(cal.isDateInToday(date) ? CalendarColors.todayRed : .primary)
-                Text(dayName)
+                Text(verbatim: dayName)
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(cal.isDateInToday(date) ? CalendarColors.todayRed : .secondary)
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(monthYear)
+                Text(verbatim: monthYear)
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
                 if totalDaySeconds > 0 {

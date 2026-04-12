@@ -25,6 +25,14 @@ struct TimingReportsView: View {
         case app = "By App"
         case category = "By Category"
         case day = "By Day"
+
+        var displayName: String {
+            switch self {
+            case .app: return String(localized: "By App")
+            case .category: return String(localized: "By Category")
+            case .day: return String(localized: "By Day")
+            }
+        }
     }
 
     private static let supportedFormats: [ExportFormat] = [.csv, .json, .markdown]
@@ -101,7 +109,7 @@ struct TimingReportsView: View {
         HStack(spacing: 16) {
             Picker("Group by", selection: $reportGrouping) {
                 ForEach(ReportGrouping.allCases, id: \.self) { mode in
-                    Text(mode.rawValue).tag(mode)
+                    Text(mode.displayName).tag(mode)
                 }
             }
             .pickerStyle(.segmented)
@@ -150,7 +158,7 @@ struct TimingReportsView: View {
         }
     }
 
-    private func reportStatCard(title: String, value: String, subtitle: String, color: Color) -> some View {
+    private func reportStatCard(title: LocalizedStringKey, value: String, subtitle: String, color: Color) -> some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
@@ -158,13 +166,13 @@ struct TimingReportsView: View {
                     .foregroundColor(BrutalTheme.textTertiary)
                     .tracking(1)
 
-                Text(value)
+                Text(verbatim: value)
                     .font(.system(size: 18, weight: .bold, design: .monospaced))
                     .foregroundColor(BrutalTheme.textPrimary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
 
-                Text(subtitle)
+                Text(verbatim: subtitle)
                     .font(BrutalTheme.captionMono)
                     .foregroundColor(color)
             }
@@ -395,7 +403,7 @@ struct TimingReportsView: View {
                         .frame(width: 8, height: 8)
                         .padding(.trailing, 6)
 
-                    Text(cat.category)
+                    Text(verbatim: cat.category)
                         .font(BrutalTheme.tableBody)
                         .foregroundColor(BrutalTheme.textPrimary)
                         .lineLimit(1)

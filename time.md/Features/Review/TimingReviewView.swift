@@ -24,12 +24,27 @@ struct TimingReviewView: View {
     enum GroupByMode: String, CaseIterable {
         case app = "Apps"
         case category = "Categories"
+
+        var displayName: String {
+            switch self {
+            case .app: return String(localized: "Apps")
+            case .category: return String(localized: "Categories")
+            }
+        }
     }
 
     enum ChartMode: String, CaseIterable {
         case bar = "Bar"
         case pie = "Pie"
         case trend = "Trend"
+
+        var displayName: String {
+            switch self {
+            case .bar: return String(localized: "Bar")
+            case .pie: return String(localized: "Pie")
+            case .trend: return String(localized: "Trend")
+            }
+        }
     }
 
     private var totalSeconds: Double {
@@ -93,7 +108,7 @@ struct TimingReviewView: View {
             // Group by picker
             Picker("Group by", selection: $groupBy) {
                 ForEach(GroupByMode.allCases, id: \.self) { mode in
-                    Text(mode.rawValue).tag(mode)
+                    Text(mode.displayName).tag(mode)
                 }
             }
             .pickerStyle(.segmented)
@@ -102,7 +117,7 @@ struct TimingReviewView: View {
             // Chart mode picker
             Picker("Chart", selection: $chartMode) {
                 ForEach(ChartMode.allCases, id: \.self) { mode in
-                    Text(mode.rawValue).tag(mode)
+                    Text(mode.displayName).tag(mode)
                 }
             }
             .pickerStyle(.segmented)
@@ -158,7 +173,7 @@ struct TimingReviewView: View {
                     AxisMarks(position: .leading) { value in
                         AxisValueLabel {
                             if let name = value.as(String.self) {
-                                Text(name)
+                                Text(verbatim: name)
                                     .font(BrutalTheme.captionMono)
                                     .lineLimit(1)
                             }
@@ -186,7 +201,7 @@ struct TimingReviewView: View {
                     AxisMarks(position: .leading) { value in
                         AxisValueLabel {
                             if let name = value.as(String.self) {
-                                Text(name)
+                                Text(verbatim: name)
                                     .font(BrutalTheme.captionMono)
                                     .lineLimit(1)
                             }
@@ -526,7 +541,7 @@ struct TimingReviewView: View {
                             .frame(width: 8, height: 8)
                             .padding(.trailing, 6)
 
-                        Text(cat.category)
+                        Text(verbatim: cat.category)
                             .font(BrutalTheme.tableBody)
                             .foregroundColor(BrutalTheme.textPrimary)
                             .lineLimit(1)

@@ -13,6 +13,15 @@ struct AppsListView: View {
         case leastUsed = "Least Used"
         case alphabetical = "A-Z"
         case sessions = "Sessions"
+
+        var displayName: String {
+            switch self {
+            case .mostUsed: return String(localized: "Most Used")
+            case .leastUsed: return String(localized: "Least Used")
+            case .alphabetical: return String(localized: "A-Z")
+            case .sessions: return String(localized: "Sessions")
+            }
+        }
     }
     
     var body: some View {
@@ -202,7 +211,7 @@ struct AppsListView: View {
                     }
                 } header: {
                     HStack {
-                        Text(group.category)
+                        Text(verbatim: group.category)
                         Spacer()
                         Text(TimeFormatters.formatDuration(
                             group.apps.reduce(0) { $0 + $1.totalSeconds },
@@ -239,7 +248,7 @@ struct AppsListView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "calendar")
                             .font(.subheadline)
-                        Text(filterStore.dateRangeLabel)
+                        Text(LocalizedStringKey(filterStore.dateRangeLabel))
                             .font(.subheadline)
                             .fontWeight(.medium)
                         Image(systemName: "chevron.up.chevron.down")
@@ -302,7 +311,7 @@ struct AppsListView: View {
                     sortOrder = order
                 } label: {
                     HStack {
-                        Text(order.rawValue)
+                        Text(order.displayName)
                         if sortOrder == order {
                             Image(systemName: "checkmark")
                         }
@@ -347,7 +356,7 @@ struct AppUsageRow: View {
             
             // App info
             VStack(alignment: .leading, spacing: 4) {
-                Text(app.displayName)
+                Text(verbatim: app.displayName)
                     .font(.body)
                     .fontWeight(.medium)
                     .lineLimit(1)

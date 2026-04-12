@@ -753,7 +753,7 @@ struct CalendarMonthSkeletonView: View {
             // Weekday header
             HStack(spacing: 0) {
                 ForEach(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], id: \.self) { day in
-                    Text(day)
+                    Text(LocalizedStringKey(day))
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(BrutalTheme.textTertiary)
                         .frame(maxWidth: .infinity)

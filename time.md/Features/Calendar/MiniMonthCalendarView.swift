@@ -44,7 +44,7 @@ struct MiniMonthCalendarView: View {
     var body: some View {
         VStack(spacing: compact ? 2 : 4) {
             // Month title
-            Text(monthLabel)
+            Text(verbatim: monthLabel)
                 .font(.system(size: compact ? 11 : 12, weight: .semibold))
                 .foregroundColor(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -53,7 +53,7 @@ struct MiniMonthCalendarView: View {
             // Weekday headers
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 0) {
                 ForEach(weekdays, id: \.self) { sym in
-                    Text(sym)
+                    Text(verbatim: sym)
                         .font(.system(size: compact ? 8 : 9, weight: .medium))
                         .foregroundColor(CalendarColors.weekdayLabel)
                         .frame(maxWidth: .infinity)

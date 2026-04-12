@@ -148,10 +148,10 @@ struct ScreenTimeSnippetView: View {
                     .fontWeight(.semibold)
             }
             
-            Text(formatCompact(seconds))
+            Text(verbatim: formatCompact(seconds))
                 .font(.system(size: 36, weight: .bold, design: .rounded))
-            
-            Text(period.capitalized)
+
+            Text(LocalizedStringKey(period.capitalized))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             

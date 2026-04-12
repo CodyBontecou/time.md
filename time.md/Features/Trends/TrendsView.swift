@@ -6,6 +6,13 @@ private enum TrendChartMode: String, CaseIterable, Identifiable {
     case stacked = "By App"
 
     var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .total: return String(localized: "Total")
+        case .stacked: return String(localized: "By App")
+        }
+    }
 }
 
 // MARK: - View
@@ -290,7 +297,7 @@ struct TrendsView: View {
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) { chartMode = mode }
                     } label: {
-                        Text(mode.rawValue)
+                        Text(mode.displayName)
                             .font(.system(size: 12, weight: isActive ? .bold : .medium, design: .monospaced))
                             .foregroundColor(isActive ? BrutalTheme.activeButtonText : BrutalTheme.textTertiary)
                             .padding(.horizontal, 12)

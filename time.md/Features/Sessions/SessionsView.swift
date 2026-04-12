@@ -10,6 +10,15 @@ private enum SessionChartMode: String, CaseIterable, Identifiable {
     case transitions = "Transitions"
 
     var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .typicalDay: return String(localized: "Typical Day")
+        case .distribution: return String(localized: "Distribution")
+        case .contextSwitching: return String(localized: "Context Switching")
+        case .transitions: return String(localized: "Transitions")
+        }
+    }
 }
 
 // MARK: - View
@@ -89,7 +98,7 @@ struct SessionsView: View {
                             Button {
                                 withAnimation(.easeInOut(duration: 0.2)) { chartMode = mode }
                             } label: {
-                                Text(mode.rawValue)
+                                Text(mode.displayName)
                                     .font(.system(size: 12, weight: isActive ? .bold : .medium, design: .monospaced))
                                     .foregroundColor(isActive ? BrutalTheme.activeButtonText : BrutalTheme.textTertiary)
                                     .padding(.horizontal, 12)
@@ -162,7 +171,7 @@ struct SessionsView: View {
                     AxisMarks { value in
                         AxisValueLabel {
                             if let label = value.as(String.self) {
-                                Text(label)
+                                Text(verbatim: label)
                                     .font(.system(size: 9, weight: .medium, design: .monospaced))
                                     .foregroundColor(BrutalTheme.textTertiary)
                                     .rotationEffect(.degrees(-45))
@@ -206,7 +215,7 @@ struct SessionsView: View {
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.orange)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(focused.label)
+                            Text(verbatim: focused.label)
                                 .font(.system(size: 14, weight: .bold))
                                 .foregroundColor(BrutalTheme.textPrimary)
                             Text("\(focused.sessionCount) sessions")
@@ -274,7 +283,7 @@ struct SessionsView: View {
                         AxisMarks(values: .stride(by: 3)) { value in
                             AxisValueLabel {
                                 if let label = value.as(String.self) {
-                                    Text(label)
+                                    Text(verbatim: label)
                                         .font(.system(size: 9, weight: .medium, design: .monospaced))
                                         .foregroundColor(BrutalTheme.textTertiary)
                                 }
@@ -315,7 +324,7 @@ struct SessionsView: View {
                             AxisMarks(values: .stride(by: 3)) { value in
                                 AxisValueLabel {
                                     if let label = value.as(String.self) {
-                                        Text(label)
+                                        Text(verbatim: label)
                                             .font(.system(size: 9, weight: .medium, design: .monospaced))
                                             .foregroundColor(BrutalTheme.textTertiary)
                                     }
@@ -417,7 +426,7 @@ struct SessionsView: View {
                         AxisMarks(values: .stride(by: 3)) { value in
                             AxisValueLabel {
                                 if let label = value.as(String.self) {
-                                    Text(label)
+                                    Text(verbatim: label)
                                         .font(.system(size: 9, weight: .medium, design: .monospaced))
                                         .foregroundColor(BrutalTheme.textTertiary)
                                 }
@@ -523,7 +532,7 @@ struct SessionsView: View {
         }
     }
 
-    private func statPill(icon: String, label: String, value: String, tint: Color) -> some View {
+    private func statPill(icon: String, label: LocalizedStringKey, value: String, tint: Color) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 12, weight: .semibold))
@@ -534,11 +543,12 @@ struct SessionsView: View {
                         .fill(tint.opacity(0.12))
                 )
             VStack(alignment: .leading, spacing: 1) {
-                Text(label.uppercased())
+                Text(label)
                     .font(.system(size: 9, weight: .semibold, design: .monospaced))
                     .foregroundColor(BrutalTheme.textTertiary)
                     .tracking(0.5)
-                Text(value)
+                    .textCase(.uppercase)
+                Text(verbatim: value)
                     .font(.system(size: 14, weight: .bold, design: .monospaced))
                     .foregroundColor(BrutalTheme.textPrimary)
             }

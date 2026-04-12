@@ -180,7 +180,7 @@ private struct MacOnboardingPageView: View {
             Spacer()
 
             // Tag line
-            Text(page.tag)
+            Text(LocalizedStringKey(page.tag))
                 .font(.system(size: 10, weight: .heavy, design: .monospaced))
                 .foregroundColor(BrutalTheme.textTertiary)
                 .tracking(2)
@@ -193,13 +193,13 @@ private struct MacOnboardingPageView: View {
                 .padding(.bottom, 20)
 
             // Title
-            Text(page.title)
+            Text(LocalizedStringKey(page.title))
                 .font(.system(size: 28, weight: .black, design: .monospaced))
                 .foregroundColor(BrutalTheme.textPrimary)
                 .padding(.bottom, 8)
 
             // Subtitle
-            Text(page.subtitle)
+            Text(LocalizedStringKey(page.subtitle))
                 .font(.system(size: 12, weight: .regular, design: .monospaced))
                 .foregroundColor(BrutalTheme.textSecondary)
                 .multilineTextAlignment(.center)
@@ -217,7 +217,7 @@ private struct MacOnboardingPageView: View {
                                 .foregroundColor(page.iconColor)
                                 .frame(width: 22, alignment: .center)
 
-                            Text(feature.text)
+                            Text(LocalizedStringKey(feature.text))
                                 .font(.system(size: 12, weight: .regular, design: .monospaced))
                                 .foregroundColor(BrutalTheme.textPrimary)
 

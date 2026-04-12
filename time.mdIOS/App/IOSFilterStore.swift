@@ -358,8 +358,17 @@ enum TimeSlotPreset: String, CaseIterable, Identifiable {
     
     var id: String { rawValue }
     
-    var name: String { rawValue }
-    
+    var name: String {
+        switch self {
+        case .morning: return String(localized: "Morning")
+        case .workHours: return String(localized: "Work Hours")
+        case .afternoon: return String(localized: "Afternoon")
+        case .evening: return String(localized: "Evening")
+        case .night: return String(localized: "Night")
+        case .lateNight: return String(localized: "Late Night")
+        }
+    }
+
     var startHour: Int {
         switch self {
         case .morning: return 6
@@ -418,7 +427,7 @@ enum DurationPreset: CaseIterable {
     
     var name: String {
         switch self {
-        case .any: return "Any"
+        case .any: return String(localized: "Any")
         case .quick: return "< 1m"
         case .short: return "< 5m"
         case .medium: return "5-30m"

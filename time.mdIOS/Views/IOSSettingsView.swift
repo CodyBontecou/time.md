@@ -328,7 +328,7 @@ struct IOSSettingsView: View {
                 .frame(width: 32)
             
             VStack(alignment: .leading, spacing: 2) {
-                Text(appState.currentDevice.name)
+                Text(verbatim: appState.currentDevice.name)
                     .font(.body)
                 
                 Text("\(appState.currentDevice.model) • \(appState.currentDevice.platform.displayName) \(appState.currentDevice.osVersion)")
@@ -586,7 +586,7 @@ struct IOSSettingsView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             
-            Text(appState.currentDevice.id)
+            Text(verbatim: appState.currentDevice.id)
                 .font(.caption2)
                 .monospaced()
             
@@ -676,18 +676,18 @@ struct AboutView: View {
         }
     }
     
-    private func featureRow(icon: String, title: String, description: String) -> some View {
+    private func featureRow(icon: String, title: LocalizedStringKey, description: LocalizedStringKey) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundStyle(.tint)
                 .frame(width: 32)
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                
+
                 Text(description)
                     .font(.caption)
                     .foregroundStyle(.secondary)

@@ -88,9 +88,9 @@ struct IOSTimeFiltersView: View {
                 Spacer()
                 
                 VStack(spacing: 2) {
-                    Text(filterStore.dateRangeLabel)
+                    Text(LocalizedStringKey(filterStore.dateRangeLabel))
                         .font(.headline)
-                    
+
                     if !filterStore.isCurrentPeriod {
                         Button("Jump to Now") {
                             withAnimation(.spring(response: 0.3)) {
@@ -326,7 +326,7 @@ struct IOSTimeFiltersView: View {
                     Image(systemName: "timer")
                         .foregroundStyle(.tint)
                     
-                    Text(durationFilterLabel)
+                    Text(LocalizedStringKey(durationFilterLabel))
                         .font(.subheadline)
                     
                     Spacer()
@@ -401,7 +401,7 @@ struct TimeSlotButton: View {
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
-                    Text(preset.timeLabel)
+                    Text(verbatim: preset.timeLabel)
                         .font(.caption2)
                         .foregroundStyle(isSelected ? .white.opacity(0.8) : .secondary)
                 }
@@ -425,10 +425,10 @@ struct WeekdayPill: View {
     let isSelected: Bool
     let isEmpty: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
-            Text(name)
+            Text(LocalizedStringKey(name))
                 .font(.caption)
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity)
@@ -478,7 +478,7 @@ struct CustomTimeRangeRow: View {
                 set: { onUpdate(TimeOfDayRange(startHour: $0, endHour: range.endHour)) }
             )) {
                 ForEach(0..<24, id: \.self) { hour in
-                    Text(formatHour(hour)).tag(hour)
+                    Text(verbatim: formatHour(hour)).tag(hour)
                 }
             }
             .pickerStyle(.menu)
@@ -494,7 +494,7 @@ struct CustomTimeRangeRow: View {
                 set: { onUpdate(TimeOfDayRange(startHour: range.startHour, endHour: $0)) }
             )) {
                 ForEach(0..<24, id: \.self) { hour in
-                    Text(formatHour(hour)).tag(hour)
+                    Text(verbatim: formatHour(hour)).tag(hour)
                 }
             }
             .pickerStyle(.menu)
@@ -532,7 +532,7 @@ struct IOSFilterBadge: View {
                     .font(.subheadline)
                 
                 if let label = filterStore.activeFiltersLabel {
-                    Text(label)
+                    Text(LocalizedStringKey(label))
                         .font(.caption)
                         .lineLimit(1)
                 }
@@ -589,9 +589,9 @@ struct IOSDateNavigator: View {
                 }
             } label: {
                 HStack(spacing: 4) {
-                    Text(filterStore.dateRangeLabel)
+                    Text(LocalizedStringKey(filterStore.dateRangeLabel))
                         .font(.headline)
-                    
+
                     Image(systemName: "chevron.down")
                         .font(.caption)
                         .foregroundStyle(.secondary)

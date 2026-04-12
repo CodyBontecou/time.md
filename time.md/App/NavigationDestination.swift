@@ -15,15 +15,15 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .overview: "Overview"
-        case .review: "Review"
-        case .details: "Details"
-        case .projects: "Projects"
-        case .rules: "Rules"
-        case .webHistory: "Web History"
-        case .reports: "Reports"
-        case .export: "Export"
-        case .settings: "Settings"
+        case .overview: String(localized: "Overview")
+        case .review: String(localized: "Review")
+        case .details: String(localized: "Details")
+        case .projects: String(localized: "Projects")
+        case .rules: String(localized: "Rules")
+        case .webHistory: String(localized: "Web History")
+        case .reports: String(localized: "Reports")
+        case .export: String(localized: "Export")
+        case .settings: String(localized: "Settings")
         }
     }
 

@@ -284,7 +284,7 @@ struct TimingRulesView: View {
                             Circle()
                                 .fill(BrutalTheme.color(for: cat))
                                 .frame(width: 6, height: 6)
-                            Text(cat)
+                            Text(verbatim: cat)
                                 .font(BrutalTheme.tableBody)
                                 .foregroundColor(BrutalTheme.textPrimary)
                         } else {
@@ -364,7 +364,7 @@ struct TimingRulesView: View {
                                 Circle()
                                     .fill(BrutalTheme.color(for: category))
                                     .frame(width: 8, height: 8)
-                                Text(category)
+                                Text(verbatim: category)
                                     .font(.system(size: 11, weight: .medium))
                                     .foregroundColor(BrutalTheme.textPrimary)
                                     .lineLimit(1)
@@ -432,18 +432,20 @@ struct TimingRulesView: View {
 
                     FlowLayout(spacing: 4) {
                         ForEach(["Development", "Communication", "Design", "Browsing", "Entertainment", "Productivity", "Social Media", "Writing"], id: \.self) { suggestion in
-                            Button(suggestion) {
+                            Button {
                                 bulkCategory = suggestion
+                            } label: {
+                                Text(LocalizedStringKey(suggestion))
+                                    .font(.system(size: 10, weight: .medium))
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(BrutalTheme.surface.opacity(0.5))
+                                    )
+                                    .foregroundColor(BrutalTheme.textSecondary)
                             }
-                            .font(.system(size: 10, weight: .medium))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(BrutalTheme.surface.opacity(0.5))
-                            )
                             .buttonStyle(.plain)
-                            .foregroundColor(BrutalTheme.textSecondary)
                         }
                     }
                 }

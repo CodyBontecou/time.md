@@ -11,6 +11,14 @@ private enum WebHistoryTab: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    var displayName: String {
+        switch self {
+        case .timeline: return String(localized: "Timeline")
+        case .domains: return String(localized: "Top Domains")
+        case .activity: return String(localized: "Activity")
+        }
+    }
+
     var systemImage: String {
         switch self {
         case .timeline: return "clock"
@@ -144,7 +152,7 @@ struct WebHistoryView: View {
                     HStack(spacing: 4) {
                         Image(systemName: source.systemImage)
                             .font(.system(size: 11, weight: .semibold))
-                        Text(source.rawValue)
+                        Text(source.displayName)
                             .font(.system(size: 12, weight: isActive ? .bold : .medium, design: .monospaced))
                     }
                     .foregroundColor(isActive ? BrutalTheme.activeButtonText : BrutalTheme.textSecondary)
@@ -203,7 +211,7 @@ struct WebHistoryView: View {
         return "\(display)\(suffix)"
     }
 
-    private func metricPill(icon: String, label: String, value: String) -> some View {
+    private func metricPill(icon: String, label: LocalizedStringKey, value: String) -> some View {
         HStack(spacing: 10) {
             Image(systemName: icon)
                 .font(.system(size: 13, weight: .semibold))
@@ -215,11 +223,12 @@ struct WebHistoryView: View {
                 )
 
             VStack(alignment: .leading, spacing: 1) {
-                Text(label.uppercased())
+                Text(label)
                     .font(.system(size: 9, weight: .semibold, design: .monospaced))
                     .foregroundColor(BrutalTheme.textTertiary)
                     .tracking(0.5)
-                Text(value)
+                    .textCase(.uppercase)
+                Text(verbatim: value)
                     .font(.system(size: 16, weight: .bold, design: .monospaced))
                     .foregroundColor(BrutalTheme.textPrimary)
             }
@@ -252,7 +261,7 @@ struct WebHistoryView: View {
                     if isPermissionError {
                         permissionErrorMessage(errorMessage)
                     } else {
-                        Text(errorMessage)
+                        Text(LocalizedStringKey(errorMessage))
                             .font(BrutalTheme.bodyMono)
                             .foregroundColor(BrutalTheme.textSecondary)
                     }
@@ -265,18 +274,18 @@ struct WebHistoryView: View {
     
     private func permissionErrorMessage(_ message: String) -> some View {
         let settingsText = "System Settings → Privacy & Security"
-        
+
         return HStack(spacing: 0) {
             // Split the message around "System Settings → Privacy & Security"
             if let range = message.range(of: settingsText) {
-                Text(String(message[..<range.lowerBound]))
+                Text(verbatim: String(message[..<range.lowerBound]))
                     .font(BrutalTheme.bodyMono)
                     .foregroundColor(BrutalTheme.textSecondary)
-                
+
                 Button {
                     openFullDiskAccessSettings()
                 } label: {
-                    Text(settingsText)
+                    Text(LocalizedStringKey(settingsText))
                         .font(BrutalTheme.bodyMono)
                         .foregroundColor(BrutalTheme.accent)
                         .underline()
@@ -289,12 +298,12 @@ struct WebHistoryView: View {
                         NSCursor.pop()
                     }
                 }
-                
-                Text(String(message[range.upperBound...]))
+
+                Text(verbatim: String(message[range.upperBound...]))
                     .font(BrutalTheme.bodyMono)
                     .foregroundColor(BrutalTheme.textSecondary)
             } else {
-                Text(message)
+                Text(LocalizedStringKey(message))
                     .font(BrutalTheme.bodyMono)
                     .foregroundColor(BrutalTheme.textSecondary)
             }
@@ -321,7 +330,7 @@ struct WebHistoryView: View {
                         HStack(spacing: 5) {
                             Image(systemName: t.systemImage)
                                 .font(.system(size: 11, weight: .semibold))
-                            Text(t.rawValue)
+                            Text(t.displayName)
                                 .font(.system(size: 12, weight: .semibold, design: .monospaced))
                         }
                         .foregroundColor(isActive ? BrutalTheme.activeButtonText : BrutalTheme.textTertiary)
@@ -461,19 +470,19 @@ struct WebHistoryView: View {
             }
 
             HStack(spacing: 0) {
-                Text(timeFormatter.string(from: visit.visitTime))
+                Text(verbatim: timeFormatter.string(from: visit.visitTime))
                     .font(BrutalTheme.tableBody)
                     .foregroundColor(BrutalTheme.textTertiary)
                     .frame(width: 70, alignment: .leading)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(visit.title)
+                    Text(verbatim: visit.title)
                         .font(BrutalTheme.tableBody)
                         .foregroundColor(BrutalTheme.textPrimary)
                         .lineLimit(1)
                         .truncationMode(.tail)
 
-                    Text(visit.url)
+                    Text(verbatim: visit.url)
                         .font(.system(size: 9, weight: .regular, design: .monospaced))
                         .foregroundColor(BrutalTheme.textTertiary)
                         .lineLimit(1)
@@ -482,7 +491,7 @@ struct WebHistoryView: View {
 
                 Spacer(minLength: 8)
 
-                Text(visit.domain)
+                Text(verbatim: visit.domain)
                     .font(BrutalTheme.tableBody)
                     .foregroundColor(BrutalTheme.textSecondary)
                     .lineLimit(1)
@@ -540,7 +549,7 @@ struct WebHistoryView: View {
         return VStack(alignment: .leading, spacing: 6) {
             ForEach(display) { domain in
                 HStack(spacing: 8) {
-                    Text(domain.domain)
+                    Text(verbatim: domain.domain)
                         .font(BrutalTheme.captionMono)
                         .foregroundColor(BrutalTheme.textPrimary)
                         .lineLimit(1)
@@ -617,7 +626,7 @@ struct WebHistoryView: View {
                                 .foregroundColor(BrutalTheme.textTertiary)
                                 .frame(width: 28, alignment: .leading)
 
-                            Text(domain.domain)
+                            Text(verbatim: domain.domain)
                                 .font(BrutalTheme.tableBody)
                                 .foregroundColor(BrutalTheme.textPrimary)
                                 .lineLimit(1)
@@ -712,12 +721,12 @@ struct WebHistoryView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(alignment: .top, spacing: 8) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(page.title)
+                            Text(verbatim: page.title)
                                 .font(BrutalTheme.captionMono)
                                 .foregroundColor(BrutalTheme.textPrimary)
                                 .lineLimit(1)
-                            
-                            Text(page.path)
+
+                            Text(verbatim: page.path)
                                 .font(.system(size: 9, weight: .regular, design: .monospaced))
                                 .foregroundColor(BrutalTheme.textTertiary)
                                 .lineLimit(1)
@@ -914,7 +923,7 @@ struct WebHistoryView: View {
                 AxisValueLabel {
                     if let h = value.as(Int.self) {
                         let label = h == 0 ? "12a" : h < 12 ? "\(h)a" : h == 12 ? "12p" : "\(h-12)p"
-                        Text(label)
+                        Text(verbatim: label)
                             .font(BrutalTheme.captionMono)
                     }
                 }

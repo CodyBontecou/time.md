@@ -423,7 +423,7 @@ private struct SettingsScaffoldView: View {
             
             // Browser name and status
             VStack(alignment: .leading, spacing: 2) {
-                Text(browser.rawValue)
+                Text(browser.displayName)
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(isInstalled ? BrutalTheme.textPrimary : BrutalTheme.textTertiary)
                 
@@ -545,7 +545,7 @@ private struct SettingsScaffoldView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundColor(.orange)
-                        Text(error)
+                        Text(LocalizedStringKey(error))
                             .font(.system(size: 11, weight: .medium))
                             .foregroundColor(.orange)
                     }
@@ -577,7 +577,7 @@ private struct SettingsScaffoldView: View {
                         .foregroundColor(BrutalTheme.accent)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(device.name)
+                        Text(verbatim: device.name)
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(BrutalTheme.textPrimary)
                         
@@ -623,7 +623,7 @@ private struct SettingsScaffoldView: View {
         isSyncing = false
     }
 
-    private func settingsBlock(number: Int, title: String, body: String, footnote: String?) -> some View {
+    private func settingsBlock(number: Int, title: String, body: LocalizedStringKey, footnote: LocalizedStringKey?) -> some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 10) {
                 Text(BrutalTheme.sectionLabel(number, title))
@@ -676,7 +676,7 @@ private struct GranularityPickerToolbar: View {
                         filters.goToToday()
                     }
                 } label: {
-                    Text(filters.periodLabel)
+                    Text(LocalizedStringKey(filters.periodLabel))
                         .font(.system(size: 12, weight: .medium, design: .monospaced))
                         .foregroundColor(filters.isCurrentPeriod ? BrutalTheme.textPrimary : BrutalTheme.accent)
                         .frame(minWidth: 100)

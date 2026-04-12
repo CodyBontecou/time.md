@@ -49,7 +49,7 @@ struct CalendarDayDetailView: View {
         VStack(alignment: .leading, spacing: BrutalTheme.sectionSpacing) {
             // Header
             VStack(alignment: .leading, spacing: 4) {
-                Text(dateTitle)
+                Text(verbatim: dateTitle)
                     .font(BrutalTheme.headingFont)
                     .foregroundColor(BrutalTheme.textPrimary)
                     .tracking(1)
@@ -242,7 +242,7 @@ struct CalendarDayDetailView: View {
                         AxisMarks(position: .leading) { value in
                             AxisValueLabel {
                                 if let name = value.as(String.self) {
-                                    Text(name)
+                                    Text(verbatim: name)
                                         .font(BrutalTheme.captionMono)
                                         .lineLimit(1)
                                         .truncationMode(.tail)

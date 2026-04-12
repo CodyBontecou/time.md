@@ -19,7 +19,7 @@ struct TodayDeltaCard: View {
                 Image(systemName: "clock.fill")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(.blue)
-                Text(periodLabel)
+                Text(LocalizedStringKey(periodLabel))
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
                     .foregroundColor(BrutalTheme.textTertiary)
                     .tracking(1)
@@ -306,7 +306,7 @@ struct PeakHourCard: View {
                     .tracking(1)
             }
 
-            Text(hourLabel)
+            Text(verbatim: hourLabel)
                 .font(.system(size: 28, weight: .heavy, design: .rounded))
                 .foregroundColor(BrutalTheme.textPrimary)
 
@@ -344,7 +344,7 @@ struct AppsUsedCard: View {
                 font: .system(size: 28, weight: .heavy, design: .rounded)
             )
 
-            Text(contextLabel)
+            Text(LocalizedStringKey(contextLabel))
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(BrutalTheme.textTertiary)
         }
@@ -580,12 +580,12 @@ private struct DeviceRow: View {
                 
                 // Device name
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(device.name)
+                    Text(verbatim: device.name)
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(BrutalTheme.textPrimary)
                         .lineLimit(1)
-                    
-                    Text(device.platform.displayName)
+
+                    Text(verbatim: device.platform.displayName)
                         .font(.system(size: 10, weight: .regular))
                         .foregroundColor(BrutalTheme.textTertiary)
                 }

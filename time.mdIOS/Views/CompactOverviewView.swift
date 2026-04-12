@@ -139,9 +139,9 @@ struct CompactOverviewView: View {
                 }
             } label: {
                 VStack(spacing: 2) {
-                    Text(filterStore.dateRangeLabel)
+                    Text(LocalizedStringKey(filterStore.dateRangeLabel))
                         .font(.headline)
-                    
+
                     HStack(spacing: 4) {
                         Text(filterStore.granularity.title)
                             .font(.caption)
@@ -217,19 +217,19 @@ struct CompactOverviewView: View {
     
     private var heroCard: some View {
         VStack(spacing: 8) {
-            Text(heroCardTitle)
+            Text(LocalizedStringKey(heroCardTitle))
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
                 .tracking(1)
-            
-            Text(heroCardValue)
+
+            Text(verbatim: heroCardValue)
                 .font(.system(size: 56, weight: .bold, design: .rounded))
                 .foregroundStyle(.primary)
                 .contentTransition(.numericText())
                 .animation(.spring(response: 0.3), value: appState.filteredTodayTotalSeconds)
-            
-            Text(heroCardSubtitle)
+
+            Text(LocalizedStringKey(heroCardSubtitle))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -306,7 +306,7 @@ struct CompactOverviewView: View {
                 .font(.subheadline)
                 .foregroundStyle(.tint)
             
-            Text(deviceBadgeText)
+            Text(LocalizedStringKey(deviceBadgeText))
                 .font(.subheadline)
                 .foregroundStyle(.primary)
             
@@ -363,7 +363,7 @@ struct CompactOverviewView: View {
     private var statsRow: some View {
         HStack(spacing: 12) {
             statCell(
-                title: periodLabel,
+                title: LocalizedStringKey(periodLabel),
                 value: filteredPeriodTotal,
                 icon: "calendar"
             )
@@ -384,10 +384,10 @@ struct CompactOverviewView: View {
     
     private var periodLabel: String {
         switch filterStore.granularity {
-        case .day: return "Today"
-        case .week: return "This Week"
-        case .month: return "This Month"
-        case .year: return "This Year"
+        case .day: return String(localized: "Today")
+        case .week: return String(localized: "This Week")
+        case .month: return String(localized: "This Month")
+        case .year: return String(localized: "This Year")
         }
     }
     
@@ -409,16 +409,16 @@ struct CompactOverviewView: View {
         return TimeFormatters.formatDuration(average, style: .compact)
     }
     
-    private func statCell(title: String, value: String, icon: String) -> some View {
+    private func statCell(title: LocalizedStringKey, value: String, icon: String) -> some View {
         VStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.title3)
                 .foregroundStyle(.tint)
-            
-            Text(value)
+
+            Text(verbatim: value)
                 .font(.headline)
                 .fontWeight(.semibold)
-            
+
             Text(title)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
@@ -503,13 +503,13 @@ struct CompactOverviewView: View {
     private var trendCardTitle: String {
         switch filterStore.granularity {
         case .day:
-            return "Today"
+            return String(localized: "Today")
         case .week:
-            return "Weekly Trend"
+            return String(localized: "Weekly Trend")
         case .month:
-            return "Monthly Trend"
+            return String(localized: "Monthly Trend")
         case .year:
-            return "Yearly Trend"
+            return String(localized: "Yearly Trend")
         }
     }
     
@@ -538,13 +538,13 @@ struct CompactOverviewView: View {
                         .fill(Color(.systemGray4))
                         .frame(width: 36, height: 36)
                         .overlay {
-                            Text(String(app.appName.prefix(1)))
+                            Text(verbatim: String(app.appName.prefix(1)))
                                 .font(.headline)
                                 .foregroundStyle(.secondary)
                         }
-                    
+
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(app.appName)
+                        Text(verbatim: app.appName)
                             .font(.subheadline)
                             .fontWeight(.medium)
                             .lineLimit(1)

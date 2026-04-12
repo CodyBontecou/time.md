@@ -181,7 +181,7 @@ struct TimingProjectsView: View {
                         .font(.system(size: 13))
                         .foregroundColor(BrutalTheme.color(for: group.category))
 
-                    Text(group.category)
+                    Text(verbatim: group.category)
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(BrutalTheme.textPrimary)
 
@@ -304,8 +304,10 @@ struct TimingProjectsView: View {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 4) {
                         ForEach(existingCategories, id: \.self) { cat in
-                            Button(cat) {
+                            Button {
                                 editCategory = cat
+                            } label: {
+                                Text(verbatim: cat)
                             }
                             .font(.system(size: 10, weight: .medium))
                             .buttonStyle(.bordered)
@@ -378,7 +380,7 @@ struct TimingProjectsView: View {
                                     Circle()
                                         .fill(BrutalTheme.color(for: group.category))
                                         .frame(width: 8, height: 8)
-                                    Text(group.category)
+                                    Text(verbatim: group.category)
                                         .font(.system(size: 10, weight: .medium))
                                         .foregroundColor(BrutalTheme.textPrimary)
                                         .lineLimit(1)
@@ -413,13 +415,13 @@ struct TimingProjectsView: View {
         }
     }
 
-    private func statRow(label: String, value: String) -> some View {
+    private func statRow(label: LocalizedStringKey, value: String) -> some View {
         HStack {
             Text(label)
                 .font(BrutalTheme.captionMono)
                 .foregroundColor(BrutalTheme.textTertiary)
             Spacer()
-            Text(value)
+            Text(verbatim: value)
                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
                 .foregroundColor(BrutalTheme.textPrimary)
                 .lineLimit(1)

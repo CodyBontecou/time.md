@@ -1930,81 +1930,91 @@ private extension ExportCoordinator {
     
     private func formatGFMTable(headers: [String], rows: [[String]], linkApps: Bool, appFolder: String) -> [String] {
         var lines: [String] = []
-        
-        // Calculate column widths
+
+        let shouldLinkAppColumn = linkApps && headers.first?.lowercased().contains("app") == true
+
+        // Render display cells first (wrapping app names in wiki links with
+        // escaped pipes) so column-width calculations include the full
+        // rendered length. Without this, padding(toLength:) would truncate
+        // wiki-linked cells mid-link because width was computed from the
+        // raw value.
+        let displayRows: [[String]] = rows.map { row in
+            row.enumerated().map { i, cell in
+                if shouldLinkAppColumn && i == 0 {
+                    let appLink = appFolder.isEmpty ? cell : "\(appFolder)/\(cell)"
+                    // Escape the `|` inside the wiki link so GFM parsers do
+                    // not treat it as a column separator.
+                    return "[[\(appLink)\\|\(cell)]]"
+                }
+                return cell
+            }
+        }
+
         var widths = headers.map { $0.count }
-        for row in rows {
+        for row in displayRows {
             for (i, cell) in row.enumerated() where i < widths.count {
                 widths[i] = max(widths[i], cell.count)
             }
         }
-        
-        // Header row
+
         let headerLine = "| " + zip(headers, widths).map { header, width in
             header.padding(toLength: width, withPad: " ", startingAt: 0)
         }.joined(separator: " | ") + " |"
         lines.append(headerLine)
-        
-        // Separator row
+
         let separatorLine = "| " + widths.map { String(repeating: "-", count: $0) }.joined(separator: " | ") + " |"
         lines.append(separatorLine)
-        
-        // Data rows
-        for row in rows {
+
+        for row in displayRows {
             var cells: [String] = []
             for (i, cell) in row.enumerated() where i < widths.count {
-                var displayCell = cell
-                
-                // Create wiki link for app names (first column in app tables)
-                if linkApps && i == 0 && headers.first?.lowercased().contains("app") == true {
-                    let appLink = appFolder.isEmpty ? cell : "\(appFolder)/\(cell)"
-                    displayCell = "[[\(appLink)|\(cell)]]"
-                }
-                
-                cells.append(displayCell.padding(toLength: widths[i], withPad: " ", startingAt: 0))
+                cells.append(cell.padding(toLength: widths[i], withPad: " ", startingAt: 0))
             }
             let rowLine = "| " + cells.joined(separator: " | ") + " |"
             lines.append(rowLine)
         }
-        
+
         return lines
     }
     
     private func formatSimpleTable(headers: [String], rows: [[String]], linkApps: Bool, appFolder: String) -> [String] {
         var lines: [String] = []
-        
-        // Calculate column widths
+
+        let shouldLinkAppColumn = linkApps && headers.first?.lowercased().contains("app") == true
+
+        let displayRows: [[String]] = rows.map { row in
+            row.enumerated().map { i, cell in
+                if shouldLinkAppColumn && i == 0 {
+                    let appLink = appFolder.isEmpty ? cell : "\(appFolder)/\(cell)"
+                    return "[[\(appLink)\\|\(cell)]]"
+                }
+                return cell
+            }
+        }
+
         var widths = headers.map { $0.count }
-        for row in rows {
+        for row in displayRows {
             for (i, cell) in row.enumerated() where i < widths.count {
                 widths[i] = max(widths[i], cell.count)
             }
         }
-        
-        // Header
+
         let headerLine = zip(headers, widths).map { header, width in
             header.padding(toLength: width + 2, withPad: " ", startingAt: 0)
         }.joined()
         lines.append(headerLine)
-        
-        // Underline
+
         let underline = widths.map { String(repeating: "-", count: $0 + 2) }.joined()
         lines.append(underline)
-        
-        // Data rows
-        for row in rows {
+
+        for row in displayRows {
             var cells: [String] = []
             for (i, cell) in row.enumerated() where i < widths.count {
-                var displayCell = cell
-                if linkApps && i == 0 && headers.first?.lowercased().contains("app") == true {
-                    let appLink = appFolder.isEmpty ? cell : "\(appFolder)/\(cell)"
-                    displayCell = "[[\(appLink)|\(cell)]]"
-                }
-                cells.append(displayCell.padding(toLength: widths[i] + 2, withPad: " ", startingAt: 0))
+                cells.append(cell.padding(toLength: widths[i] + 2, withPad: " ", startingAt: 0))
             }
             lines.append(cells.joined())
         }
-        
+
         return lines
     }
     

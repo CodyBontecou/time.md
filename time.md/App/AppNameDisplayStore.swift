@@ -1,5 +1,8 @@
 import Foundation
 import SwiftUI
+#if os(macOS)
+import AppKit
+#endif
 
 enum AppNameDisplayMode: String, CaseIterable, Identifiable {
     case short      // "Safari" (last component of bundle ID)
@@ -47,7 +50,63 @@ enum AppNameDisplay {
         return lastComponent
         #endif
     }
+
+    /// Thread-safe, nonisolated resolver for use from background export tasks.
+    /// Returns the user-facing app name for a raw identifier, with an internal
+    /// lock-protected cache. Safe to call from any actor or thread.
+    static func resolvedName(for rawName: String) -> String {
+        if rawName == "Other" || rawName == "Unknown" { return rawName }
+        guard rawName.contains(".") else { return rawName }
+
+        #if os(macOS)
+        return ExportAppNameCache.shared.name(for: rawName)
+        #else
+        let lastComponent = rawName.split(separator: ".").last.map(String.init) ?? rawName
+        guard !lastComponent.isEmpty, lastComponent != rawName else { return rawName }
+        return lastComponent
+        #endif
+    }
 }
+
+#if os(macOS)
+private final class ExportAppNameCache: @unchecked Sendable {
+    static let shared = ExportAppNameCache()
+
+    private var cache: [String: String] = [:]
+    private let lock = NSLock()
+
+    func name(for bundleID: String) -> String {
+        lock.lock()
+        if let cached = cache[bundleID] {
+            lock.unlock()
+            return cached
+        }
+        lock.unlock()
+
+        let resolved = resolve(bundleID)
+
+        lock.lock()
+        cache[bundleID] = resolved
+        lock.unlock()
+        return resolved
+    }
+
+    private func resolve(_ bundleID: String) -> String {
+        if let appURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID),
+           let bundle = Bundle(url: appURL) {
+            if let displayName = bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String,
+               !displayName.isEmpty {
+                return displayName
+            }
+            if let bundleName = bundle.object(forInfoDictionaryKey: "CFBundleName") as? String,
+               !bundleName.isEmpty {
+                return bundleName
+            }
+        }
+        return bundleID.split(separator: ".").last.map(String.init) ?? bundleID
+    }
+}
+#endif
 
 // MARK: - View Helper
 

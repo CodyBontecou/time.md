@@ -337,7 +337,7 @@ struct ExportCoordinator: ExportCoordinating {
                     ExportSectionData(
                         title: "Apps",
                         headers: ["app_name", "total_seconds", "session_count"],
-                        rows: apps.map { [$0.appName, formatSeconds($0.totalSeconds), String($0.sessionCount)] }
+                        rows: apps.map { [AppNameDisplay.resolvedName(for: $0.appName), formatSeconds($0.totalSeconds), String($0.sessionCount)] }
                     )
                 ]
             )
@@ -418,7 +418,7 @@ struct ExportCoordinator: ExportCoordinating {
                         title: "Raw Sessions",
                         headers: ["app_name", "start_time", "end_time", "duration_seconds"],
                         rows: sessions.map { [
-                            $0.appName,
+                            AppNameDisplay.resolvedName(for: $0.appName),
                             settings.timestampFormat.format($0.startTime),
                             settings.timestampFormat.format($0.endTime),
                             String(format: "%.3f", $0.durationSeconds)
@@ -490,7 +490,7 @@ struct ExportCoordinator: ExportCoordinating {
             // Add app-level deltas
             for appDelta in comparison.appDeltas.prefix(20) {
                 rows.append([
-                    "app_delta:\(appDelta.appName)",
+                    "app_delta:\(AppNameDisplay.resolvedName(for: appDelta.appName))",
                     String(format: "%.1f", appDelta.percentChange)
                 ])
             }
@@ -962,7 +962,7 @@ private extension ExportCoordinator {
                     ExportSectionData(
                         title: "Apps",
                         headers: ["app_name", "total_seconds", "session_count"],
-                        rows: apps.map { [$0.appName, formatSeconds($0.totalSeconds), String($0.sessionCount)] }
+                        rows: apps.map { [AppNameDisplay.resolvedName(for: $0.appName), formatSeconds($0.totalSeconds), String($0.sessionCount)] }
                     ),
                     ExportSectionData(
                         title: "Categories",
@@ -988,7 +988,7 @@ private extension ExportCoordinator {
                     ExportSectionData(
                         title: "Sessions",
                         headers: ["app_name", "start_time", "end_time", "duration_seconds"],
-                        rows: sessions.map { [$0.appName, settings.timestampFormat.format($0.startTime), settings.timestampFormat.format($0.endTime), formatSeconds($0.durationSeconds)] }
+                        rows: sessions.map { [AppNameDisplay.resolvedName(for: $0.appName), settings.timestampFormat.format($0.startTime), settings.timestampFormat.format($0.endTime), formatSeconds($0.durationSeconds)] }
                     )
                 ]
             )
@@ -1009,7 +1009,7 @@ private extension ExportCoordinator {
                     ExportSectionData(
                         title: "Apps",
                         headers: ["app_name", "total_seconds", "session_count"],
-                        rows: apps2.map { [$0.appName, formatSeconds($0.totalSeconds), String($0.sessionCount)] }
+                        rows: apps2.map { [AppNameDisplay.resolvedName(for: $0.appName), formatSeconds($0.totalSeconds), String($0.sessionCount)] }
                     ),
                     ExportSectionData(
                         title: "Categories",
@@ -1035,7 +1035,7 @@ private extension ExportCoordinator {
                     ExportSectionData(
                         title: "Apps",
                         headers: ["app_name", "total_seconds", "session_count"],
-                        rows: apps3.map { [$0.appName, formatSeconds($0.totalSeconds), String($0.sessionCount)] }
+                        rows: apps3.map { [AppNameDisplay.resolvedName(for: $0.appName), formatSeconds($0.totalSeconds), String($0.sessionCount)] }
                     ),
                     ExportSectionData(
                         title: "Trend",
@@ -2141,7 +2141,7 @@ private extension ExportCoordinator {
             for field in fieldsToExport {
                 switch field {
                 case .appName:
-                    rowValues.append(csvEscape(session.appName, options: csvOpts))
+                    rowValues.append(csvEscape(AppNameDisplay.resolvedName(for: session.appName), options: csvOpts))
                 case .startTime:
                     rowValues.append(csvEscape(settings.timestampFormat.format(session.startTime), options: csvOpts))
                 case .endTime:
@@ -2188,7 +2188,7 @@ private extension ExportCoordinator {
             for field in fieldsToExport {
                 switch field {
                 case .appName:
-                    obj["app_name"] = session.appName
+                    obj["app_name"] = AppNameDisplay.resolvedName(for: session.appName)
                 case .startTime:
                     obj["start_time"] = settings.timestampFormat.format(session.startTime)
                 case .endTime:
@@ -2270,7 +2270,7 @@ private extension ExportCoordinator {
             for field in fieldsToExport {
                 switch field {
                 case .appName:
-                    lines.append("    app_name: \"\(escapeYAMLString(session.appName))\"")
+                    lines.append("    app_name: \"\(escapeYAMLString(AppNameDisplay.resolvedName(for: session.appName)))\"")
                 case .startTime:
                     lines.append("    start_time: \"\(settings.timestampFormat.format(session.startTime))\"")
                 case .endTime:
@@ -2330,13 +2330,13 @@ private extension ExportCoordinator {
         let headers = ["App Name", "Start Time", "End Time", "Duration (sec)"]
         let rows = sessions.map { session -> [String] in
             [
-                session.appName,
+                AppNameDisplay.resolvedName(for: session.appName),
                 settings.timestampFormat.format(session.startTime),
                 settings.timestampFormat.format(session.endTime),
                 String(format: "%.3f", session.durationSeconds)
             ]
         }
-        
+
         let tableLines = formatMarkdownTable(
             headers: headers,
             rows: rows,
@@ -2370,7 +2370,7 @@ private extension ExportCoordinator {
             .mapValues { $0.reduce(0) { $0 + $1.durationSeconds } }
             .sorted { $0.value > $1.value }
             .prefix(5)
-            .map { $0.key }
+            .map { AppNameDisplay.resolvedName(for: $0.key) }
         
         // Frontmatter
         if obsOpts.includeFrontmatter {
@@ -2422,7 +2422,7 @@ private extension ExportCoordinator {
         let headers = ["App Name", "Start Time", "End Time", "Duration (sec)"]
         let rows = sessions.map { session -> [String] in
             [
-                session.appName,
+                AppNameDisplay.resolvedName(for: session.appName),
                 settings.timestampFormat.format(session.startTime),
                 settings.timestampFormat.format(session.endTime),
                 String(format: "%.3f", session.durationSeconds)
@@ -2721,11 +2721,7 @@ private extension ExportCoordinator {
     }
 
     func extractAppName(_ bundleOrName: String) -> String {
-        // Extract last component of bundle ID or return as-is
-        if bundleOrName.contains(".") {
-            return bundleOrName.components(separatedBy: ".").last ?? bundleOrName
-        }
-        return bundleOrName
+        AppNameDisplay.resolvedName(for: bundleOrName)
     }
 
     // MARK: - Clipboard Stats Formatting

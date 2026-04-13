@@ -65,8 +65,9 @@ jobs:
           ZIP=$(ls release/*.zip | head -n1)
           mkdir -p /tmp/extracted
           unzip -o -q "$ZIP" -d /tmp/extracted
-          PLIST=$(find /tmp/extracted -name Info.plist -path '*.app/Contents/*' | head -n1)
-          BUILD=$(python3 -c "import plistlib,sys; print(plistlib.load(open('$PLIST','rb'))['CFBundleVersion'])")
+          APP=$(find /tmp/extracted -type d -name "*.app" | awk '{print length, $0}' | sort -n | head -n1 | cut -d' ' -f2-)
+          PLIST="$APP/Contents/Info.plist"
+          BUILD=$(python3 -c "import plistlib; print(plistlib.load(open('$PLIST','rb'))['CFBundleVersion'])")
           echo "build=$BUILD" >> "$GITHUB_OUTPUT"
 
       - name: Publish

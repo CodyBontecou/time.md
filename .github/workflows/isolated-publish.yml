@@ -1,6 +1,6 @@
 name: Publish to isolated.tech
 
-# Drops a GitHub Release's .zip asset onto isolated.tech via the @isolated/cli.
+# Drops a GitHub Release's .zip asset onto isolated.tech via the @isolatedtech/cli.
 #
 # Setup (per app repo):
 #   1. Register the app once locally:  isolated init
@@ -29,8 +29,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install @isolated/cli
-        run: npm install -g @isolated/cli
+      - name: Install @isolatedtech/cli
+        run: npm install -g @isolatedtech/cli
 
       - name: Resolve release metadata
         id: meta

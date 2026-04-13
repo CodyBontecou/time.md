@@ -3889,12 +3889,12 @@
         }
       }
     },
-    "Data loads from local SQLite only (normalized screentime.db or knowledgeC.db fallback).": {
+    "Data loads from local normalized screentime.db": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los datos se cargan solo desde SQLite local (screentime.db normalizado o knowledgeC.db como alternativa)."
+            "value": "Los datos se cargan desde el screentime.db normalizado local."
           }
         }
       }

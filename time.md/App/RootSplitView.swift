@@ -168,12 +168,14 @@ private struct SettingsScaffoldView: View {
     @AppStorage("iCloudSyncEnabled") private var iCloudSyncEnabled: Bool = false
     @AppStorage("insightTickerAutoScroll") private var insightTickerAutoScroll: Bool = true
     @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
-    
+    @AppStorage("enableMCPServer") private var enableMCPServer: Bool = false
+
     @State private var isSyncing = false
     @State private var lastSyncDate: Date?
     @State private var syncError: String?
     @State private var showSyncSuccess = false
     @State private var browserSettings = BrowserSettingsStore.shared
+    @State private var mcpStatus: MCPIntegrationService.Status = .inactive
 
     private var displayMode: AppNameDisplayMode {
         AppNameDisplayMode(rawValue: appNameDisplayModeRaw) ?? .short
@@ -338,7 +340,7 @@ private struct SettingsScaffoldView: View {
                 settingsBlock(
                     number: 6,
                     title: "DATA SOURCE",
-                    body: "Data loads from local SQLite only (normalized screentime.db or knowledgeC.db fallback).",
+                    body: "Data loads from local normalized screentime.db",
                     footnote: "Category mappings saved at ~/Library/Application Support/time.md/category-mappings.db."
                 )
 
@@ -355,7 +357,10 @@ private struct SettingsScaffoldView: View {
                     body: "time.md is local-first. Your raw data stays on this machine. iCloud sync only shares aggregated daily summaries.",
                     footnote: nil
                 )
-                
+
+                // ─── Claude Code Integration ───
+                claudeCodeIntegrationSection
+
                 // Device info
                 deviceInfoSection
             }
@@ -559,14 +564,115 @@ private struct SettingsScaffoldView: View {
         }
     }
     
+    // MARK: - Claude Code Integration Section
+
+    private var claudeCodeIntegrationSection: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 10) {
+                Text(BrutalTheme.sectionLabel(9, "CLAUDE CODE INTEGRATION"))
+                    .font(BrutalTheme.headingFont)
+                    .foregroundColor(BrutalTheme.textSecondary)
+                    .tracking(1.5)
+
+                Text("Expose your time.md data to Claude Code as an MCP server. When enabled, time.md registers a bundled server with Claude Code so you can query your screen time data through natural conversation without exporting files.")
+                    .font(BrutalTheme.bodyMono)
+                    .foregroundColor(BrutalTheme.textPrimary)
+                    .lineSpacing(3)
+
+                HStack(spacing: 16) {
+                    Toggle(isOn: Binding(
+                        get: { enableMCPServer },
+                        set: { newValue in
+                            enableMCPServer = newValue
+                            if newValue {
+                                mcpStatus = MCPIntegrationService.shared.register()
+                            } else {
+                                mcpStatus = MCPIntegrationService.shared.unregister()
+                            }
+                        }
+                    )) {
+                        HStack(spacing: 8) {
+                            Image(systemName: enableMCPServer ? "terminal.fill" : "terminal")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(enableMCPServer ? .green : .orange)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(enableMCPServer ? "Enabled" : "Disabled")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(BrutalTheme.textPrimary)
+
+                                Text(enableMCPServer ? "Claude Code can query your data" : "Toggle on to enable querying via Claude Code")
+                                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                    .foregroundColor(BrutalTheme.textTertiary)
+                            }
+                        }
+                    }
+                    .toggleStyle(.switch)
+                    .tint(.green)
+
+                    Spacer()
+                }
+
+                mcpStatusFooter
+
+                Text("Writes to ~/.claude.json. Restart Claude Code after enabling to pick up the new tools.")
+                    .font(BrutalTheme.captionMono)
+                    .foregroundColor(BrutalTheme.textTertiary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .onAppear {
+            mcpStatus = MCPIntegrationService.shared.currentStatus()
+            if enableMCPServer, case .registered = mcpStatus {
+                // Already registered — nothing to do.
+            } else if enableMCPServer, MCPIntegrationService.shared.bundledBinaryPath != nil {
+                mcpStatus = MCPIntegrationService.shared.register()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var mcpStatusFooter: some View {
+        switch mcpStatus {
+        case .inactive:
+            EmptyView()
+        case .registered(let path):
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.green)
+                Text(verbatim: path)
+                    .font(.system(size: 10, weight: .regular, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textTertiary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+            }
+        case .missingBinary:
+            HStack(spacing: 6) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.orange)
+                Text("Bundled timemd-mcp binary not found. Rebuild time.md to include it.")
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundColor(.orange)
+            }
+        case .error(let message):
+            HStack(spacing: 6) {
+                Image(systemName: "xmark.octagon.fill")
+                    .foregroundColor(.red)
+                Text(verbatim: message)
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundColor(.red)
+            }
+        }
+    }
+
     // MARK: - Device Info Section
-    
+
     private var deviceInfoSection: some View {
         let device = DeviceInfo.current()
         
         return GlassCard {
             VStack(alignment: .leading, spacing: 10) {
-                Text(BrutalTheme.sectionLabel(9, "THIS DEVICE"))
+                Text(BrutalTheme.sectionLabel(10, "THIS DEVICE"))
                     .font(BrutalTheme.headingFont)
                     .foregroundColor(BrutalTheme.textSecondary)
                     .tracking(1.5)

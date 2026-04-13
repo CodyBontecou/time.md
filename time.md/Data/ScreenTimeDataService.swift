@@ -74,13 +74,13 @@ enum ScreenTimeDataError: LocalizedError, Sendable {
         switch self {
         case let .databaseNotFound(searchedPaths):
             if searchedPaths.contains(where: { $0.hasPrefix("SCREENTIME_DB_PATH=") }) {
-                return "Update SCREENTIME_DB_PATH to a valid screentime.db/knowledgeC.db file, or unset it to use automatic discovery."
+                return "Update SCREENTIME_DB_PATH to a valid screentime.db file, or unset it to use automatic discovery."
             }
-            return "Set SCREENTIME_DB_PATH to a valid screentime.db or allow access to knowledgeC.db."
+            return "Set SCREENTIME_DB_PATH to a valid normalized screentime.db."
         case .permissionDenied:
             return "Grant Full Disk Access for local development, or select an accessible DB file in Settings."
         case .schemaMismatch:
-            return "Use a normalized screentime.db (usage table) or a compatible knowledgeC.db with required ZOBJECT columns."
+            return "Use a normalized screentime.db with a usage table."
         case .sqlite:
             return "Verify the database file is valid and not corrupted."
         }
@@ -126,12 +126,7 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
 
     func fetchTrend(filters: FilterSnapshot) async throws -> [TrendPoint] {
         let dailyTotals = try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchDailyTotalsNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchDailyTotalsKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            }
+            return try Self.fetchDailyTotalsNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
         }
 
         return Self.aggregateTrend(dailyTotals: dailyTotals, filters: filters)
@@ -139,12 +134,7 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
 
     func fetchDailyAppBreakdown(filters: FilterSnapshot, topN: Int) async throws -> [DailyAppBreakdown] {
         let rawRows = try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchDailyAppRowsNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchDailyAppRowsKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            }
+            return try Self.fetchDailyAppRowsNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
         }
 
         return Self.aggregateDailyAppBreakdown(rawRows: rawRows, filters: filters, topN: topN)
@@ -154,12 +144,7 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
         guard limit > 0 else { return [] }
 
         return try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchTopAppsNormalized(db: context.db, filters: filters, limit: limit, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchTopAppsKnowledge(db: context.db, filters: filters, limit: limit, hasCategoryMap: context.hasCategoryMap)
-            }
+            return try Self.fetchTopAppsNormalized(db: context.db, filters: filters, limit: limit, hasCategoryMap: context.hasCategoryMap)
         }
     }
 
@@ -167,34 +152,19 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
         guard limit > 0 else { return [] }
 
         return try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchTopCategoriesNormalized(db: context.db, filters: filters, limit: limit, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchTopCategoriesKnowledge(db: context.db, filters: filters, limit: limit)
-            }
+            return try Self.fetchTopCategoriesNormalized(db: context.db, filters: filters, limit: limit, hasCategoryMap: context.hasCategoryMap)
         }
     }
 
     func fetchSessionBuckets(filters: FilterSnapshot) async throws -> [SessionBucket] {
         try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchSessionBucketsNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchSessionBucketsKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            }
+            return try Self.fetchSessionBucketsNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
         }
     }
 
     func fetchHeatmap(filters: FilterSnapshot) async throws -> [HeatmapCell] {
         let cells = try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchHeatmapNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchHeatmapKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            }
+            return try Self.fetchHeatmapNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
         }
 
         var byCoordinate = Dictionary(uniqueKeysWithValues: cells.map { (HeatmapCellCoordinate(weekday: $0.weekday, hour: $0.hour), $0.totalSeconds) })
@@ -214,23 +184,13 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
 
     func fetchHeatmapCellAppUsage(filters: FilterSnapshot) async throws -> [HeatmapCellAppUsage] {
         try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchHeatmapCellAppUsageNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchHeatmapCellAppUsageKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            }
+            return try Self.fetchHeatmapCellAppUsageNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
         }
     }
 
     func fetchFocusDays(filters: FilterSnapshot) async throws -> [FocusDay] {
         let fetchedRows = try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchFocusDayRowsNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchFocusDayRowsKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            }
+            return try Self.fetchFocusDayRowsNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
         }
 
         let calendar = Calendar.current
@@ -271,12 +231,7 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
         )
 
         return try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchHourlyAppUsageNormalized(db: context.db, filters: filters)
-            case .knowledge:
-                return try Self.fetchHourlyAppUsageKnowledge(db: context.db, filters: filters)
-            }
+            return try Self.fetchHourlyAppUsageNormalized(db: context.db, filters: filters)
         }
     }
 
@@ -414,12 +369,7 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
 
     func fetchLongestSession(filters: FilterSnapshot) async throws -> LongestSession? {
         try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchLongestSessionNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchLongestSessionKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            }
+            return try Self.fetchLongestSessionNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
         }
     }
 
@@ -427,35 +377,20 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
 
     func fetchContextSwitchRate(filters: FilterSnapshot) async throws -> [ContextSwitchPoint] {
         try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchContextSwitchesNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchContextSwitchesKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            }
+            return try Self.fetchContextSwitchesNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
         }
     }
 
     func fetchAppTransitions(filters: FilterSnapshot, limit: Int) async throws -> [AppTransition] {
         guard limit > 0 else { return [] }
         return try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchAppTransitionsNormalized(db: context.db, filters: filters, limit: limit, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchAppTransitionsKnowledge(db: context.db, filters: filters, limit: limit, hasCategoryMap: context.hasCategoryMap)
-            }
+            return try Self.fetchAppTransitionsNormalized(db: context.db, filters: filters, limit: limit, hasCategoryMap: context.hasCategoryMap)
         }
     }
 
     func fetchWeekdayAverages(filters: FilterSnapshot) async throws -> [WeekdayAverage] {
         try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchWeekdayAveragesNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchWeekdayAveragesKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            }
+            return try Self.fetchWeekdayAveragesNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
         }
     }
 
@@ -592,23 +527,13 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
 
     func fetchRawSessions(filters: FilterSnapshot) async throws -> [RawSession] {
         try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchRawSessionsNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchRawSessionsKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            }
+            return try Self.fetchRawSessionsNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
         }
     }
 
     func fetchRawSessionCount(filters: FilterSnapshot) async throws -> Int {
         try await runQuery { context in
-            switch context.backend {
-            case .normalized:
-                return try Self.fetchRawSessionCountNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            case .knowledge:
-                return try Self.fetchRawSessionCountKnowledge(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
-            }
+            return try Self.fetchRawSessionCountNormalized(db: context.db, filters: filters, hasCategoryMap: context.hasCategoryMap)
         }
     }
 
@@ -694,35 +619,6 @@ private extension SQLiteScreenTimeDataService {
         }
     }
 
-    static func fetchTopAppsKnowledge(db: OpaquePointer, filters: FilterSnapshot, limit: Int, hasCategoryMap: Bool) throws -> [AppUsageSummary] {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
-        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
-
-        let sql = """
-        SELECT
-            o.ZVALUESTRING AS app_name,
-            SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds,
-            COUNT(*) AS session_count
-        FROM ZOBJECT o
-        \(join)
-        WHERE \(filter.whereClause)
-        GROUP BY app_name
-        ORDER BY total_seconds DESC
-        LIMIT ?
-        """
-
-        var parameters = filter.parameters
-        parameters.append(.int(Int64(limit)))
-
-        return try SQLiteRunner.query(db: db, sql: sql, parameters: parameters) { statement in
-            AppUsageSummary(
-                appName: SQLiteRunner.columnText(statement, index: 0) ?? "Unknown",
-                totalSeconds: SQLiteRunner.columnDouble(statement, index: 1),
-                sessionCount: Int(SQLiteRunner.columnInt(statement, index: 2))
-            )
-        }
-    }
-
     static func fetchTopCategoriesNormalized(db: OpaquePointer, filters: FilterSnapshot, limit: Int, hasCategoryMap: Bool) throws -> [CategoryUsageSummary] {
         guard hasCategoryMap else {
             let total = try totalUsageSecondsNormalized(db: db, filters: filters, hasCategoryMap: false)
@@ -740,32 +636,6 @@ private extension SQLiteScreenTimeDataService {
             SUM(u.duration_seconds) AS total_seconds
         FROM usage u
         LEFT JOIN app_category_map m ON m.app_name = u.app_name
-        WHERE \(filter.whereClause)
-        GROUP BY category
-        ORDER BY total_seconds DESC
-        LIMIT ?
-        """
-
-        var parameters = filter.parameters
-        parameters.append(.int(Int64(limit)))
-
-        return try SQLiteRunner.query(db: db, sql: sql, parameters: parameters) { statement in
-            CategoryUsageSummary(
-                category: SQLiteRunner.columnText(statement, index: 0) ?? "Uncategorized",
-                totalSeconds: SQLiteRunner.columnDouble(statement, index: 1)
-            )
-        }
-    }
-
-    static func fetchTopCategoriesKnowledge(db: OpaquePointer, filters: FilterSnapshot, limit: Int) throws -> [CategoryUsageSummary] {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: true, includeCategorySelection: true)
-
-        let sql = """
-        SELECT
-            COALESCE(m.category, 'Uncategorized') AS category,
-            SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds
-        FROM ZOBJECT o
-        LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING
         WHERE \(filter.whereClause)
         GROUP BY category
         ORDER BY total_seconds DESC
@@ -821,48 +691,6 @@ private extension SQLiteScreenTimeDataService {
         }
     }
 
-    static func fetchSessionBucketsKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [SessionBucket] {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
-        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
-
-        let sql = """
-        SELECT
-            CASE
-                WHEN duration_seconds < 60 THEN '<1m'
-                WHEN duration_seconds < 300 THEN '1–5m'
-                WHEN duration_seconds < 900 THEN '5–15m'
-                WHEN duration_seconds < 1800 THEN '15–30m'
-                WHEN duration_seconds < 3600 THEN '30–60m'
-                ELSE '60m+'
-            END AS bucket,
-            COUNT(*) AS sessions,
-            CASE
-                WHEN duration_seconds < 60 THEN 0
-                WHEN duration_seconds < 300 THEN 1
-                WHEN duration_seconds < 900 THEN 2
-                WHEN duration_seconds < 1800 THEN 3
-                WHEN duration_seconds < 3600 THEN 4
-                ELSE 5
-            END AS sort_order
-        FROM (
-            SELECT
-                CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END AS duration_seconds
-            FROM ZOBJECT o
-            \(join)
-            WHERE \(filter.whereClause)
-        ) t
-        GROUP BY bucket, sort_order
-        ORDER BY sort_order
-        """
-
-        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
-            SessionBucket(
-                label: SQLiteRunner.columnText(statement, index: 0) ?? "Unknown",
-                sessionCount: Int(SQLiteRunner.columnInt(statement, index: 1))
-            )
-        }
-    }
-
     static func fetchHeatmapNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [HeatmapCell] {
         let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
         let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
@@ -873,31 +701,6 @@ private extension SQLiteScreenTimeDataService {
             CAST(strftime('%H', u.start_time) AS INTEGER) AS hour,
             SUM(u.duration_seconds) AS total_seconds
         FROM usage u
-        \(join)
-        WHERE \(filter.whereClause)
-        GROUP BY weekday, hour
-        ORDER BY weekday, hour
-        """
-
-        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
-            HeatmapCell(
-                weekday: Int(SQLiteRunner.columnInt(statement, index: 0)),
-                hour: Int(SQLiteRunner.columnInt(statement, index: 1)),
-                totalSeconds: SQLiteRunner.columnDouble(statement, index: 2)
-            )
-        }
-    }
-
-    static func fetchHeatmapKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [HeatmapCell] {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
-        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
-
-        let sql = """
-        SELECT
-            CAST(strftime('%w', datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER) AS weekday,
-            CAST(strftime('%H', datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER) AS hour,
-            SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds
-        FROM ZOBJECT o
         \(join)
         WHERE \(filter.whereClause)
         GROUP BY weekday, hour
@@ -940,33 +743,6 @@ private extension SQLiteScreenTimeDataService {
         }
     }
 
-    static func fetchHeatmapCellAppUsageKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [HeatmapCellAppUsage] {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
-        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
-
-        let sql = """
-        SELECT
-            CAST(strftime('%w', datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER) AS weekday,
-            CAST(strftime('%H', datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER) AS hour,
-            o.ZVALUESTRING AS app_name,
-            SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds
-        FROM ZOBJECT o
-        \(join)
-        WHERE \(filter.whereClause)
-        GROUP BY weekday, hour, app_name
-        ORDER BY weekday, hour, total_seconds DESC
-        """
-
-        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
-            HeatmapCellAppUsage(
-                weekday: Int(SQLiteRunner.columnInt(statement, index: 0)),
-                hour: Int(SQLiteRunner.columnInt(statement, index: 1)),
-                appName: SQLiteRunner.columnText(statement, index: 2) ?? "Unknown",
-                totalSeconds: SQLiteRunner.columnDouble(statement, index: 3)
-            )
-        }
-    }
-
     static func fetchFocusDayRowsNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [FocusDayRow] {
         let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
         let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
@@ -977,25 +753,6 @@ private extension SQLiteScreenTimeDataService {
             SUM(u.duration_seconds) AS total_seconds,
             SUM(CASE WHEN u.duration_seconds >= 1500 THEN 1 ELSE 0 END) AS focus_blocks
         FROM usage u
-        \(join)
-        WHERE \(filter.whereClause)
-        GROUP BY day
-        ORDER BY day
-        """
-
-        return try focusRowsFromQuery(db: db, sql: sql, parameters: filter.parameters)
-    }
-
-    static func fetchFocusDayRowsKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [FocusDayRow] {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
-        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
-
-        let sql = """
-        SELECT
-            date(datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS day,
-            SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds,
-            SUM(CASE WHEN (o.ZENDDATE - o.ZSTARTDATE) >= 1500 THEN 1 ELSE 0 END) AS focus_blocks
-        FROM ZOBJECT o
         \(join)
         WHERE \(filter.whereClause)
         GROUP BY day
@@ -1043,35 +800,6 @@ private extension SQLiteScreenTimeDataService {
         }
     }
 
-    static func fetchHourlyAppUsageKnowledge(db: OpaquePointer, filters: FilterSnapshot) throws -> [HourlyAppUsage] {
-        let range = knowledgeDateRange(filters: filters)
-
-        let sql = """
-        SELECT
-            CAST(strftime('%H', datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER) AS hour,
-            o.ZVALUESTRING AS app_name,
-            SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds
-        FROM ZOBJECT o
-        WHERE o.ZSTREAMNAME IN ('/app/usage', '/app/webUsage', '/app/mediaUsage')
-          AND o.ZVALUESTRING IS NOT NULL
-          AND o.ZSTARTDATE >= ?
-          AND o.ZSTARTDATE < ?
-        GROUP BY hour, app_name
-        ORDER BY hour, total_seconds DESC
-        """
-
-        return try SQLiteRunner.query(db: db, sql: sql, parameters: [
-            .double(range.startApple),
-            .double(range.endExclusiveApple)
-        ]) { statement in
-            HourlyAppUsage(
-                hour: Int(SQLiteRunner.columnInt(statement, index: 0)),
-                appName: SQLiteRunner.columnText(statement, index: 1) ?? "Unknown",
-                totalSeconds: SQLiteRunner.columnDouble(statement, index: 2)
-            )
-        }
-    }
-
     // MARK: - Longest session queries
 
     static func fetchLongestSessionNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> LongestSession? {
@@ -1092,32 +820,6 @@ private extension SQLiteScreenTimeDataService {
             let duration = SQLiteRunner.columnDouble(statement, index: 1)
             let startText = SQLiteRunner.columnText(statement, index: 2) ?? ""
             let startDate = parseISO(startText) ?? .distantPast
-            return LongestSession(appName: appName, durationSeconds: duration, startDate: startDate)
-        }
-        return rows.first
-    }
-
-    static func fetchLongestSessionKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> LongestSession? {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: false)
-        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
-
-        let sql = """
-        SELECT
-            o.ZVALUESTRING AS app_name,
-            CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END AS duration_seconds,
-            o.ZSTARTDATE
-        FROM ZOBJECT o
-        \(join)
-        WHERE \(filter.whereClause)
-        ORDER BY duration_seconds DESC
-        LIMIT 1
-        """
-
-        let rows: [LongestSession] = try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
-            let appName = SQLiteRunner.columnText(statement, index: 0) ?? "Unknown"
-            let duration = SQLiteRunner.columnDouble(statement, index: 1)
-            let appleTimestamp = SQLiteRunner.columnDouble(statement, index: 2)
-            let startDate = Date(timeIntervalSince1970: appleTimestamp + 978_307_200)
             return LongestSession(appName: appName, durationSeconds: duration, startDate: startDate)
         }
         return rows.first
@@ -1158,59 +860,12 @@ private extension SQLiteScreenTimeDataService {
         .filter { $0.startTime != .distantPast }
     }
 
-    static func fetchRawSessionsKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [RawSession] {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
-        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
-
-        let sql = """
-        SELECT
-            o.ZVALUESTRING AS app_name,
-            o.ZSTARTDATE,
-            o.ZENDDATE
-        FROM ZOBJECT o
-        \(join)
-        WHERE \(filter.whereClause)
-        ORDER BY o.ZSTARTDATE ASC
-        """
-
-        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
-            let appName = SQLiteRunner.columnText(statement, index: 0) ?? "Unknown"
-            let appleStart = SQLiteRunner.columnDouble(statement, index: 1)
-            let appleEnd = SQLiteRunner.columnDouble(statement, index: 2)
-
-            let startTime = Date(timeIntervalSince1970: appleStart + 978_307_200)
-            let endTime = Date(timeIntervalSince1970: appleEnd + 978_307_200)
-            let duration = max(0, appleEnd - appleStart)
-
-            return RawSession(
-                appName: appName,
-                startTime: startTime,
-                endTime: endTime,
-                durationSeconds: duration
-            )
-        }
-    }
-
     static func fetchRawSessionCountNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> Int {
         let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
         let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
 
         let sql = """
         SELECT COUNT(*) FROM usage u
-        \(join)
-        WHERE \(filter.whereClause)
-        """
-
-        let count = try SQLiteRunner.scalarDouble(db: db, sql: sql, parameters: filter.parameters) ?? 0
-        return Int(count)
-    }
-
-    static func fetchRawSessionCountKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> Int {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
-        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
-
-        let sql = """
-        SELECT COUNT(*) FROM ZOBJECT o
         \(join)
         WHERE \(filter.whereClause)
         """
@@ -1255,39 +910,6 @@ private extension SQLiteScreenTimeDataService {
         .filter { $0.date != .distantPast }
     }
 
-    static func fetchContextSwitchesKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [ContextSwitchPoint] {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
-        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
-
-        let sql = """
-        SELECT day, hour, COUNT(*) AS switch_count
-        FROM (
-            SELECT
-                date(datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS day,
-                CAST(strftime('%H', datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER) AS hour,
-                o.ZVALUESTRING AS app_name,
-                LAG(o.ZVALUESTRING) OVER (ORDER BY o.ZSTARTDATE) AS prev_app
-            FROM ZOBJECT o
-            \(join)
-            WHERE \(filter.whereClause)
-        ) t
-        WHERE prev_app IS NOT NULL AND app_name != prev_app
-        GROUP BY day, hour
-        ORDER BY day, hour
-        """
-
-        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
-            let dayText = SQLiteRunner.columnText(statement, index: 0) ?? ""
-            let parsedDay = parseDay(dayText) ?? .distantPast
-            return ContextSwitchPoint(
-                date: parsedDay,
-                hour: Int(SQLiteRunner.columnInt(statement, index: 1)),
-                switchCount: Int(SQLiteRunner.columnInt(statement, index: 2))
-            )
-        }
-        .filter { $0.date != .distantPast }
-    }
-
     // MARK: - App transition queries
 
     static func fetchAppTransitionsNormalized(db: OpaquePointer, filters: FilterSnapshot, limit: Int, hasCategoryMap: Bool) throws -> [AppTransition] {
@@ -1301,38 +923,6 @@ private extension SQLiteScreenTimeDataService {
                 u.app_name,
                 LAG(u.app_name) OVER (ORDER BY u.start_time) AS prev_app
             FROM usage u
-            \(join)
-            WHERE \(filter.whereClause)
-        ) t
-        WHERE prev_app IS NOT NULL AND app_name != prev_app
-        GROUP BY prev_app, app_name
-        ORDER BY transition_count DESC
-        LIMIT ?
-        """
-
-        var parameters = filter.parameters
-        parameters.append(.int(Int64(limit)))
-
-        return try SQLiteRunner.query(db: db, sql: sql, parameters: parameters) { statement in
-            AppTransition(
-                fromApp: SQLiteRunner.columnText(statement, index: 0) ?? "Unknown",
-                toApp: SQLiteRunner.columnText(statement, index: 1) ?? "Unknown",
-                count: Int(SQLiteRunner.columnInt(statement, index: 2))
-            )
-        }
-    }
-
-    static func fetchAppTransitionsKnowledge(db: OpaquePointer, filters: FilterSnapshot, limit: Int, hasCategoryMap: Bool) throws -> [AppTransition] {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
-        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
-
-        let sql = """
-        SELECT prev_app, app_name, COUNT(*) AS transition_count
-        FROM (
-            SELECT
-                o.ZVALUESTRING AS app_name,
-                LAG(o.ZVALUESTRING) OVER (ORDER BY o.ZSTARTDATE) AS prev_app
-            FROM ZOBJECT o
             \(join)
             WHERE \(filter.whereClause)
         ) t
@@ -1393,46 +983,6 @@ private extension SQLiteScreenTimeDataService {
         }
     }
 
-    static func fetchWeekdayAveragesKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [WeekdayAverage] {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
-        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
-
-        let localDateExpr = "datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')"
-        let durationExpr = "CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END"
-
-        // Get top app per weekday along with its total seconds and the count of distinct days
-        // This ensures the displayed time matches the displayed app name
-        let sql = """
-        SELECT weekday, app_name, total_seconds, day_count FROM (
-            SELECT
-                CAST(strftime('%w', \(localDateExpr)) AS INTEGER) AS weekday,
-                o.ZVALUESTRING AS app_name,
-                SUM(\(durationExpr)) AS total_seconds,
-                COUNT(DISTINCT date(\(localDateExpr))) AS day_count,
-                ROW_NUMBER() OVER (PARTITION BY CAST(strftime('%w', \(localDateExpr)) AS INTEGER) ORDER BY SUM(\(durationExpr)) DESC) AS rn
-            FROM ZOBJECT o
-            \(join)
-            WHERE \(filter.whereClause)
-            GROUP BY weekday, app_name
-        ) t
-        WHERE rn = 1
-        ORDER BY weekday
-        """
-
-        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
-            let weekday = Int(SQLiteRunner.columnInt(statement, index: 0))
-            let appName = SQLiteRunner.columnText(statement, index: 1) ?? "Unknown"
-            let totalSeconds = SQLiteRunner.columnDouble(statement, index: 2)
-            let dayCount = Int(SQLiteRunner.columnInt(statement, index: 3))
-            
-            return WeekdayAverage(
-                weekday: weekday,
-                averageSeconds: dayCount > 0 ? totalSeconds / Double(dayCount) : 0,
-                topApp: appName
-            )
-        }
-    }
-
     static func parseISO(_ text: String) -> Date? {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -1459,24 +1009,6 @@ private extension SQLiteScreenTimeDataService {
         return try dailyTotalsFromQuery(db: db, sql: sql, parameters: filter.parameters)
     }
 
-    static func fetchDailyTotalsKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [DailyTotalRow] {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
-        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
-
-        let sql = """
-        SELECT
-            date(datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS day,
-            SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds
-        FROM ZOBJECT o
-        \(join)
-        WHERE \(filter.whereClause)
-        GROUP BY day
-        ORDER BY day
-        """
-
-        return try dailyTotalsFromQuery(db: db, sql: sql, parameters: filter.parameters)
-    }
-
     // MARK: - Daily per-app breakdown queries
 
     static func fetchDailyAppRowsNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [DailyAppRow] {
@@ -1492,25 +1024,6 @@ private extension SQLiteScreenTimeDataService {
         \(join)
         WHERE \(filter.whereClause)
         GROUP BY day, u.app_name
-        ORDER BY day, total_seconds DESC
-        """
-
-        return try dailyAppRowsFromQuery(db: db, sql: sql, parameters: filter.parameters)
-    }
-
-    static func fetchDailyAppRowsKnowledge(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [DailyAppRow] {
-        let filter = knowledgeFilter(filters: filters, alias: "o", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
-        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = o.ZVALUESTRING " : " "
-
-        let sql = """
-        SELECT
-            date(datetime(o.ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS day,
-            o.ZVALUESTRING AS app_name,
-            SUM(CASE WHEN o.ZENDDATE > o.ZSTARTDATE THEN (o.ZENDDATE - o.ZSTARTDATE) ELSE 0 END) AS total_seconds
-        FROM ZOBJECT o
-        \(join)
-        WHERE \(filter.whereClause)
-        GROUP BY day, app_name
         ORDER BY day, total_seconds DESC
         """
 
@@ -1734,115 +1247,6 @@ private extension SQLiteScreenTimeDataService {
         return SQLFilter(whereClause: conditions.joined(separator: " AND "), parameters: parameters, needsCategoryJoin: needsCategoryJoin)
     }
 
-    static func knowledgeFilter(
-        filters: FilterSnapshot,
-        alias: String,
-        hasCategoryMap: Bool,
-        includeCategorySelection: Bool
-    ) -> SQLFilter {
-        let range = knowledgeDateRange(filters: filters)
-
-        var conditions: [String] = [
-            "\(alias).ZSTREAMNAME IN ('/app/usage', '/app/webUsage', '/app/mediaUsage')",
-            "\(alias).ZVALUESTRING IS NOT NULL",
-            "\(alias).ZSTARTDATE >= ?",
-            "\(alias).ZSTARTDATE < ?"
-        ]
-
-        var parameters: [SQLiteBinding] = [
-            .double(range.startApple),
-            .double(range.endExclusiveApple)
-        ]
-
-        if !filters.selectedApps.isEmpty {
-            let sortedApps = filters.selectedApps.sorted()
-            conditions.append("\(alias).ZVALUESTRING IN (\(placeholders(count: sortedApps.count)))")
-            parameters.append(contentsOf: sortedApps.map { .text($0) })
-        }
-
-        if !filters.selectedHeatmapCells.isEmpty {
-            let sortedCells = filters.selectedHeatmapCells.sorted { lhs, rhs in
-                if lhs.weekday == rhs.weekday {
-                    return lhs.hour < rhs.hour
-                }
-                return lhs.weekday < rhs.weekday
-            }
-
-            let weekdayExpr = "CAST(strftime('%w', datetime(\(alias).ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER)"
-            let hourExpr = "CAST(strftime('%H', datetime(\(alias).ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER)"
-
-            let cellPredicates = sortedCells.map { _ in
-                "(\(weekdayExpr) = ? AND \(hourExpr) = ?)"
-            }
-            conditions.append("(\(cellPredicates.joined(separator: " OR ")))")
-
-            for cell in sortedCells {
-                parameters.append(.int(Int64(cell.weekday)))
-                parameters.append(.int(Int64(cell.hour)))
-            }
-        }
-
-        var needsCategoryJoin = false
-        if includeCategorySelection, !filters.selectedCategories.isEmpty {
-            if hasCategoryMap {
-                let sortedCategories = filters.selectedCategories.sorted()
-                conditions.append("COALESCE(m.category, 'Uncategorized') IN (\(placeholders(count: sortedCategories.count)))")
-                parameters.append(contentsOf: sortedCategories.map { .text($0) })
-                needsCategoryJoin = true
-            } else if !filters.selectedCategories.contains("Uncategorized") {
-                conditions.append("1 = 0")
-            }
-        }
-        
-        // ── Advanced Time Filters ──
-        
-        let hourExpr = "CAST(strftime('%H', datetime(\(alias).ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER)"
-        let weekdayExpr = "CAST(strftime('%w', datetime(\(alias).ZSTARTDATE + \(appleEpochOffset), 'unixepoch', 'localtime')) AS INTEGER)"
-        
-        // Time-of-day ranges (OR logic)
-        if !filters.timeOfDayRanges.isEmpty {
-            var rangePredicates: [String] = []
-            
-            for range in filters.timeOfDayRanges {
-                if range.startHour <= range.endHour {
-                    // Normal range (e.g., 9-17)
-                    rangePredicates.append("(\(hourExpr) >= ? AND \(hourExpr) < ?)")
-                    parameters.append(.int(Int64(range.startHour)))
-                    parameters.append(.int(Int64(range.endHour)))
-                } else {
-                    // Overnight range (e.g., 22-6)
-                    rangePredicates.append("(\(hourExpr) >= ? OR \(hourExpr) < ?)")
-                    parameters.append(.int(Int64(range.startHour)))
-                    parameters.append(.int(Int64(range.endHour)))
-                }
-            }
-            
-            conditions.append("(\(rangePredicates.joined(separator: " OR ")))")
-        }
-        
-        // Weekday filter (OR logic)
-        if !filters.weekdayFilter.isEmpty {
-            let sortedWeekdays = filters.weekdayFilter.sorted()
-            conditions.append("\(weekdayExpr) IN (\(placeholders(count: sortedWeekdays.count)))")
-            parameters.append(contentsOf: sortedWeekdays.map { .int(Int64($0)) })
-        }
-        
-        // Duration thresholds (using ZENDDATE - ZSTARTDATE for knowledgeC)
-        let durationExpr = "((\(alias).ZENDDATE - \(alias).ZSTARTDATE))"
-        
-        if let minDuration = filters.minDurationSeconds {
-            conditions.append("\(durationExpr) >= ?")
-            parameters.append(.double(minDuration))
-        }
-        
-        if let maxDuration = filters.maxDurationSeconds {
-            conditions.append("\(durationExpr) <= ?")
-            parameters.append(.double(maxDuration))
-        }
-
-        return SQLFilter(whereClause: conditions.joined(separator: " AND "), parameters: parameters, needsCategoryJoin: needsCategoryJoin)
-    }
-
     static func aggregateTrend(dailyTotals: [DailyTotalRow], filters: FilterSnapshot) -> [TrendPoint] {
         let calendar = Calendar.current
 
@@ -1885,17 +1289,7 @@ private extension SQLiteScreenTimeDataService {
         )
     }
 
-    static func knowledgeDateRange(filters: FilterSnapshot) -> (startApple: Double, endExclusiveApple: Double) {
-        let calendar = Calendar.current
-        let start = calendar.startOfDay(for: filters.startDate)
-        let endStart = calendar.startOfDay(for: filters.endDate)
-        let endExclusive = calendar.date(byAdding: .day, value: 1, to: endStart) ?? endStart
 
-        return (
-            start.timeIntervalSince1970 - appleEpochOffset,
-            endExclusive.timeIntervalSince1970 - appleEpochOffset
-        )
-    }
 
     static func parseDay(_ value: String) -> Date? {
         let parts = value.split(separator: "-")
@@ -1955,12 +1349,7 @@ private extension SQLiteScreenTimeDataService {
             }
             openedDatabase = db
 
-            switch resolved.backend {
-            case .normalized:
-                try validateNormalizedSchema(db: db, path: resolved.url.path)
-            case .knowledge:
-                try validateKnowledgeSchema(db: db, path: resolved.url.path)
-            }
+            try validateNormalizedSchema(db: db, path: resolved.url.path)
 
             do {
                 try CategoryMappingStore.installMappings(into: db, path: temp.path)
@@ -1975,7 +1364,6 @@ private extension SQLiteScreenTimeDataService {
             return SQLiteConnectionContext(
                 sourceURL: resolved.url,
                 temporaryURL: temp,
-                backend: resolved.backend,
                 hasCategoryMap: true,
                 db: db
             )
@@ -1996,14 +1384,14 @@ private extension SQLiteScreenTimeDataService {
                 throw ScreenTimeDataError.databaseNotFound(searchedPaths: ["SCREENTIME_DB_PATH=\(url.path)"])
             }
 
-            guard let backend = try detectBackend(url: url) else {
+            guard try detectNormalizedBackend(url: url) else {
                 throw ScreenTimeDataError.schemaMismatch(
                     path: url.path,
-                    details: "Expected either a normalized 'usage' table or knowledgeC ZOBJECT table. If this is a raw export, ensure the full SQLite file was copied (including current schema)."
+                    details: "Expected a normalized 'usage' table. If this is a raw export, ensure the full SQLite file was copied (including current schema)."
                 )
             }
 
-            return ResolvedDatabase(url: url, backend: backend)
+            return ResolvedDatabase(url: url)
         }
 
         let sandboxHome = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
@@ -2013,8 +1401,7 @@ private extension SQLiteScreenTimeDataService {
             URL(fileURLWithPath: "/data/screentime.db"),
             sandboxHome.appendingPathComponent("screentime.db"),
             sandboxHome.appendingPathComponent("Library/Application Support/time.md/screentime.db"),
-            realHome.appendingPathComponent("Library/Application Support/time.md/screentime.db"),
-            realHome.appendingPathComponent("Library/Application Support/Knowledge/knowledgeC.db")
+            realHome.appendingPathComponent("Library/Application Support/time.md/screentime.db")
         ]
 
         var searched: [String] = []
@@ -2025,15 +1412,15 @@ private extension SQLiteScreenTimeDataService {
                 continue
             }
 
-            if let backend = try detectBackend(url: candidate) {
-                return ResolvedDatabase(url: candidate, backend: backend)
+            if try detectNormalizedBackend(url: candidate) {
+                return ResolvedDatabase(url: candidate)
             }
         }
 
         throw ScreenTimeDataError.databaseNotFound(searchedPaths: searched)
     }
 
-    static func detectBackend(url: URL) throws -> ScreenTimeBackend? {
+    static func detectNormalizedBackend(url: URL) throws -> Bool {
         var dbPointer: OpaquePointer?
         let result = sqlite3_open_v2(url.path, &dbPointer, SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX, nil)
 
@@ -2047,15 +1434,7 @@ private extension SQLiteScreenTimeDataService {
 
         defer { sqlite3_close(db) }
 
-        if tableExists(db: db, table: "usage") {
-            return .normalized
-        }
-
-        if tableExists(db: db, table: "ZOBJECT") {
-            return .knowledge
-        }
-
-        return nil
+        return tableExists(db: db, table: "usage")
     }
 
     static func validateNormalizedSchema(db: OpaquePointer, path: String) throws {
@@ -2070,28 +1449,6 @@ private extension SQLiteScreenTimeDataService {
                 path: path,
                 details: "Missing usage columns: \(missing.sorted().joined(separator: ", ")). Available columns: [\(available)]."
             )
-        }
-    }
-
-    static func validateKnowledgeSchema(db: OpaquePointer, path: String) throws {
-        let columns = try tableColumns(db: db, table: "ZOBJECT")
-        let required: Set<String> = ["ZSTREAMNAME", "ZVALUESTRING", "ZSTARTDATE", "ZENDDATE"]
-        let missing = required.subtracting(columns)
-        guard missing.isEmpty else {
-            let available = columns.sorted().joined(separator: ", ")
-            throw ScreenTimeDataError.schemaMismatch(
-                path: path,
-                details: "Detected ZOBJECT, but required columns are missing: \(missing.sorted().joined(separator: ", ")). Available columns: [\(available)]. This knowledgeC.db variant is not currently supported."
-            )
-        }
-
-        // Log availability of optional metadata tables (used by LEFT JOINs).
-        // Their absence is non-fatal — queries degrade gracefully with NULL values.
-        if !tableExists(db: db, table: "ZSOURCE") {
-            print("[ScreenTimeDataService] ZSOURCE table not found — device_id will be unavailable")
-        }
-        if !tableExists(db: db, table: "ZSTRUCTUREDMETADATA") {
-            print("[ScreenTimeDataService] ZSTRUCTUREDMETADATA table not found — metadata_hash will be unavailable")
         }
     }
 
@@ -2315,16 +1672,8 @@ private enum SQLiteRunner {
 
 // MARK: - Local support types
 
-private let appleEpochOffset: Double = 978_307_200
-
-private enum ScreenTimeBackend {
-    case normalized
-    case knowledge
-}
-
 private struct ResolvedDatabase {
     let url: URL
-    let backend: ScreenTimeBackend
 }
 
 private struct SQLFilter {
@@ -2353,14 +1702,12 @@ private struct FocusDayRow {
 private final class SQLiteConnectionContext {
     let sourceURL: URL
     let temporaryURL: URL
-    let backend: ScreenTimeBackend
     let hasCategoryMap: Bool
     let db: OpaquePointer
 
-    init(sourceURL: URL, temporaryURL: URL, backend: ScreenTimeBackend, hasCategoryMap: Bool, db: OpaquePointer) {
+    init(sourceURL: URL, temporaryURL: URL, hasCategoryMap: Bool, db: OpaquePointer) {
         self.sourceURL = sourceURL
         self.temporaryURL = temporaryURL
-        self.backend = backend
         self.hasCategoryMap = hasCategoryMap
         self.db = db
     }

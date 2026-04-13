@@ -2,7 +2,7 @@ import Foundation
 
 /// Abstract protocol for screen time data access across platforms.
 ///
-/// On macOS: Implemented by SQLiteScreenTimeDataService (reads knowledgeC.db)
+/// On macOS: Implemented by SQLiteScreenTimeDataService (reads the normalized usage table)
 /// On iOS: Implemented by DeviceActivityDataService (uses ScreenTime framework)
 ///
 /// This abstraction allows shared UI code to work with either backend.

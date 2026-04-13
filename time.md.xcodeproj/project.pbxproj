@@ -7,20 +7,33 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0038709BBBA5FB4BF84D53EF /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD65EC6D1AD4EE69F36DF681 /* Database.swift */; };
 		0601DE14D92B0FB870EC5DB8 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80150349BF2752E12B7E6981 /* Foundation.framework */; };
 		119E9C1D4EE46D075EAABA69 /* DeviceActivityReportExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F75E11F3FAE242F80BB3C343 /* DeviceActivityReportExtension.swift */; };
+		1A9EFD058A65ADD1944F9DAB /* Range.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0854AAA1CC65A614DA8F48C4 /* Range.swift */; };
 		349CA20322ABAB517A5F6A1D /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2FAC4CD91E741F54A71A8F54 /* DeviceActivity.framework */; };
 		3537623F5E5F324F7F689A80 /* TopAppsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4C010817BBDF31393E7345 /* TopAppsView.swift */; };
 		354BA81B34A4FA54A3504502 /* TotalActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D2E46AEBC092394756DECF3 /* TotalActivityView.swift */; };
 		427C1D644E02145C1A32383A /* FamilyControls.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A1959435C3E93C034D25ECA /* FamilyControls.framework */; };
 		75ACF9F9652A95CC8296E7D2 /* TopAppsReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6CD17DCB1EFA7562DBF26DE /* TopAppsReport.swift */; };
 		84AEBB3EF2F0062259D3B400 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3AC4B6EAF4288B20C44914A /* SwiftUI.framework */; };
+		A0C491357DFD7937376E660A /* Handlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AFD4FB6382AB13703B46E0E /* Handlers.swift */; };
+		A4A812968C8116EFD69A76D1 /* timemd-mcp in Embed timemd-mcp */ = {isa = PBXBuildFile; fileRef = 7398318A84C4E38901A89C1A /* timemd-mcp */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		AD56EE36EA72815D25774F4F /* TotalActivityReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6F7971F8AC7B819E0C7476 /* TotalActivityReport.swift */; };
+		CB3E7F56FDC1E5CF05F80818 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0759D0ECDA299009E810F4D /* main.swift */; };
+		CCDA4AD69E798E00D277283B /* Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94EC78028C81AC167C7C03B /* Tools.swift */; };
 		D64A0A834AA4D4209D0FA26A /* time.mdDeviceActivityReport.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = E60D7B6685D77824FFE9A366 /* time.mdDeviceActivityReport.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		SPARKLE003000000000000001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = SPARKLE002000000000000001 /* Sparkle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		B074B199B17C48A3E034CE16 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 62B65C0C2F4C534F00A5B243 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6EB67CF31DE8A9B32C075EDC;
+			remoteInfo = "timemd-mcp";
+		};
 		D827EE6DCEE354A9133F9E3C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 62B65C0C2F4C534F00A5B243 /* Project object */;
@@ -31,6 +44,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		2FC9754931E64913B53C62B7 /* Embed timemd-mcp */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				A4A812968C8116EFD69A76D1 /* timemd-mcp in Embed timemd-mcp */,
+			);
+			name = "Embed timemd-mcp";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		ED0F0304A27012A39148267A /* Embed App Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -45,20 +69,26 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0854AAA1CC65A614DA8F48C4 /* Range.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Range.swift; sourceTree = "<group>"; };
 		1A1959435C3E93C034D25ECA /* FamilyControls.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = FamilyControls.framework; sourceTree = SDKROOT; };
 		1A6F7971F8AC7B819E0C7476 /* TotalActivityReport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TotalActivityReport.swift; sourceTree = "<group>"; };
 		1D2E46AEBC092394756DECF3 /* TotalActivityView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TotalActivityView.swift; sourceTree = "<group>"; };
 		2FAC4CD91E741F54A71A8F54 /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = DeviceActivity.framework; sourceTree = SDKROOT; };
 		303A43758A571A47DD42AB00 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		62B65C142F4C534F00A5B243 /* time.md.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = time.md.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7398318A84C4E38901A89C1A /* timemd-mcp */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "timemd-mcp"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7AFD4FB6382AB13703B46E0E /* Handlers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Handlers.swift; sourceTree = "<group>"; };
 		80150349BF2752E12B7E6981 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		8E0E4EC7BE832358FC0E7759 /* time.mdDeviceActivityReport.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = time.mdDeviceActivityReport.entitlements; sourceTree = "<group>"; };
+		A94EC78028C81AC167C7C03B /* Tools.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Tools.swift; sourceTree = "<group>"; };
 		AAAA00012F4C600000000001 /* time.mdIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = time.mdIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0759D0ECDA299009E810F4D /* main.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		B3AC4B6EAF4288B20C44914A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SwiftUI.framework; sourceTree = SDKROOT; };
 		BD4C010817BBDF31393E7345 /* TopAppsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TopAppsView.swift; sourceTree = "<group>"; };
 		E60D7B6685D77824FFE9A366 /* time.mdDeviceActivityReport.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = time.mdDeviceActivityReport.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		F6CD17DCB1EFA7562DBF26DE /* TopAppsReport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TopAppsReport.swift; sourceTree = "<group>"; };
 		F75E11F3FAE242F80BB3C343 /* DeviceActivityReportExtension.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeviceActivityReportExtension.swift; sourceTree = "<group>"; };
+		FD65EC6D1AD4EE69F36DF681 /* Database.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -68,6 +98,7 @@
 				Info.plist,
 				App/AppEnvironment.swift,
 				App/BrowserSettingsStore.swift,
+				App/MCPIntegrationService.swift,
 				App/time.mdCommands.swift,
 				App/AppNameDisplayStore.swift,
 				App/BackgroundSyncManager.swift,
@@ -169,6 +200,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3141C6300E4632906019CDA1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		62B65C112F4C534F00A5B243 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -187,6 +225,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		05A8CB49E72D6C929A10AD14 /* timemd-mcp */ = {
+			isa = PBXGroup;
+			children = (
+				B0759D0ECDA299009E810F4D /* main.swift */,
+				FD65EC6D1AD4EE69F36DF681 /* Database.swift */,
+				0854AAA1CC65A614DA8F48C4 /* Range.swift */,
+				A94EC78028C81AC167C7C03B /* Tools.swift */,
+				7AFD4FB6382AB13703B46E0E /* Handlers.swift */,
+			);
+			name = "timemd-mcp";
+			path = "timemd-mcp";
+			sourceTree = "<group>";
+		};
 		0679C72350F3B7643125AA47 /* time.mdDeviceActivityReport */ = {
 			isa = PBXGroup;
 			children = (
@@ -209,6 +260,7 @@
 				62B65C152F4C534F00A5B243 /* Products */,
 				68F4166C28F1DC6FCD3F566B /* Frameworks */,
 				0679C72350F3B7643125AA47 /* time.mdDeviceActivityReport */,
+				05A8CB49E72D6C929A10AD14 /* timemd-mcp */,
 			);
 			sourceTree = "<group>";
 		};
@@ -218,6 +270,7 @@
 				62B65C142F4C534F00A5B243 /* time.md.app */,
 				AAAA00012F4C600000000001 /* time.mdIOS.app */,
 				E60D7B6685D77824FFE9A366 /* time.mdDeviceActivityReport.appex */,
+				7398318A84C4E38901A89C1A /* timemd-mcp */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -251,10 +304,12 @@
 				62B65C102F4C534F00A5B243 /* Sources */,
 				62B65C112F4C534F00A5B243 /* Frameworks */,
 				62B65C122F4C534F00A5B243 /* Resources */,
+				2FC9754931E64913B53C62B7 /* Embed timemd-mcp */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				0569A5BA4681F7CE7A561376 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				62B65C162F4C534F00A5B243 /* time.md */,
@@ -266,6 +321,22 @@
 			productName = time.md;
 			productReference = 62B65C142F4C534F00A5B243 /* time.md.app */;
 			productType = "com.apple.product-type.application";
+		};
+		6EB67CF31DE8A9B32C075EDC /* timemd-mcp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8FD81AF25F9FFFC6A961436C /* Build configuration list for PBXNativeTarget "timemd-mcp" */;
+			buildPhases = (
+				5D129AE55FA94A63309B28D8 /* Sources */,
+				3141C6300E4632906019CDA1 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "timemd-mcp";
+			productName = "timemd-mcp";
+			productReference = 7398318A84C4E38901A89C1A /* timemd-mcp */;
+			productType = "com.apple.product-type.tool";
 		};
 		AAAA00002F4C600000000000 /* time.mdIOS */ = {
 			isa = PBXNativeTarget;
@@ -346,6 +417,7 @@
 				62B65C132F4C534F00A5B243 /* time.md */,
 				AAAA00002F4C600000000000 /* time.mdIOS */,
 				E94D00A274DD4202FD2E6D93 /* time.mdDeviceActivityReport */,
+				6EB67CF31DE8A9B32C075EDC /* timemd-mcp */,
 			);
 		};
 /* End PBXProject section */
@@ -387,6 +459,18 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5D129AE55FA94A63309B28D8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CB3E7F56FDC1E5CF05F80818 /* main.swift in Sources */,
+				0038709BBBA5FB4BF84D53EF /* Database.swift in Sources */,
+				1A9EFD058A65ADD1944F9DAB /* Range.swift in Sources */,
+				CCDA4AD69E798E00D277283B /* Tools.swift in Sources */,
+				A0C491357DFD7937376E660A /* Handlers.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		62B65C102F4C534F00A5B243 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -404,6 +488,12 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		0569A5BA4681F7CE7A561376 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "timemd-mcp";
+			target = 6EB67CF31DE8A9B32C075EDC /* timemd-mcp */;
+			targetProxy = B074B199B17C48A3E034CE16 /* PBXContainerItemProxy */;
+		};
 		2F7F495533F695DF3F5BB881 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = time.mdDeviceActivityReport;
@@ -477,6 +567,28 @@
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				WRAPPER_EXTENSION = appex;
+			};
+			name = Release;
+		};
+		59905EE753EFA232101087B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bontecou.time.md.mcp;
+				PRODUCT_NAME = "timemd-mcp";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -765,6 +877,29 @@
 			};
 			name = Release;
 		};
+		B1ABBDEA89893C11C71A1BAB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 67KC823C9A;
+				ENABLE_HARDENED_RUNTIME = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bontecou.time.md.mcp;
+				PRODUCT_NAME = "timemd-mcp";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = nonisolated;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -791,6 +926,15 @@
 			buildConfigurations = (
 				50CE908F9F0196B81E7452EE /* Release */,
 				2239AEA0E090BD6CBAC9D875 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8FD81AF25F9FFFC6A961436C /* Build configuration list for PBXNativeTarget "timemd-mcp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B1ABBDEA89893C11C71A1BAB /* Debug */,
+				59905EE753EFA232101087B2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

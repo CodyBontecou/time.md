@@ -96,24 +96,65 @@ enum Handlers {
     // MARK: - Deduplication helper
 
     /// Returns a SQL AND-fragment (including leading AND) that prefers
-    /// direct_observation rows over knowledgeC rows — matching the desktop
-    /// app's dedup logic. If any direct_observation record exists within the
-    /// queried range, all knowledgeC records in that range are excluded.
+    /// direct_observation rows over knowledgeC rows on a per-session basis.
+    /// A knowledgeC row is excluded only when a direct_observation row exists
+    /// for the exact same (app_name, start_time) — so knowledgeC-only sessions
+    /// (periods when the in-app tracker wasn't running) are preserved.
     ///
     /// After appending this to a WHERE clause, push two extra bindings:
     /// rangeStart and rangeEnd (same values used for the main time filter).
+    /// These narrow the correlated subquery scan for better performance.
     private static func dedupClause(alias: String = "") -> String {
-        let col = alias.isEmpty ? "metadata_hash" : "\(alias).metadata_hash"
+        let col      = alias.isEmpty ? "metadata_hash" : "\(alias).metadata_hash"
+        let nameCol  = alias.isEmpty ? "app_name"      : "\(alias).app_name"
+        let timeCol  = alias.isEmpty ? "start_time"    : "\(alias).start_time"
         return """
           AND (\(col) = 'direct_observation'
                OR NOT EXISTS (
                    SELECT 1 FROM usage _dedup
-                   WHERE _dedup.metadata_hash = 'direct_observation'
+                   WHERE _dedup.app_name        = \(nameCol)
+                     AND _dedup.start_time      = \(timeCol)
+                     AND _dedup.metadata_hash   = 'direct_observation'
                      AND _dedup.start_time >= ?
-                     AND _dedup.start_time < ?
+                     AND _dedup.start_time <  ?
                    LIMIT 1
                ))
         """
+    }
+
+    // MARK: - App name resolution
+
+    /// Resolves a user-friendly app name to the stored app_name (bundle ID).
+    /// 1. Exact match — returned as-is.
+    /// 2. Fuzzy: strips dots from bundle IDs and spaces from the query, then
+    ///    does a case-insensitive LIKE. Picks the highest-usage match.
+    ///    "World of Warcraft" → "worldofwarcraft" matches "com.blizzard.worldofwarcraft".
+    /// 3. Falls back to the original input (query returns 0 rows gracefully).
+    private static func resolveAppName(_ input: String, db: Database) throws -> String {
+        // 1. Exact match
+        let exact = try db.query(
+            "SELECT app_name FROM usage WHERE app_name = ? LIMIT 1",
+            bindings: [.text(input)]
+        )
+        if let match = exact.first?["app_name"] as? String { return match }
+
+        // 2. Fuzzy: collapse dots in bundle IDs and spaces in the query, then LIKE
+        let normalized = input.lowercased().replacingOccurrences(of: " ", with: "")
+        let fuzzy = try db.query(
+            """
+            SELECT app_name, SUM(duration_seconds) AS total
+            FROM usage
+            WHERE REPLACE(LOWER(app_name), '.', '') LIKE ?
+            GROUP BY app_name
+            ORDER BY total DESC
+            LIMIT 1
+            """,
+            bindings: [.text("%\(normalized)%")]
+        )
+        if let match = fuzzy.first?["app_name"] as? String { return match }
+
+        // 3. No match — return original so the caller gets 0 results gracefully
+        return input
     }
 
     // MARK: - Tool implementations
@@ -276,7 +317,8 @@ enum Handlers {
         WHERE start_time >= ? AND start_time < ?
         """
         var bindings: [SQLValue] = [.text(r.start), .text(r.end)]
-        if let app = args.string("app_name") {
+        if let rawApp = args.string("app_name") {
+            let app = (try? resolveAppName(rawApp, db: db)) ?? rawApp
             sql += " AND app_name = ?"
             bindings.append(.text(app))
         }
@@ -306,7 +348,8 @@ enum Handlers {
         WHERE start_time >= ? AND start_time < ?
         """
         var bindings: [SQLValue] = [.text(r.start), .text(r.end)]
-        if let app = args.string("app_name") {
+        if let rawApp = args.string("app_name") {
+            let app = (try? resolveAppName(rawApp, db: db)) ?? rawApp
             sql += " AND app_name = ?"
             bindings.append(.text(app))
         }
@@ -330,7 +373,8 @@ enum Handlers {
         WHERE start_time >= ? AND start_time < ?
         """
         var bindings: [SQLValue] = [.text(r.start), .text(r.end)]
-        if let app = args.string("app_name") {
+        if let rawApp = args.string("app_name") {
+            let app = (try? resolveAppName(rawApp, db: db)) ?? rawApp
             sql += " AND app_name = ?"
             bindings.append(.text(app))
         }
@@ -375,7 +419,8 @@ enum Handlers {
     }
 
     private static func appDetail(args: Args, db: Database) throws -> String {
-        let app = try args.requiredString("app_name")
+        let rawApp = try args.requiredString("app_name")
+        let app = (try? resolveAppName(rawApp, db: db)) ?? rawApp
         let r = try DateRange.parse(since: args.string("since") ?? "30d", until: args.string("until"))
         let totals = try db.query(
             """
@@ -741,7 +786,8 @@ enum Handlers {
         WHERE start_time >= ? AND start_time < ?
         """
         var bindings: [SQLValue] = [.text(r.start), .text(r.end)]
-        if let app = args.string("app_name") {
+        if let rawApp = args.string("app_name") {
+            let app = (try? resolveAppName(rawApp, db: db)) ?? rawApp
             sql += " AND app_name = ?"
             bindings.append(.text(app))
         }
@@ -1121,7 +1167,8 @@ enum Handlers {
 
     private static func typicalDay(args: Args, db: Database) throws -> String {
         let r = try DateRange.parse(since: args.string("since") ?? "30d", until: args.string("until"))
-        let appFilter = args.string("app_name")
+        let rawAppFilter = args.string("app_name")
+        let appFilter: String? = rawAppFilter.map { (try? resolveAppName($0, db: db)) ?? $0 }
         var filterClause = ""
         var bindings: [SQLValue] = [.text(r.start), .text(r.end)]
         if let app = appFilter {

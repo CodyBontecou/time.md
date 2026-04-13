@@ -58,6 +58,17 @@ jobs:
             --dir release
           ls -la release
 
+      - name: Extract build number from zip
+        id: build
+        run: |
+          set -euo pipefail
+          ZIP=$(ls release/*.zip | head -n1)
+          mkdir -p /tmp/extracted
+          unzip -o -q "$ZIP" -d /tmp/extracted
+          PLIST=$(find /tmp/extracted -name Info.plist -path '*.app/Contents/*' | head -n1)
+          BUILD=$(python3 -c "import plistlib,sys; print(plistlib.load(open('$PLIST','rb'))['CFBundleVersion'])")
+          echo "build=$BUILD" >> "$GITHUB_OUTPUT"
+
       - name: Publish
         env:
           ISOLATED_API_KEY: ${{ secrets.ISOLATED_API_KEY }}
@@ -70,7 +81,7 @@ jobs:
           isolated publish \
             --zip "$ZIP" \
             --app-version "${{ steps.meta.outputs.version }}" \
-            --build "${{ github.run_number }}" \
+            --build "${{ steps.build.outputs.build }}" \
             --slug "$SLUG" \
             --notes "$(cat release-notes.md)" \
             --no-bump

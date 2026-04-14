@@ -1395,13 +1395,11 @@ private extension SQLiteScreenTimeDataService {
         }
 
         let sandboxHome = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
-        let realHome = realHomeDirectory()
         let candidates = [
             URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true).appendingPathComponent("screentime.db"),
             URL(fileURLWithPath: "/data/screentime.db"),
             sandboxHome.appendingPathComponent("screentime.db"),
             sandboxHome.appendingPathComponent("Library/Application Support/time.md/screentime.db"),
-            realHome.appendingPathComponent("Library/Application Support/time.md/screentime.db")
         ]
 
         var searched: [String] = []

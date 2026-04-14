@@ -139,12 +139,6 @@ struct TimeMdCommands: Commands {
             }
             .keyboardShortcut("r", modifiers: .command)
             
-            Button("Force Local Sync") {
-                Task.detached {
-                    HistoryStore.forceSync()
-                }
-            }
-            .keyboardShortcut("r", modifiers: [.command, .shift])
         }
     }
     

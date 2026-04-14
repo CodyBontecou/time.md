@@ -164,11 +164,6 @@ struct TimeMdMenuBarExtra: View {
     private func syncNow() async {
         isSyncing = true
         
-        // Force local sync from knowledgeC.db
-        await Task.detached(priority: .userInitiated) {
-            HistoryStore.forceSync()
-        }.value
-        
         // Cloud sync if available
         if let syncCoordinator = appEnvironment.syncCoordinator {
             try? await syncCoordinator.performSync()

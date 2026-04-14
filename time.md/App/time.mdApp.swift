@@ -22,22 +22,16 @@ struct TimeMdApp: App {
     @StateObject private var updaterController = UpdaterController()
     #endif
 
-    /// Fires every 15 minutes while the app is running to capture new Screen Time data.
-    private let localSyncTimer = Timer.publish(every: 900, on: .main, in: .common).autoconnect()
-    
     /// Fires every 15 minutes to sync data to iCloud for the iOS companion app.
     private let cloudSyncTimer = Timer.publish(every: 900, on: .main, in: .common).autoconnect()
 
     init() {
-        // When launched by the background Launch Agent, perform a sync and
+        // When launched by the background Launch Agent, perform cloud sync and
         // exit immediately — no windows, no Dock icon.
         if CommandLine.arguments.contains("--background-sync") {
             NSApplication.shared.setActivationPolicy(.prohibited)
-            HistoryStore.forceSync()
-            
-            // Also perform cloud sync in background mode
             Self.performBackgroundCloudSync()
-            
+
             // Give a moment for async work to complete
             RunLoop.current.run(until: Date(timeIntervalSinceNow: 5))
             Darwin.exit(0)
@@ -80,11 +74,6 @@ struct TimeMdApp: App {
             .task { installBackgroundAgent() }
             .sheet(isPresented: $showOnboarding) {
                 MacOnboardingView(isPresented: $showOnboarding)
-            }
-            .onReceive(localSyncTimer) { _ in
-                Task.detached(priority: .utility) {
-                    HistoryStore.syncIfNeeded()
-                }
             }
             .onReceive(cloudSyncTimer) { _ in
                 Task {
@@ -132,10 +121,6 @@ struct TimeMdApp: App {
     /// opens the app briefly and closes it without navigating anywhere.
     /// Fire-and-forget — don't block the UI waiting for sync to complete.
     private func initialSync() async {
-        Task.detached(priority: .utility) {
-            HistoryStore.syncIfNeeded()
-        }
-        
         // Prefetch browser history databases in background so Web History view loads instantly
         Task.detached(priority: .utility) {
             SQLiteBrowsingHistoryService().prefetchDatabases()

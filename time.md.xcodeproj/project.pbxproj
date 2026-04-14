@@ -8,21 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		0038709BBBA5FB4BF84D53EF /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD65EC6D1AD4EE69F36DF681 /* Database.swift */; };
-		0601DE14D92B0FB870EC5DB8 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 80150349BF2752E12B7E6981 /* Foundation.framework */; };
-		119E9C1D4EE46D075EAABA69 /* DeviceActivityReportExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F75E11F3FAE242F80BB3C343 /* DeviceActivityReportExtension.swift */; };
 		1A9EFD058A65ADD1944F9DAB /* Range.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0854AAA1CC65A614DA8F48C4 /* Range.swift */; };
-		349CA20322ABAB517A5F6A1D /* DeviceActivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2FAC4CD91E741F54A71A8F54 /* DeviceActivity.framework */; };
-		3537623F5E5F324F7F689A80 /* TopAppsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4C010817BBDF31393E7345 /* TopAppsView.swift */; };
-		354BA81B34A4FA54A3504502 /* TotalActivityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D2E46AEBC092394756DECF3 /* TotalActivityView.swift */; };
-		427C1D644E02145C1A32383A /* FamilyControls.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A1959435C3E93C034D25ECA /* FamilyControls.framework */; };
-		75ACF9F9652A95CC8296E7D2 /* TopAppsReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6CD17DCB1EFA7562DBF26DE /* TopAppsReport.swift */; };
-		84AEBB3EF2F0062259D3B400 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B3AC4B6EAF4288B20C44914A /* SwiftUI.framework */; };
 		A0C491357DFD7937376E660A /* Handlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AFD4FB6382AB13703B46E0E /* Handlers.swift */; };
 		A4A812968C8116EFD69A76D1 /* timemd-mcp in Embed timemd-mcp */ = {isa = PBXBuildFile; fileRef = 7398318A84C4E38901A89C1A /* timemd-mcp */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		AD56EE36EA72815D25774F4F /* TotalActivityReport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A6F7971F8AC7B819E0C7476 /* TotalActivityReport.swift */; };
 		CB3E7F56FDC1E5CF05F80818 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0759D0ECDA299009E810F4D /* main.swift */; };
 		CCDA4AD69E798E00D277283B /* Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94EC78028C81AC167C7C03B /* Tools.swift */; };
-		D64A0A834AA4D4209D0FA26A /* time.mdDeviceActivityReport.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = E60D7B6685D77824FFE9A366 /* time.mdDeviceActivityReport.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		SPARKLE003000000000000001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = SPARKLE002000000000000001 /* Sparkle */; };
 /* End PBXBuildFile section */
 
@@ -33,13 +23,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 6EB67CF31DE8A9B32C075EDC;
 			remoteInfo = "timemd-mcp";
-		};
-		D827EE6DCEE354A9133F9E3C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 62B65C0C2F4C534F00A5B243 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = E94D00A274DD4202FD2E6D93;
-			remoteInfo = time.mdDeviceActivityReport;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -55,151 +38,28 @@
 			name = "Embed timemd-mcp";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		ED0F0304A27012A39148267A /* Embed App Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				D64A0A834AA4D4209D0FA26A /* time.mdDeviceActivityReport.appex in Embed App Extensions */,
-			);
-			name = "Embed App Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0854AAA1CC65A614DA8F48C4 /* Range.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Range.swift; sourceTree = "<group>"; };
-		1A1959435C3E93C034D25ECA /* FamilyControls.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = FamilyControls.framework; sourceTree = SDKROOT; };
-		1A6F7971F8AC7B819E0C7476 /* TotalActivityReport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TotalActivityReport.swift; sourceTree = "<group>"; };
-		1D2E46AEBC092394756DECF3 /* TotalActivityView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TotalActivityView.swift; sourceTree = "<group>"; };
-		2FAC4CD91E741F54A71A8F54 /* DeviceActivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = DeviceActivity.framework; sourceTree = SDKROOT; };
-		303A43758A571A47DD42AB00 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		62B65C142F4C534F00A5B243 /* time.md.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = time.md.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7398318A84C4E38901A89C1A /* timemd-mcp */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "timemd-mcp"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AFD4FB6382AB13703B46E0E /* Handlers.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Handlers.swift; sourceTree = "<group>"; };
-		80150349BF2752E12B7E6981 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		8E0E4EC7BE832358FC0E7759 /* time.mdDeviceActivityReport.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = time.mdDeviceActivityReport.entitlements; sourceTree = "<group>"; };
 		A94EC78028C81AC167C7C03B /* Tools.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Tools.swift; sourceTree = "<group>"; };
-		AAAA00012F4C600000000001 /* time.mdIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = time.mdIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B0759D0ECDA299009E810F4D /* main.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
-		B3AC4B6EAF4288B20C44914A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = SwiftUI.framework; sourceTree = SDKROOT; };
-		BD4C010817BBDF31393E7345 /* TopAppsView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TopAppsView.swift; sourceTree = "<group>"; };
-		E60D7B6685D77824FFE9A366 /* time.mdDeviceActivityReport.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = time.mdDeviceActivityReport.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		F6CD17DCB1EFA7562DBF26DE /* TopAppsReport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TopAppsReport.swift; sourceTree = "<group>"; };
-		F75E11F3FAE242F80BB3C343 /* DeviceActivityReportExtension.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeviceActivityReportExtension.swift; sourceTree = "<group>"; };
 		FD65EC6D1AD4EE69F36DF681 /* Database.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		AAAA00032F4C600000000003 /* Exceptions for "time.md" folder in "time.mdIOS" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-				App/AppEnvironment.swift,
-				App/BrowserSettingsStore.swift,
-				App/MCPIntegrationService.swift,
-				App/time.mdCommands.swift,
-				App/AppNameDisplayStore.swift,
-				App/BackgroundSyncManager.swift,
-				App/FeatureFlags.swift,
-				App/GlobalFilterStore.swift,
-				App/NavigationCoordinator.swift,
-				App/NavigationDestination.swift,
-				App/MacOnboardingView.swift,
-				App/PaywallView.swift,
-				App/RootSplitView.swift,
-				App/time.mdApp.swift,
-				Assets.xcassets,
-				Components/AppIconView.swift,
-				Components/TickerScrollView.swift,
-				Data/ActiveAppTracker.swift,
-				Data/AppIconProvider.swift,
-				Data/AnalyticsModels.swift,
-				Data/BrowsingHistoryModels.swift,
-				Data/BrowsingHistoryService.swift,
-				Data/CategoryMappingStore.swift,
-				Data/HistoryStore.swift,
-				Data/ScreenTimeDataService.swift,
-				DesignSystem/AccessibilityHelpers.swift,
-				DesignSystem/AnimatedNumber.swift,
-				DesignSystem/BrutalTheme.swift,
-				DesignSystem/ChartZoomState.swift,
-				DesignSystem/DataLoadErrorView.swift,
-				DesignSystem/FlowLayout.swift,
-				DesignSystem/Formatters.swift,
-				DesignSystem/GlassCard.swift,
-				Export/ExportCoordinator.swift,
-				Export/ExportModels.swift,
-				Features/AppsCategories/AppsCategoriesView.swift,
-				Features/Calendar/AppleCalendarView.swift,
-				Features/Calendar/BlockDetailPopover.swift,
-				Features/Calendar/CalendarAnalysisView.swift,
-				Features/Calendar/CalendarDayDetailView.swift,
-				Features/Calendar/CalendarDayTimelineView.swift,
-				Features/Calendar/CalendarMonthGridView.swift,
-				Features/Calendar/CalendarView.swift,
-				Features/Calendar/CalendarWeekTimelineView.swift,
-				Features/Calendar/CalendarYearGridView.swift,
-				Features/Calendar/MiniMonthCalendarView.swift,
-				Features/DistractingHours/DistractingHoursView.swift,
-				Features/Exports/ExportFilterPresetEditor.swift,
-				Features/Exports/ExportsView.swift,
-				Features/Filters/AdvancedTimeFiltersView.swift,
-				Features/Overview/InsightCards.swift,
-				Features/Overview/OverviewView.swift,
-				Features/Overview/TimingOverviewView.swift,
-				Features/Projects/TimingProjectsView.swift,
-				Features/Reports/TimingReportsView.swift,
-				Features/Review/TimingReviewView.swift,
-				Features/Rules/TimingRulesView.swift,
-				Features/Details/TimingDetailsView.swift,
-				Features/Sessions/SessionsView.swift,
-				Features/Trends/TrendsView.swift,
-				Features/WebHistory/WebHistoryView.swift,
-			);
-			target = AAAA00002F4C600000000000 /* time.mdIOS */;
-		};
-		AAAA000A2F4C600000000010 /* Exceptions for "time.mdIOS" folder in "time.mdIOS" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = AAAA00002F4C600000000000 /* time.mdIOS */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		62B65C162F4C534F00A5B243 /* time.md */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				AAAA00032F4C600000000003 /* Exceptions for "time.md" folder in "time.mdIOS" target */,
-			);
 			path = time.md;
-			sourceTree = "<group>";
-		};
-		AAAA00022F4C600000000002 /* time.mdIOS */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				AAAA000A2F4C600000000010 /* Exceptions for "time.mdIOS" folder in "time.mdIOS" target */,
-			);
-			path = time.mdIOS;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		1B89E00F1253FB54BFA8B5A0 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				0601DE14D92B0FB870EC5DB8 /* Foundation.framework in Frameworks */,
-				349CA20322ABAB517A5F6A1D /* DeviceActivity.framework in Frameworks */,
-				84AEBB3EF2F0062259D3B400 /* SwiftUI.framework in Frameworks */,
-				427C1D644E02145C1A32383A /* FamilyControls.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		3141C6300E4632906019CDA1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -212,13 +72,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				SPARKLE003000000000000001 /* Sparkle in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		AAAA00042F4C600000000004 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -238,28 +91,11 @@
 			path = "timemd-mcp";
 			sourceTree = "<group>";
 		};
-		0679C72350F3B7643125AA47 /* time.mdDeviceActivityReport */ = {
-			isa = PBXGroup;
-			children = (
-				F75E11F3FAE242F80BB3C343 /* DeviceActivityReportExtension.swift */,
-				1A6F7971F8AC7B819E0C7476 /* TotalActivityReport.swift */,
-				1D2E46AEBC092394756DECF3 /* TotalActivityView.swift */,
-				F6CD17DCB1EFA7562DBF26DE /* TopAppsReport.swift */,
-				BD4C010817BBDF31393E7345 /* TopAppsView.swift */,
-				303A43758A571A47DD42AB00 /* Info.plist */,
-				8E0E4EC7BE832358FC0E7759 /* time.mdDeviceActivityReport.entitlements */,
-			);
-			path = time.mdDeviceActivityReport;
-			sourceTree = "<group>";
-		};
 		62B65C0B2F4C534F00A5B243 = {
 			isa = PBXGroup;
 			children = (
 				62B65C162F4C534F00A5B243 /* time.md */,
-				AAAA00022F4C600000000002 /* time.mdIOS */,
 				62B65C152F4C534F00A5B243 /* Products */,
-				68F4166C28F1DC6FCD3F566B /* Frameworks */,
-				0679C72350F3B7643125AA47 /* time.mdDeviceActivityReport */,
 				05A8CB49E72D6C929A10AD14 /* timemd-mcp */,
 			);
 			sourceTree = "<group>";
@@ -268,30 +104,9 @@
 			isa = PBXGroup;
 			children = (
 				62B65C142F4C534F00A5B243 /* time.md.app */,
-				AAAA00012F4C600000000001 /* time.mdIOS.app */,
-				E60D7B6685D77824FFE9A366 /* time.mdDeviceActivityReport.appex */,
 				7398318A84C4E38901A89C1A /* timemd-mcp */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		68F4166C28F1DC6FCD3F566B /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				84A578A68EFC9CD8020D13F8 /* iOS */,
-				2FAC4CD91E741F54A71A8F54 /* DeviceActivity.framework */,
-				B3AC4B6EAF4288B20C44914A /* SwiftUI.framework */,
-				1A1959435C3E93C034D25ECA /* FamilyControls.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		84A578A68EFC9CD8020D13F8 /* iOS */ = {
-			isa = PBXGroup;
-			children = (
-				80150349BF2752E12B7E6981 /* Foundation.framework */,
-			);
-			name = iOS;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -338,46 +153,6 @@
 			productReference = 7398318A84C4E38901A89C1A /* timemd-mcp */;
 			productType = "com.apple.product-type.tool";
 		};
-		AAAA00002F4C600000000000 /* time.mdIOS */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = AAAA00092F4C600000000009 /* Build configuration list for PBXNativeTarget "time.mdIOS" */;
-			buildPhases = (
-				AAAA00052F4C600000000005 /* Sources */,
-				AAAA00042F4C600000000004 /* Frameworks */,
-				AAAA00062F4C600000000006 /* Resources */,
-				ED0F0304A27012A39148267A /* Embed App Extensions */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				2F7F495533F695DF3F5BB881 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				62B65C162F4C534F00A5B243 /* time.md */,
-				AAAA00022F4C600000000002 /* time.mdIOS */,
-			);
-			name = time.mdIOS;
-			productName = time.mdIOS;
-			productReference = AAAA00012F4C600000000001 /* time.mdIOS.app */;
-			productType = "com.apple.product-type.application";
-		};
-		E94D00A274DD4202FD2E6D93 /* time.mdDeviceActivityReport */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 7D859E0738829772900EDEAF /* Build configuration list for PBXNativeTarget "time.mdDeviceActivityReport" */;
-			buildPhases = (
-				145F456904BA5734FD94D6AB /* Sources */,
-				1B89E00F1253FB54BFA8B5A0 /* Frameworks */,
-				B049E2766758610503650058 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = time.mdDeviceActivityReport;
-			productName = time.mdDeviceActivityReport;
-			productReference = E60D7B6685D77824FFE9A366 /* time.mdDeviceActivityReport.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -389,9 +164,6 @@
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					62B65C132F4C534F00A5B243 = {
-						CreatedOnToolsVersion = 26.2;
-					};
-					AAAA00002F4C600000000000 = {
 						CreatedOnToolsVersion = 26.2;
 					};
 				};
@@ -415,8 +187,6 @@
 			projectRoot = "";
 			targets = (
 				62B65C132F4C534F00A5B243 /* time.md */,
-				AAAA00002F4C600000000000 /* time.mdIOS */,
-				E94D00A274DD4202FD2E6D93 /* time.mdDeviceActivityReport */,
 				6EB67CF31DE8A9B32C075EDC /* timemd-mcp */,
 			);
 		};
@@ -430,35 +200,9 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AAAA00062F4C600000000006 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B049E2766758610503650058 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		145F456904BA5734FD94D6AB /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				119E9C1D4EE46D075EAABA69 /* DeviceActivityReportExtension.swift in Sources */,
-				AD56EE36EA72815D25774F4F /* TotalActivityReport.swift in Sources */,
-				354BA81B34A4FA54A3504502 /* TotalActivityView.swift in Sources */,
-				75ACF9F9652A95CC8296E7D2 /* TopAppsReport.swift in Sources */,
-				3537623F5E5F324F7F689A80 /* TopAppsView.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		5D129AE55FA94A63309B28D8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -478,13 +222,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		AAAA00052F4C600000000005 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -494,82 +231,9 @@
 			target = 6EB67CF31DE8A9B32C075EDC /* timemd-mcp */;
 			targetProxy = B074B199B17C48A3E034CE16 /* PBXContainerItemProxy */;
 		};
-		2F7F495533F695DF3F5BB881 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = time.mdDeviceActivityReport;
-			target = E94D00A274DD4202FD2E6D93 /* time.mdDeviceActivityReport */;
-			targetProxy = D827EE6DCEE354A9133F9E3C /* PBXContainerItemProxy */;
-		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		2239AEA0E090BD6CBAC9D875 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = time.mdDeviceActivityReport/time.mdDeviceActivityReport.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
-				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = time.mdDeviceActivityReport/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 2.0.1;
-				OTHER_LDFLAGS = (
-					"-framework",
-					FamilyControls,
-					"-framework",
-					DeviceActivity,
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.bontecou.time.mdIOS.DeviceActivityReport;
-				PRODUCT_NAME = time.mdDeviceActivityReport;
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				WRAPPER_EXTENSION = appex;
-			};
-			name = Debug;
-		};
-		50CE908F9F0196B81E7452EE /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = time.mdDeviceActivityReport/time.mdDeviceActivityReport.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
-				DEVELOPMENT_TEAM = "$(DEVELOPMENT_TEAM)";
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = time.mdDeviceActivityReport/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 2.0.1;
-				OTHER_LDFLAGS = (
-					"-framework",
-					FamilyControls,
-					"-framework",
-					DeviceActivity,
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.bontecou.time.mdIOS.DeviceActivityReport;
-				PRODUCT_NAME = time.mdDeviceActivityReport;
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-				WRAPPER_EXTENSION = appex;
-			};
-			name = Release;
-		};
 		59905EE753EFA232101087B2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -788,95 +452,6 @@
 			};
 			name = Release;
 		};
-		AAAA00072F4C600000000007 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = time.mdIOS/time.mdIOS.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
-				DEVELOPMENT_TEAM = 67KC823C9A;
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 67KC823C9A;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = time.mdIOS/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = time.md;
-				INFOPLIST_KEY_NSFaceIDUsageDescription = "time.md uses Face ID to protect your screen time data.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arm64;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 2.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bontecou.time.mdIOS;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		AAAA00082F4C600000000008 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = time.mdIOS/time.mdIOS.entitlements;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
-				DEVELOPMENT_TEAM = 67KC823C9A;
-				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 67KC823C9A;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = time.mdIOS/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = time.md;
-				INFOPLIST_KEY_NSFaceIDUsageDescription = "time.md uses Face ID to protect your screen time data.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arm64;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				MARKETING_VERSION = 2.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.bontecou.time.mdIOS;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
 		B1ABBDEA89893C11C71A1BAB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -921,29 +496,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		7D859E0738829772900EDEAF /* Build configuration list for PBXNativeTarget "time.mdDeviceActivityReport" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				50CE908F9F0196B81E7452EE /* Release */,
-				2239AEA0E090BD6CBAC9D875 /* Debug */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		8FD81AF25F9FFFC6A961436C /* Build configuration list for PBXNativeTarget "timemd-mcp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B1ABBDEA89893C11C71A1BAB /* Debug */,
 				59905EE753EFA232101087B2 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		AAAA00092F4C600000000009 /* Build configuration list for PBXNativeTarget "time.mdIOS" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				AAAA00072F4C600000000007 /* Debug */,
-				AAAA00082F4C600000000008 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

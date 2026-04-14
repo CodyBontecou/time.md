@@ -17,6 +17,9 @@ struct TimingOverviewView: View {
     @State private var loadError: Error?
     @State private var selectedApp: String?
     @State private var hoveredApp: String?
+    @ObservedObject private var store = StoreManager.shared
+
+    private var topAppsLimit: Int { store.tier >= .base ? 10 : 5 }
 
     private var focusedApp: String? {
         selectedApp ?? hoveredApp
@@ -261,10 +264,17 @@ struct TimingOverviewView: View {
 
     private var topAppsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("TOP APPS")
-                .font(.system(size: 13, weight: .bold, design: .monospaced))
-                .foregroundColor(BrutalTheme.textSecondary)
-                .tracking(1.5)
+            HStack {
+                Text("TOP APPS")
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textSecondary)
+                    .tracking(1.5)
+                if store.tier < .base {
+                    Text("Top \(topAppsLimit) — upgrade for full list")
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundColor(BrutalTheme.textTertiary)
+                }
+            }
 
             if topApps.isEmpty {
                 Text("No app data for this period.")
@@ -274,14 +284,26 @@ struct TimingOverviewView: View {
                     .padding(.vertical, 40)
             } else {
                 VStack(spacing: 0) {
-                    ForEach(Array(topApps.prefix(10).enumerated()), id: \.element.id) { index, app in
+                    ForEach(Array(topApps.prefix(topAppsLimit).enumerated()), id: \.element.id) { index, app in
                         appRow(app: app, index: index)
-                        if index < min(topApps.count, 10) - 1 {
+                        if index < min(topApps.count, topAppsLimit) - 1 {
                             Divider()
                                 .padding(.leading, 44)
                         }
                     }
                 }
+            }
+
+            if filters.isAtHistoryLimit {
+                HStack(spacing: 8) {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.orange)
+                    Text("Showing last 7 days — upgrade to Base to view your full history.")
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundColor(.orange)
+                }
+                .padding(.top, 4)
             }
         }
         .padding(24)

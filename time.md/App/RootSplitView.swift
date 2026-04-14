@@ -4,10 +4,7 @@ import SwiftUI
 struct RootSplitView: View {
     let filters: GlobalFilterStore
     @Bindable var navigation: NavigationCoordinator
-
-    @State private var isSyncingLocal = false
-    @State private var showSyncSuccess = false
-    @State private var syncError: String?
+    @ObservedObject private var store = StoreManager.shared
 
     var body: some View {
         ZStack {
@@ -16,12 +13,22 @@ struct RootSplitView: View {
                     ForEach(NavigationSection.visibleSections) { section in
                         Section(section.rawValue) {
                             ForEach(NavigationDestination.allCases.filter { $0.section == section }) { destination in
+                                let locked = destination.minimumTier > store.tier
                                 Label {
-                                    Text(destination.title)
-                                        .font(.system(size: 13, weight: .semibold, design: .default))
+                                    HStack {
+                                        Text(destination.title)
+                                            .font(.system(size: 13, weight: .semibold, design: .default))
+                                        if locked {
+                                            Spacer()
+                                            Image(systemName: "lock.fill")
+                                                .font(.system(size: 10, weight: .medium))
+                                                .foregroundColor(BrutalTheme.textTertiary)
+                                        }
+                                    }
                                 } icon: {
                                     Image(systemName: destination.systemImage)
                                         .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(locked ? BrutalTheme.textTertiary : nil)
                                 }
                                 .tag(destination)
                             }
@@ -31,45 +38,6 @@ struct RootSplitView: View {
                 .navigationTitle("time.md")
                 .listStyle(.sidebar)
                 .toolbar(removing: .sidebarToggle)
-                .safeAreaInset(edge: .bottom) {
-                    HStack {
-                        Button {
-                            Task {
-                                await syncLocalDatabase()
-                            }
-                        } label: {
-                            HStack(spacing: 6) {
-                                if isSyncingLocal {
-                                    ProgressView()
-                                        .controlSize(.small)
-                                        .scaleEffect(0.8)
-                                } else if let syncError {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(.orange)
-                                } else {
-                                    Image(systemName: showSyncSuccess ? "checkmark.circle.fill" : "arrow.clockwise")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(showSyncSuccess ? .green : .secondary)
-                                }
-                                Text(isSyncingLocal ? "Syncing..." : (syncError != nil ? "Sync Failed" : (showSyncSuccess ? "Synced" : "Refresh Data")))
-                                    .font(.system(size: 11, weight: .medium))
-                                    .foregroundColor(syncError != nil ? .orange : (showSyncSuccess ? .green : .secondary))
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(Color.primary.opacity(0.05))
-                            )
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(isSyncingLocal)
-                        .help(syncError ?? "Re-sync Screen Time data from macOS")
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.bottom, 8)
-                }
             } detail: {
                 VStack(spacing: 0) {
                     Group {
@@ -77,19 +45,26 @@ struct RootSplitView: View {
                         case .overview:
                             TimingOverviewView(filters: filters)
                         case .review:
-                            TimingReviewView(filters: filters)
+                            if store.tier >= .base { TimingReviewView(filters: filters) }
+                            else { UpgradeView(requiredTier: .base) }
                         case .details:
-                            TimingDetailsView(filters: filters)
+                            if store.tier >= .base { TimingDetailsView(filters: filters) }
+                            else { UpgradeView(requiredTier: .base) }
                         case .projects:
-                            TimingProjectsView(filters: filters)
+                            if store.tier >= .base { TimingProjectsView(filters: filters) }
+                            else { UpgradeView(requiredTier: .base) }
                         case .rules:
-                            TimingRulesView(filters: filters)
+                            if store.tier >= .base { TimingRulesView(filters: filters) }
+                            else { UpgradeView(requiredTier: .base) }
                         case .webHistory:
-                            WebHistoryView(filters: filters)
+                            if store.tier >= .base { WebHistoryView(filters: filters) }
+                            else { UpgradeView(requiredTier: .base) }
                         case .reports:
-                            TimingReportsView(filters: filters)
+                            if store.tier >= .base { TimingReportsView(filters: filters) }
+                            else { UpgradeView(requiredTier: .base) }
                         case .export:
-                            ExportsView(filters: filters)
+                            if store.tier >= .base { ExportsView(filters: filters) }
+                            else { UpgradeView(requiredTier: .base) }
                         case .settings:
                             SettingsScaffoldView(filters: filters)
                         }
@@ -120,43 +95,6 @@ struct RootSplitView: View {
         }
     }
     
-    // MARK: - Local Database Sync
-    
-    private func syncLocalDatabase() async {
-        isSyncingLocal = true
-        showSyncSuccess = false
-        syncError = nil
-
-        // Run sync on background thread
-        let errorMessage = await Task.detached(priority: .userInitiated) {
-            HistoryStore.forceSync()
-        }.value
-
-        isSyncingLocal = false
-
-        if let errorMessage {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                syncError = errorMessage
-            }
-            // Clear error after 5 seconds
-            try? await Task.sleep(for: .seconds(5))
-            withAnimation(.easeInOut(duration: 0.2)) {
-                syncError = nil
-            }
-        } else {
-            // Tell all views to re-query with the newly synced data
-            filters.triggerRefresh()
-
-            withAnimation(.easeInOut(duration: 0.2)) {
-                showSyncSuccess = true
-            }
-            // Hide success after 2 seconds
-            try? await Task.sleep(for: .seconds(2))
-            withAnimation(.easeInOut(duration: 0.2)) {
-                showSyncSuccess = false
-            }
-        }
-    }
 }
 
 // MARK: - Settings
@@ -170,6 +108,7 @@ private struct SettingsScaffoldView: View {
     @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
     @AppStorage("enableMCPServer") private var enableMCPServer: Bool = false
 
+    @ObservedObject private var store = StoreManager.shared
     @State private var isSyncing = false
     @State private var lastSyncDate: Date?
     @State private var syncError: String?
@@ -358,7 +297,7 @@ private struct SettingsScaffoldView: View {
                     footnote: nil
                 )
 
-                // ─── Claude Code Integration ───
+                // ─── Claude Code Integration (Pro) ───
                 claudeCodeIntegrationSection
 
                 // Device info
@@ -579,49 +518,54 @@ private struct SettingsScaffoldView: View {
                     .foregroundColor(BrutalTheme.textPrimary)
                     .lineSpacing(3)
 
-                HStack(spacing: 16) {
-                    Toggle(isOn: Binding(
-                        get: { enableMCPServer },
-                        set: { newValue in
-                            enableMCPServer = newValue
-                            if newValue {
-                                mcpStatus = MCPIntegrationService.shared.register()
-                            } else {
-                                mcpStatus = MCPIntegrationService.shared.unregister()
+                if store.tier >= .pro {
+                    HStack(spacing: 16) {
+                        Toggle(isOn: Binding(
+                            get: { enableMCPServer },
+                            set: { newValue in
+                                enableMCPServer = newValue
+                                if newValue {
+                                    mcpStatus = MCPIntegrationService.shared.register()
+                                } else {
+                                    mcpStatus = MCPIntegrationService.shared.unregister()
+                                }
+                            }
+                        )) {
+                            HStack(spacing: 8) {
+                                Image(systemName: enableMCPServer ? "terminal.fill" : "terminal")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(enableMCPServer ? .green : .orange)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(enableMCPServer ? "Enabled" : "Disabled")
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundColor(BrutalTheme.textPrimary)
+
+                                    Text(enableMCPServer ? "Claude Code can query your data" : "Toggle on to enable querying via Claude Code")
+                                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                        .foregroundColor(BrutalTheme.textTertiary)
+                                }
                             }
                         }
-                    )) {
-                        HStack(spacing: 8) {
-                            Image(systemName: enableMCPServer ? "terminal.fill" : "terminal")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(enableMCPServer ? .green : .orange)
+                        .toggleStyle(.switch)
+                        .tint(.green)
 
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(enableMCPServer ? "Enabled" : "Disabled")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(BrutalTheme.textPrimary)
-
-                                Text(enableMCPServer ? "Claude Code can query your data" : "Toggle on to enable querying via Claude Code")
-                                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                    .foregroundColor(BrutalTheme.textTertiary)
-                            }
-                        }
+                        Spacer()
                     }
-                    .toggleStyle(.switch)
-                    .tint(.green)
 
-                    Spacer()
+                    mcpStatusFooter
+
+                    Text("Writes to ~/.claude.json. Restart Claude Code after enabling to pick up the new tools.")
+                        .font(BrutalTheme.captionMono)
+                        .foregroundColor(BrutalTheme.textTertiary)
+                } else {
+                    UpgradeView(requiredTier: .pro, compact: true)
                 }
-
-                mcpStatusFooter
-
-                Text("Writes to ~/.claude.json. Restart Claude Code after enabling to pick up the new tools.")
-                    .font(BrutalTheme.captionMono)
-                    .foregroundColor(BrutalTheme.textTertiary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onAppear {
+            guard store.tier >= .pro else { return }
             mcpStatus = MCPIntegrationService.shared.currentStatus()
             if enableMCPServer, case .registered = mcpStatus {
                 // Already registered — nothing to do.

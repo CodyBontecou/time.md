@@ -114,6 +114,24 @@ final class GlobalFilterStore {
         refreshToken += 1
     }
 
+    // MARK: - History Cap (Free Tier)
+
+    /// Earliest date a free-tier user may view. Returns `.distantPast` for paid tiers.
+    var historyFloor: Date {
+        guard StoreManager.shared.tier == .free else { return .distantPast }
+        return Calendar.current.date(byAdding: .day, value: -7, to: Calendar.current.startOfDay(for: .now)) ?? .now
+    }
+
+    /// True when the current `startDate` is at or before the free-tier history cap.
+    var isAtHistoryLimit: Bool {
+        StoreManager.shared.tier == .free && startDate <= historyFloor
+    }
+
+    /// Clamp a proposed start date to the history floor.
+    private func clamp(_ date: Date) -> Date {
+        max(date, historyFloor)
+    }
+
     /// Snap the date range to the current period matching the given granularity.
     func adjustDateRange(for granularity: TimeGranularity) {
         let calendar = Calendar.current
@@ -121,27 +139,27 @@ final class GlobalFilterStore {
 
         switch granularity {
         case .day:
-            startDate = calendar.startOfDay(for: now)
+            startDate = clamp(calendar.startOfDay(for: now))
             endDate = now
         case .week:
             if let weekInterval = calendar.dateInterval(of: .weekOfYear, for: now) {
-                startDate = weekInterval.start
+                startDate = clamp(weekInterval.start)
             } else {
-                startDate = calendar.startOfDay(for: now)
+                startDate = clamp(calendar.startOfDay(for: now))
             }
             endDate = now
         case .month:
             if let monthInterval = calendar.dateInterval(of: .month, for: now) {
-                startDate = monthInterval.start
+                startDate = clamp(monthInterval.start)
             } else {
-                startDate = calendar.startOfDay(for: now)
+                startDate = clamp(calendar.startOfDay(for: now))
             }
             endDate = now
         case .year:
             if let yearInterval = calendar.dateInterval(of: .year, for: now) {
-                startDate = yearInterval.start
+                startDate = clamp(yearInterval.start)
             } else {
-                startDate = calendar.startOfDay(for: now)
+                startDate = clamp(calendar.startOfDay(for: now))
             }
             endDate = now
         }
@@ -149,29 +167,44 @@ final class GlobalFilterStore {
     
     // MARK: - Time Navigation
     
-    /// Step backward by one period (day, week, month, or year)
+    /// Whether stepping backward one period is blocked by the free-tier history cap.
+    var isAtHistoryFloor: Bool {
+        guard StoreManager.shared.tier == .free else { return false }
+        return startDate <= historyFloor
+    }
+
+    /// Step backward by one period (day, week, month, or year).
+    /// No-ops if the resulting start date would be before the history floor.
     func stepBackward() {
         let calendar = Calendar.current
-        
+
         switch granularity {
         case .day:
             if let newStart = calendar.date(byAdding: .day, value: -1, to: startDate) {
-                startDate = calendar.startOfDay(for: newStart)
+                let clamped = clamp(calendar.startOfDay(for: newStart))
+                guard clamped < startDate else { return }
+                startDate = clamped
                 endDate = calendar.date(byAdding: .day, value: 1, to: startDate)!.addingTimeInterval(-1)
             }
         case .week:
             if let newStart = calendar.date(byAdding: .weekOfYear, value: -1, to: startDate) {
-                startDate = newStart
+                let clamped = clamp(newStart)
+                guard clamped < startDate else { return }
+                startDate = clamped
                 endDate = calendar.date(byAdding: .weekOfYear, value: 1, to: startDate)!.addingTimeInterval(-1)
             }
         case .month:
             if let newStart = calendar.date(byAdding: .month, value: -1, to: startDate) {
-                startDate = newStart
+                let clamped = clamp(newStart)
+                guard clamped < startDate else { return }
+                startDate = clamped
                 endDate = calendar.date(byAdding: .month, value: 1, to: startDate)!.addingTimeInterval(-1)
             }
         case .year:
             if let newStart = calendar.date(byAdding: .year, value: -1, to: startDate) {
-                startDate = newStart
+                let clamped = clamp(newStart)
+                guard clamped < startDate else { return }
+                startDate = clamped
                 endDate = calendar.date(byAdding: .year, value: 1, to: startDate)!.addingTimeInterval(-1)
             }
         }

@@ -17,6 +17,21 @@
       "productID" : "com.codybontecou.Timeprint.lifetime",
       "referenceName" : "Lifetime Access",
       "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : true,
+      "internalID" : "2",
+      "localizations" : [
+        {
+          "description" : "Unlock AI integration including the MCP server for Claude Code and all future AI features.",
+          "displayName" : "time.md Pro",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.codybontecou.Timeprint.pro",
+      "referenceName" : "time.md Pro",
+      "type" : "NonConsumable"
     }
   ],
   "settings" : {

@@ -16,7 +16,6 @@ struct TimeMdApp: App {
     @State private var cloudSyncError: String?
     @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedMacOnboarding")
     @StateObject private var storeManager = StoreManager.shared
-    @StateObject private var usageTracker = UsageTracker.shared
 
     #if !APPSTORE
     /// Sparkle updater controller for auto-updates
@@ -65,11 +64,7 @@ struct TimeMdApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if usageTracker.isTrialExpired && !storeManager.isPurchased {
-                    PaywallView(store: storeManager, usage: usageTracker)
-                } else {
-                    RootSplitView(filters: filters, navigation: navigation)
-                }
+                RootSplitView(filters: filters, navigation: navigation)
             }
             .environment(\.appEnvironment, .live)
             .environment(\.appNameDisplayMode, AppNameDisplayMode(rawValue: appNameDisplayMode) ?? .short)
@@ -77,7 +72,6 @@ struct TimeMdApp: App {
             .task {
                 await initialSync()
                 ActiveAppTracker.shared.start()
-                usageTracker.startSession()
                 Task.detached(priority: .utility) {
                     AppCategorizer.autoPopulateCategories()
                 }
@@ -99,13 +93,6 @@ struct TimeMdApp: App {
             }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
                 ActiveAppTracker.shared.stop()
-                usageTracker.pauseSession()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-                usageTracker.startSession()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
-                usageTracker.pauseSession()
             }
             .onReceive(NotificationCenter.default.publisher(for: ActiveAppTracker.didRecordSessionNotification)) { _ in
                 filters.triggerRefresh()

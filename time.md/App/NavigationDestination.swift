@@ -56,6 +56,17 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Minimum tier required to access this destination
+    var minimumTier: UserTier {
+        switch self {
+        case .overview:                          return .free
+        case .settings:                          return .free
+        case .review, .details:                  return .base
+        case .projects, .rules:                  return .base
+        case .webHistory, .reports, .export:     return .base
+        }
+    }
+
     /// Whether this destination can be exported
     var isExportable: Bool {
         switch self {

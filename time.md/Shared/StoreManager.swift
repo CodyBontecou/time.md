@@ -2,15 +2,39 @@ import Combine
 import Foundation
 import StoreKit
 
-/// Manages the one-time lifetime purchase via StoreKit 2.
+// MARK: - User Tier
+
+enum UserTier: Int, Comparable {
+    case free = 0
+    case base = 1
+    case pro  = 2
+
+    static func < (lhs: UserTier, rhs: UserTier) -> Bool {
+        lhs.rawValue < rhs.rawValue
+    }
+
+    var displayName: String {
+        switch self {
+        case .free: return "Free"
+        case .base: return "Base"
+        case .pro:  return "Pro"
+        }
+    }
+}
+
+// MARK: - StoreManager
+
+/// Manages one-time lifetime purchases for Base and Pro tiers via StoreKit 2.
 @MainActor
 final class StoreManager: ObservableObject {
     static let shared = StoreManager()
 
-    nonisolated static let lifetimeProductID = "com.codybontecou.Timeprint.lifetime"
+    nonisolated static let baseProductID = "com.codybontecou.Timeprint.lifetime"
+    nonisolated static let proProductID  = "com.codybontecou.Timeprint.pro"
 
-    @Published private(set) var product: Product?
-    @Published private(set) var isPurchased = false
+    @Published private(set) var baseProduct: Product?
+    @Published private(set) var proProduct: Product?
+    @Published private(set) var tier: UserTier = .free
     @Published private(set) var purchaseError: String?
     @Published private(set) var isLoading = false
 
@@ -30,8 +54,11 @@ final class StoreManager: ObservableObject {
 
     func loadProducts() async {
         do {
-            let products = try await Product.products(for: [Self.lifetimeProductID])
-            product = products.first
+            let products = try await Product.products(for: [Self.baseProductID, Self.proProductID])
+            for product in products {
+                if product.id == Self.baseProductID { baseProduct = product }
+                if product.id == Self.proProductID  { proProduct  = product }
+            }
         } catch {
             print("[Store] Failed to load products: \(error.localizedDescription)")
         }
@@ -39,8 +66,7 @@ final class StoreManager: ObservableObject {
 
     // MARK: - Purchase
 
-    func purchase() async {
-        guard let product else { return }
+    func purchase(_ product: Product) async {
         isLoading = true
         purchaseError = nil
 
@@ -49,7 +75,7 @@ final class StoreManager: ObservableObject {
             switch result {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
-                isPurchased = true
+                await updateTier(for: transaction.productID)
                 await transaction.finish()
             case .userCancelled:
                 break
@@ -74,7 +100,7 @@ final class StoreManager: ObservableObject {
         try? await AppStore.sync()
         await checkEntitlement()
 
-        if !isPurchased {
+        if tier == .free {
             purchaseError = "No previous purchase found."
         }
 
@@ -84,34 +110,39 @@ final class StoreManager: ObservableObject {
     // MARK: - Entitlement Check
 
     func checkEntitlement() async {
+        var highestTier = UserTier.free
+
         for await result in Transaction.currentEntitlements {
-            if case .verified(let transaction) = result,
-               transaction.productID == Self.lifetimeProductID {
-                isPurchased = true
-                return
+            if case .verified(let transaction) = result {
+                if transaction.productID == Self.proProductID {
+                    highestTier = .pro
+                } else if transaction.productID == Self.baseProductID, highestTier < .base {
+                    highestTier = .base
+                }
             }
         }
-        // If we get here, no matching entitlement was found — but only clear
-        // isPurchased if it wasn't already set by a purchase flow this session.
-        if !isPurchased {
-            isPurchased = false
-        }
+
+        tier = highestTier
     }
 
     // MARK: - Transaction Listener
 
     private func listenForTransactions() -> Task<Void, Never> {
-        let productID = Self.lifetimeProductID
         return Task.detached {
             for await result in Transaction.updates {
-                if case .verified(let transaction) = result,
-                   transaction.productID == productID {
-                    await MainActor.run {
-                        StoreManager.shared.isPurchased = true
-                    }
+                if case .verified(let transaction) = result {
+                    await StoreManager.shared.updateTier(for: transaction.productID)
                     await transaction.finish()
                 }
             }
+        }
+    }
+
+    private func updateTier(for productID: String) async {
+        if productID == Self.proProductID {
+            tier = .pro
+        } else if productID == Self.baseProductID, tier < .base {
+            tier = .base
         }
     }
 

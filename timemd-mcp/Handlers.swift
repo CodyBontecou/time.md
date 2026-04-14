@@ -157,6 +157,56 @@ enum Handlers {
         return input
     }
 
+    // MARK: - Live session injection
+
+    /// Returns the current in-progress session if its start falls within [rangeStart, now)
+    /// and the range end is still in the future (i.e., this range covers the present moment).
+    private static func liveSession(db: Database, rangeStart: String, rangeEnd: String) -> Database.CurrentSession? {
+        let now = DateRange.format(Date())
+        guard rangeEnd > now, rangeStart <= now else { return nil }
+        guard let session = db.currentSession() else { return nil }
+        // Sanity: session must have started within this range
+        let sessionStart = DateRange.format(Date(timeIntervalSince1970: session.startTimestamp))
+        guard sessionStart >= rangeStart else { return nil }
+        return session
+    }
+
+    /// Injects live session seconds into an array of `[app_name, total_seconds, session_count]` rows.
+    /// If the app already appears, its total is incremented. Otherwise a new row is appended.
+    /// Result is re-sorted by total_seconds descending.
+    private static func injectIntoAppRows(
+        _ rows: [[String: Any]],
+        appName: String,
+        elapsed: Double
+    ) -> [[String: Any]] {
+        var mutable = rows
+        if let idx = mutable.firstIndex(where: { $0["app_name"] as? String == appName }) {
+            var row = mutable[idx]
+            row["total_seconds"] = (row["total_seconds"] as? Double ?? 0) + elapsed
+            mutable[idx] = row
+        } else {
+            mutable.append(["app_name": appName, "total_seconds": elapsed, "session_count": Int64(1)])
+        }
+        return mutable.sorted { ($0["total_seconds"] as? Double ?? 0) > ($1["total_seconds"] as? Double ?? 0) }
+    }
+
+    /// Injects live session seconds into an array of `[stream_type, total_seconds, session_count]` rows.
+    private static func injectIntoStreamRows(
+        _ rows: [[String: Any]],
+        streamType: String,
+        elapsed: Double
+    ) -> [[String: Any]] {
+        var mutable = rows
+        if let idx = mutable.firstIndex(where: { $0["stream_type"] as? String == streamType }) {
+            var row = mutable[idx]
+            row["total_seconds"] = (row["total_seconds"] as? Double ?? 0) + elapsed
+            mutable[idx] = row
+        } else {
+            mutable.append(["stream_type": streamType, "total_seconds": elapsed, "session_count": Int64(1)])
+        }
+        return mutable
+    }
+
     // MARK: - Tool implementations
 
     private static func schema(db: Database) -> String {
@@ -196,7 +246,7 @@ enum Handlers {
 
     private static func rangeTotals(args: Args, db: Database) throws -> String {
         let r = try DateRange.parse(since: args.string("since"), until: args.string("until"))
-        let rows = try db.query(
+        var rows = try db.query(
             """
             SELECT stream_type, SUM(duration_seconds) AS total_seconds, COUNT(*) AS session_count
             FROM usage
@@ -207,7 +257,11 @@ enum Handlers {
             """,
             bindings: [.text(r.start), .text(r.end), .text(r.start), .text(r.end)]
         )
-        let grandTotal = rows.reduce(0.0) { $0 + ($1["total_seconds"] as? Double ?? 0) }
+        var grandTotal = rows.reduce(0.0) { $0 + ($1["total_seconds"] as? Double ?? 0) }
+        if let live = liveSession(db: db, rangeStart: r.start, rangeEnd: r.end) {
+            rows = injectIntoStreamRows(rows, streamType: live.streamType, elapsed: live.elapsedSeconds)
+            grandTotal += live.elapsedSeconds
+        }
         return toJSON([
             "range": ["start": r.start, "end": r.end],
             "total_seconds": grandTotal,
@@ -218,7 +272,7 @@ enum Handlers {
     private static func today(args: Args, db: Database) throws -> String {
         let limit = max(1, min(args.int("limit", default: 20), 500))
         let r = try DateRange.parse(since: "today")
-        let streams = try db.query(
+        var streams = try db.query(
             """
             SELECT stream_type, SUM(duration_seconds) AS total_seconds, COUNT(*) AS session_count
             FROM usage
@@ -228,7 +282,7 @@ enum Handlers {
             """,
             bindings: [.text(r.start), .text(r.end), .text(r.start), .text(r.end)]
         )
-        let topApps = try db.query(
+        var topAppsRows = try db.query(
             """
             SELECT app_name, SUM(duration_seconds) AS total_seconds, COUNT(*) AS session_count
             FROM usage
@@ -240,12 +294,17 @@ enum Handlers {
             """,
             bindings: [.text(r.start), .text(r.end), .text(r.start), .text(r.end), .int(Int64(limit))]
         )
-        let grandTotal = streams.reduce(0.0) { $0 + ($1["total_seconds"] as? Double ?? 0) }
+        var grandTotal = streams.reduce(0.0) { $0 + ($1["total_seconds"] as? Double ?? 0) }
+        if let live = liveSession(db: db, rangeStart: r.start, rangeEnd: r.end) {
+            streams = injectIntoStreamRows(streams, streamType: live.streamType, elapsed: live.elapsedSeconds)
+            topAppsRows = injectIntoAppRows(topAppsRows, appName: live.appName, elapsed: live.elapsedSeconds)
+            grandTotal += live.elapsedSeconds
+        }
         return toJSON([
             "date": r.start,
             "total_seconds": grandTotal,
             "by_stream": streams,
-            "top_apps": topApps
+            "top_apps": topAppsRows
         ])
     }
 
@@ -267,7 +326,13 @@ enum Handlers {
         bindings.append(contentsOf: [.text(r.start), .text(r.end)])
         sql += " GROUP BY app_name ORDER BY total_seconds DESC LIMIT ?"
         bindings.append(.int(Int64(limit)))
-        let rows = try db.query(sql, bindings: bindings)
+        var rows = try db.query(sql, bindings: bindings)
+        // Only inject app_usage live session (skip if a different stream is filtered)
+        if streamFilter == nil || streamFilter == "app_usage",
+           let live = liveSession(db: db, rangeStart: r.start, rangeEnd: r.end),
+           live.streamType == "app_usage" {
+            rows = injectIntoAppRows(rows, appName: live.appName, elapsed: live.elapsedSeconds)
+        }
         let streamValue: Any = streamFilter ?? NSNull()
         return toJSON([
             "range": ["start": r.start, "end": r.end],

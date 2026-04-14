@@ -90,6 +90,12 @@ final class ActiveAppTracker: @unchecked Sendable {
             currentApp = frontmost.bundleIdentifier ?? frontmost.localizedName
             switchTime = Date()
             isScreenActive = true
+            if let appID = currentApp {
+                let ts = switchTime!.timeIntervalSince1970
+                DispatchQueue.global(qos: .utility).async {
+                    Self.writeCurrentSessionFile(appName: appID, startTimestamp: ts)
+                }
+            }
         }
     }
 
@@ -98,6 +104,9 @@ final class ActiveAppTracker: @unchecked Sendable {
         defer { lock.unlock() }
 
         finalizeCurrentSession()
+        DispatchQueue.global(qos: .utility).async {
+            Self.clearCurrentSessionFile()
+        }
 
         let nc = NSWorkspace.shared.notificationCenter
         for observer in observers {
@@ -122,6 +131,13 @@ final class ActiveAppTracker: @unchecked Sendable {
         currentApp = newApp
         switchTime = Date()
 
+        if let appID = newApp {
+            let ts = switchTime!.timeIntervalSince1970
+            DispatchQueue.global(qos: .utility).async {
+                Self.writeCurrentSessionFile(appName: appID, startTimestamp: ts)
+            }
+        }
+
         // Auto-categorize newly seen apps on first switch
         if let appID = newApp, !categorizedApps.contains(appID) {
             categorizedApps.insert(appID)
@@ -140,6 +156,9 @@ final class ActiveAppTracker: @unchecked Sendable {
         guard isScreenActive else { return }
         isScreenActive = false
         finalizeCurrentSession()
+        DispatchQueue.global(qos: .utility).async {
+            Self.clearCurrentSessionFile()
+        }
     }
 
     private func handleScreenActive() {
@@ -185,6 +204,27 @@ final class ActiveAppTracker: @unchecked Sendable {
                 deviceId: deviceId
             )
         }
+    }
+
+    // MARK: - Current Session Hint File
+
+    private static var currentSessionURL: URL {
+        realHomeDirectory()
+            .appendingPathComponent("Library/Application Support/time.md/current_session.json")
+    }
+
+    private static func writeCurrentSessionFile(appName: String, startTimestamp: Double) {
+        let dict: [String: Any] = [
+            "app_name": appName,
+            "start_timestamp": startTimestamp,
+            "stream_type": "app_usage"
+        ]
+        guard let data = try? JSONSerialization.data(withJSONObject: dict) else { return }
+        try? data.write(to: currentSessionURL, options: .atomic)
+    }
+
+    private static func clearCurrentSessionFile() {
+        try? FileManager.default.removeItem(at: currentSessionURL)
     }
 
     // MARK: - Database Write

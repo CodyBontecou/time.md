@@ -110,6 +110,17 @@ final class StoreManager: ObservableObject {
     // MARK: - Entitlement Check
 
     func checkEntitlement() async {
+        #if DEBUG
+        if let override = UserDefaults.standard.string(forKey: "debug.tier") {
+            switch override {
+            case "pro":  tier = .pro;  return
+            case "base": tier = .base; return
+            case "free": tier = .free; return
+            default: break
+            }
+        }
+        #endif
+
         var highestTier = UserTier.free
 
         for await result in Transaction.currentEntitlements {

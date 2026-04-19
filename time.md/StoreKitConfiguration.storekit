@@ -4,7 +4,7 @@
   "version" : 4,
   "products" : [
     {
-      "displayPrice" : "19.99",
+      "displayPrice" : "9.99",
       "familyShareable" : true,
       "internalID" : "1",
       "localizations" : [
@@ -19,7 +19,7 @@
       "type" : "NonConsumable"
     },
     {
-      "displayPrice" : "9.99",
+      "displayPrice" : "19.99",
       "familyShareable" : true,
       "internalID" : "2",
       "localizations" : [

@@ -201,7 +201,6 @@ struct UpgradeView: View {
                 "Web History & Reports",
                 "CSV / JSON export",
                 "Projects & Rules",
-                "iCloud sync across devices",
                 "All future Base updates"
             ]
         case .pro:

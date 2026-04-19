@@ -54,8 +54,6 @@ struct MacOnboardingView: View {
             features: [
                 MacOnboardingFeature(icon: "clock.arrow.2.circlepath", text: "Data refreshes every ~15 minutes from macOS"),
                 MacOnboardingFeature(icon: "info.circle", text: "Apple updates screen time data periodically, not in real-time"),
-                MacOnboardingFeature(icon: "icloud.fill", text: "Optional iCloud sync shares daily summaries with iOS"),
-                MacOnboardingFeature(icon: "desktopcomputer", text: "Background agent syncs every 4 hours when app is closed"),
                 MacOnboardingFeature(icon: "checkmark.shield", text: "Full Disk Access required to read screen time database"),
             ]
         ),

@@ -28,12 +28,7 @@ struct OverviewView: View {
     // Phase 4 — analytics insights
     @State private var insights: [Insight] = []
     @State private var periodDelta: PeriodDelta?
-    
-    // Phase 7 — cross-device sync
-    @State private var syncPayload: SyncPayload = .empty
-    @State private var lastSyncDate: Date?
-    @State private var isSyncing: Bool = false
-    
+
     // Loading state - progressive loading phases
     // Start with isLoadingPrimary = true so skeleton shows immediately on first render
     @State private var isLoadingPrimary: Bool = true
@@ -182,11 +177,6 @@ struct OverviewView: View {
             try? await Task.sleep(for: .milliseconds(100))
             await loadAnalytics()
         }
-        .task {
-            // Phase 4: Load sync payload only once on appear (not on filter changes)
-            try? await Task.sleep(for: .milliseconds(200))
-            await loadSyncPayload()
-        }
     }
 
     // MARK: - Header Section
@@ -310,20 +300,6 @@ struct OverviewView: View {
                         sparklinePoints: sparklinePoints,
                         hourlyPoints: hourlyTrendPoints,
                         periodLabel: filters.periodLabel
-                    )
-                }
-                
-                // Row 3: Device breakdown and sync status (when multiple devices)
-                if syncPayload.devices.count > 1 {
-                    DeviceBreakdownCard(
-                        devices: syncPayload.devices,
-                        selectedDate: filters.startDate
-                    )
-                    
-                    SyncStatusCard(
-                        lastSyncDate: lastSyncDate,
-                        deviceCount: syncPayload.devices.count,
-                        isSyncing: isSyncing
                     )
                 }
             }
@@ -740,36 +716,4 @@ struct OverviewView: View {
         }
     }
     
-    private func loadSyncPayload() async {
-        guard let syncCoordinator = appEnvironment.syncCoordinator else {
-            // No sync service available
-            return
-        }
-        
-        isSyncing = true
-        
-        // Run sync in a detached task to avoid blocking the main thread.
-        // NSFileCoordinator operations can block, so we need to ensure
-        // they don't run on the main actor's executor.
-        let result: (payload: SyncPayload, date: Date)? = await Task.detached(priority: .utility) {
-            do {
-                // Perform sync to get latest data from all devices
-                try await syncCoordinator.performSync()
-                
-                // Fetch the updated payload
-                let payload = try await syncCoordinator.fetchPayload()
-                return (payload, Date())
-            } catch {
-                // Sync failed - non-critical
-                return nil
-            }
-        }.value
-        
-        // Update UI state on main actor
-        if let result {
-            syncPayload = result.payload
-            lastSyncDate = result.date
-        }
-        isSyncing = false
-    }
 }

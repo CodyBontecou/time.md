@@ -46,25 +46,25 @@ struct RootSplitView: View {
                             TimingOverviewView(filters: filters)
                         case .review:
                             if store.tier >= .base { TimingReviewView(filters: filters) }
-                            else { UpgradeView(requiredTier: .base) }
+                            else { MacPaywallView() }
                         case .details:
                             if store.tier >= .base { TimingDetailsView(filters: filters) }
-                            else { UpgradeView(requiredTier: .base) }
+                            else { MacPaywallView() }
                         case .projects:
                             if store.tier >= .base { TimingProjectsView(filters: filters) }
-                            else { UpgradeView(requiredTier: .base) }
+                            else { MacPaywallView() }
                         case .rules:
                             if store.tier >= .base { TimingRulesView(filters: filters) }
-                            else { UpgradeView(requiredTier: .base) }
+                            else { MacPaywallView() }
                         case .webHistory:
                             if store.tier >= .base { WebHistoryView(filters: filters) }
-                            else { UpgradeView(requiredTier: .base) }
+                            else { MacPaywallView() }
                         case .reports:
                             if store.tier >= .base { TimingReportsView(filters: filters) }
-                            else { UpgradeView(requiredTier: .base) }
+                            else { MacPaywallView() }
                         case .export:
                             if store.tier >= .base { ExportsView(filters: filters) }
-                            else { UpgradeView(requiredTier: .base) }
+                            else { MacPaywallView() }
                         case .settings:
                             SettingsScaffoldView(filters: filters)
                         }
@@ -94,34 +94,24 @@ struct RootSplitView: View {
 
         }
     }
-    
+
 }
 
 // MARK: - Settings
 
 private struct SettingsScaffoldView: View {
     let filters: GlobalFilterStore
-    @Environment(\.appEnvironment) private var appEnvironment
     @AppStorage("appNameDisplayMode") private var appNameDisplayModeRaw: String = AppNameDisplayMode.short.rawValue
-    @AppStorage("iCloudSyncEnabled") private var iCloudSyncEnabled: Bool = false
     @AppStorage("insightTickerAutoScroll") private var insightTickerAutoScroll: Bool = true
     @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
     @AppStorage("enableMCPServer") private var enableMCPServer: Bool = false
 
     @ObservedObject private var store = StoreManager.shared
-    @State private var isSyncing = false
-    @State private var lastSyncDate: Date?
-    @State private var syncError: String?
-    @State private var showSyncSuccess = false
     @State private var browserSettings = BrowserSettingsStore.shared
     @State private var mcpStatus: MCPIntegrationService.Status = .inactive
 
     private var displayMode: AppNameDisplayMode {
         AppNameDisplayMode(rawValue: appNameDisplayModeRaw) ?? .short
-    }
-    
-    private var iCloudAvailable: Bool {
-        FileManager.default.ubiquityIdentityToken != nil
     }
 
     var body: some View {
@@ -133,13 +123,10 @@ private struct SettingsScaffoldView: View {
                     .font(.system(size: 26, weight: .bold, design: .default))
                     .foregroundColor(BrutalTheme.textPrimary)
 
-                // ─── iCloud Sync ───
-                syncSection
-
                 // ─── App Name Display ───
                 GlassCard {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text(BrutalTheme.sectionLabel(2, "APP NAME DISPLAY"))
+                        Text(BrutalTheme.sectionLabel(1, "APP NAME DISPLAY"))
                             .font(BrutalTheme.headingFont)
                             .foregroundColor(BrutalTheme.textSecondary)
                             .tracking(1.5)
@@ -188,7 +175,7 @@ private struct SettingsScaffoldView: View {
                 // ─── Insight Ticker ───
                 GlassCard {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text(BrutalTheme.sectionLabel(3, "INSIGHT TICKER"))
+                        Text(BrutalTheme.sectionLabel(2, "INSIGHT TICKER"))
                             .font(BrutalTheme.headingFont)
                             .foregroundColor(BrutalTheme.textSecondary)
                             .tracking(1.5)
@@ -232,7 +219,7 @@ private struct SettingsScaffoldView: View {
                 // ─── Menu Bar ───
                 GlassCard {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text(BrutalTheme.sectionLabel(4, "MENU BAR"))
+                        Text(BrutalTheme.sectionLabel(3, "MENU BAR"))
                             .font(BrutalTheme.headingFont)
                             .foregroundColor(BrutalTheme.textSecondary)
                             .tracking(1.5)
@@ -277,23 +264,23 @@ private struct SettingsScaffoldView: View {
                 browserSettingsSection
 
                 settingsBlock(
-                    number: 6,
+                    number: 5,
                     title: "DATA SOURCE",
                     body: "Data loads from local normalized screentime.db",
                     footnote: "Category mappings saved at ~/Library/Application Support/time.md/category-mappings.db."
                 )
 
                 settingsBlock(
-                    number: 7,
+                    number: 6,
                     title: "CATEGORY MAPPING",
                     body: "Mappings are edited from the Apps & Categories view. Single source of truth — no conflicting state.",
                     footnote: nil
                 )
 
                 settingsBlock(
-                    number: 8,
+                    number: 7,
                     title: "PRIVACY",
-                    body: "time.md is local-first. Your raw data stays on this machine. iCloud sync only shares aggregated daily summaries.",
+                    body: "time.md is local-first. Your raw data never leaves this Mac.",
                     footnote: nil
                 )
 
@@ -313,7 +300,7 @@ private struct SettingsScaffoldView: View {
     private var browserSettingsSection: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
-                Text(BrutalTheme.sectionLabel(5, "WEB BROWSERS"))
+                Text(BrutalTheme.sectionLabel(4, "WEB BROWSERS"))
                     .font(BrutalTheme.headingFont)
                     .foregroundColor(BrutalTheme.textSecondary)
                     .tracking(1.5)
@@ -412,103 +399,12 @@ private struct SettingsScaffoldView: View {
         )
     }
     
-    // MARK: - Sync Section
-    
-    private var syncSection: some View {
-        GlassCard {
-            VStack(alignment: .leading, spacing: 12) {
-                Text(BrutalTheme.sectionLabel(1, "ICLOUD SYNC"))
-                    .font(BrutalTheme.headingFont)
-                    .foregroundColor(BrutalTheme.textSecondary)
-                    .tracking(1.5)
-                
-                Text("Sync your screen time data across devices. View combined usage from your Mac, iPhone, and iPad in one place.")
-                    .font(BrutalTheme.bodyMono)
-                    .foregroundColor(BrutalTheme.textPrimary)
-                    .lineSpacing(3)
-                
-                HStack(spacing: 16) {
-                    // Status indicator
-                    HStack(spacing: 8) {
-                        Image(systemName: iCloudAvailable ? "icloud.fill" : "icloud.slash")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(iCloudAvailable ? .green : .orange)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(iCloudAvailable ? "iCloud Available" : "iCloud Unavailable")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(BrutalTheme.textPrimary)
-                            
-                            if let lastSync = lastSyncDate {
-                                Text("Last sync: \(TimeFormatters.relativeDate(lastSync))")
-                                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                    .foregroundColor(BrutalTheme.textTertiary)
-                            }
-                        }
-                    }
-                    
-                    Spacer()
-                    
-                    // Sync button
-                    Button {
-                        Task { await performSync() }
-                    } label: {
-                        HStack(spacing: 6) {
-                            if isSyncing {
-                                ProgressView()
-                                    .scaleEffect(0.7)
-                            } else {
-                                Image(systemName: "arrow.triangle.2.circlepath")
-                                    .font(.system(size: 12, weight: .semibold))
-                            }
-                            Text(isSyncing ? "Syncing..." : "Sync Now")
-                                .font(.system(size: 12, weight: .semibold))
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.blue)
-                    .disabled(!iCloudAvailable || isSyncing)
-                }
-                
-                // Success/Error feedback
-                if showSyncSuccess {
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                        Text("Sync complete!")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.green)
-                    }
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                }
-                
-                if let error = syncError {
-                    HStack(spacing: 6) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.orange)
-                        Text(LocalizedStringKey(error))
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(.orange)
-                    }
-                }
-                
-                Text("Only aggregated daily summaries are synced. Raw session data stays local.")
-                    .font(BrutalTheme.captionMono)
-                    .foregroundColor(BrutalTheme.textTertiary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-    
     // MARK: - Claude Code Integration Section
 
     private var claudeCodeIntegrationSection: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 10) {
-                Text(BrutalTheme.sectionLabel(9, "CLAUDE CODE INTEGRATION"))
+                Text(BrutalTheme.sectionLabel(8, "CLAUDE CODE INTEGRATION"))
                     .font(BrutalTheme.headingFont)
                     .foregroundColor(BrutalTheme.textSecondary)
                     .tracking(1.5)
@@ -616,7 +512,7 @@ private struct SettingsScaffoldView: View {
         
         return GlassCard {
             VStack(alignment: .leading, spacing: 10) {
-                Text(BrutalTheme.sectionLabel(10, "THIS DEVICE"))
+                Text(BrutalTheme.sectionLabel(9, "THIS DEVICE"))
                     .font(BrutalTheme.headingFont)
                     .foregroundColor(BrutalTheme.textSecondary)
                     .tracking(1.5)
@@ -645,34 +541,6 @@ private struct SettingsScaffoldView: View {
         }
     }
     
-    // MARK: - Actions
-    
-    private func performSync() async {
-        guard let syncCoordinator = appEnvironment.syncCoordinator else { return }
-        
-        isSyncing = true
-        syncError = nil
-        showSyncSuccess = false
-        
-        do {
-            try await syncCoordinator.performSync()
-            lastSyncDate = Date()
-            withAnimation {
-                showSyncSuccess = true
-            }
-            
-            // Hide success after 3 seconds
-            try? await Task.sleep(for: .seconds(3))
-            withAnimation {
-                showSyncSuccess = false
-            }
-        } catch {
-            syncError = error.localizedDescription
-        }
-        
-        isSyncing = false
-    }
-
     private func settingsBlock(number: Int, title: String, body: LocalizedStringKey, footnote: LocalizedStringKey?) -> some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 10) {

@@ -8,7 +8,6 @@ import SwiftUI
 struct TimeMdCommands: Commands {
     var navigation: NavigationCoordinator
     var filters: GlobalFilterStore
-    let performCloudSync: () async -> Void
     #if !APPSTORE
     @ObservedObject var updaterController: UpdaterController
     #endif
@@ -129,17 +128,6 @@ struct TimeMdCommands: Commands {
             }
             .keyboardShortcut("j", modifiers: [.command, .shift])
         }
-        
-        // Sync commands
-        CommandMenu("Sync") {
-            Button("Sync Now") {
-                Task {
-                    await performCloudSync()
-                }
-            }
-            .keyboardShortcut("r", modifiers: .command)
-            
-        }
     }
     
     // MARK: - Time Navigation
@@ -198,11 +186,7 @@ struct TimeMdCommands: Commands {
  ⌘[          Previous Period
  ⌘]          Next Period
  ⇧⌘J         Jump to Today
- 
- Sync:
- ⌘R          Sync Now (iCloud)
- ⇧⌘R         Force Local Sync
- 
+
  Standard:
  ⌘Q          Quit
  ⌘W          Close Window

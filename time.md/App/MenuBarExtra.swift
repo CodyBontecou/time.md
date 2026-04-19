@@ -8,8 +8,6 @@ struct TimeMdMenuBarExtra: View {
     @State private var todayTotal: TimeInterval = 0
     @State private var topApps: [AppUsageSummary] = []
     @State private var isLoading = true
-    @State private var isSyncing = false
-    @State private var lastSyncTime: Date?
 
     private let refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
     
@@ -29,12 +27,6 @@ struct TimeMdMenuBarExtra: View {
                     Text(formatDuration(todayTotal))
                         .font(.system(.title2, design: .rounded, weight: .bold))
                         .monospacedDigit()
-                }
-                
-                if let lastSync = lastSyncTime {
-                    Text("Synced \(lastSync, style: .relative) ago")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
                 }
             }
             .padding(.bottom, 4)
@@ -81,25 +73,7 @@ struct TimeMdMenuBarExtra: View {
                 Label("Open time.md", systemImage: "macwindow")
             }
             .buttonStyle(.plain)
-            
-            Button {
-                Task {
-                    await syncNow()
-                }
-            } label: {
-                HStack {
-                    Label("Sync Now", systemImage: isSyncing ? "arrow.triangle.2.circlepath" : "arrow.clockwise")
-                    if isSyncing {
-                        Spacer()
-                        ProgressView()
-                            .scaleEffect(0.5)
-                            .frame(width: 12, height: 12)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-            .disabled(isSyncing)
-            
+
             Button {
                 NSApplication.shared.terminate(nil)
             } label: {
@@ -154,29 +128,13 @@ struct TimeMdMenuBarExtra: View {
     private func formatDuration(_ seconds: TimeInterval) -> String {
         let hours = Int(seconds) / 3600
         let minutes = (Int(seconds) % 3600) / 60
-        
+
         if hours > 0 {
             return "\(hours)h \(minutes)m"
         }
         return "\(minutes)m"
     }
-    
-    private func syncNow() async {
-        isSyncing = true
-        
-        // Cloud sync if available
-        if let syncCoordinator = appEnvironment.syncCoordinator {
-            try? await syncCoordinator.performSync()
-        }
-        
-        lastSyncTime = Date()
-        
-        // Reload data to show updated stats
-        await loadData()
-        
-        isSyncing = false
-    }
-    
+
     private func openMainWindow() {
         NSApplication.shared.activate(ignoringOtherApps: true)
         

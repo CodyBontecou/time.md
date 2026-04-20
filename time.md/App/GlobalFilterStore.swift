@@ -14,6 +14,13 @@ final class GlobalFilterStore {
     /// Increment via `triggerRefresh()` after syncing new data into screentime.db.
     var refreshToken: Int = 0
 
+    /// True when the user is pinned to the latest period ("Today", "This Week", etc.).
+    /// Flips off when they step backward to inspect a past period, and back on when
+    /// they return to the current period. Used by `syncToCurrentPeriodIfFollowing()`
+    /// to auto-advance the range on day-change / app-activation without yanking users
+    /// away from a past date they're deliberately viewing.
+    private(set) var isFollowingCurrent: Bool = true
+
     // Advanced time filters
     var timeOfDayRanges: [TimeOfDayRange]
     var weekdayFilter: Set<Int>
@@ -114,97 +121,66 @@ final class GlobalFilterStore {
         refreshToken += 1
     }
 
-    // MARK: - History Cap (Free Tier)
-
-    /// Earliest date a free-tier user may view. Returns `.distantPast` for paid tiers.
-    var historyFloor: Date {
-        guard StoreManager.shared.tier == .free else { return .distantPast }
-        return Calendar.current.date(byAdding: .day, value: -7, to: Calendar.current.startOfDay(for: .now)) ?? .now
-    }
-
-    /// True when the current `startDate` is at or before the free-tier history cap.
-    var isAtHistoryLimit: Bool {
-        StoreManager.shared.tier == .free && startDate <= historyFloor
-    }
-
-    /// Clamp a proposed start date to the history floor.
-    private func clamp(_ date: Date) -> Date {
-        max(date, historyFloor)
-    }
-
     /// Snap the date range to the current period matching the given granularity.
     func adjustDateRange(for granularity: TimeGranularity) {
         let calendar = Calendar.current
         let now = Date.now
+        isFollowingCurrent = true
 
         switch granularity {
         case .day:
-            startDate = clamp(calendar.startOfDay(for: now))
+            startDate = calendar.startOfDay(for: now)
             endDate = now
         case .week:
             if let weekInterval = calendar.dateInterval(of: .weekOfYear, for: now) {
-                startDate = clamp(weekInterval.start)
+                startDate = weekInterval.start
             } else {
-                startDate = clamp(calendar.startOfDay(for: now))
+                startDate = calendar.startOfDay(for: now)
             }
             endDate = now
         case .month:
             if let monthInterval = calendar.dateInterval(of: .month, for: now) {
-                startDate = clamp(monthInterval.start)
+                startDate = monthInterval.start
             } else {
-                startDate = clamp(calendar.startOfDay(for: now))
+                startDate = calendar.startOfDay(for: now)
             }
             endDate = now
         case .year:
             if let yearInterval = calendar.dateInterval(of: .year, for: now) {
-                startDate = clamp(yearInterval.start)
+                startDate = yearInterval.start
             } else {
-                startDate = clamp(calendar.startOfDay(for: now))
+                startDate = calendar.startOfDay(for: now)
             }
             endDate = now
         }
     }
-    
+
     // MARK: - Time Navigation
-    
-    /// Whether stepping backward one period is blocked by the free-tier history cap.
-    var isAtHistoryFloor: Bool {
-        guard StoreManager.shared.tier == .free else { return false }
-        return startDate <= historyFloor
-    }
 
     /// Step backward by one period (day, week, month, or year).
-    /// No-ops if the resulting start date would be before the history floor.
     func stepBackward() {
         let calendar = Calendar.current
+        isFollowingCurrent = false
 
         switch granularity {
         case .day:
             if let newStart = calendar.date(byAdding: .day, value: -1, to: startDate) {
-                let clamped = clamp(calendar.startOfDay(for: newStart))
-                guard clamped < startDate else { return }
-                startDate = clamped
+                startDate = calendar.startOfDay(for: newStart)
                 endDate = calendar.date(byAdding: .day, value: 1, to: startDate)!.addingTimeInterval(-1)
             }
         case .week:
             if let newStart = calendar.date(byAdding: .weekOfYear, value: -1, to: startDate) {
-                let clamped = clamp(newStart)
-                guard clamped < startDate else { return }
-                startDate = clamped
+                startDate = newStart
                 endDate = calendar.date(byAdding: .weekOfYear, value: 1, to: startDate)!.addingTimeInterval(-1)
             }
         case .month:
             if let newStart = calendar.date(byAdding: .month, value: -1, to: startDate) {
-                let clamped = clamp(newStart)
-                guard clamped < startDate else { return }
-                startDate = clamped
+                startDate = newStart
                 endDate = calendar.date(byAdding: .month, value: 1, to: startDate)!.addingTimeInterval(-1)
             }
         case .year:
             if let newStart = calendar.date(byAdding: .year, value: -1, to: startDate) {
-                let clamped = clamp(newStart)
-                guard clamped < startDate else { return }
-                startDate = clamped
+                startDate = newStart
                 endDate = calendar.date(byAdding: .year, value: 1, to: startDate)!.addingTimeInterval(-1)
             }
         }
@@ -264,11 +240,24 @@ final class GlobalFilterStore {
                 }
             }
         }
+
+        isFollowingCurrent = isCurrentPeriod
     }
-    
+
     /// Jump back to today/current period
     func goToToday() {
         adjustDateRange(for: granularity)
+    }
+
+    /// Re-anchor the displayed range to the current period when the user is
+    /// pinned to "latest". Called when the calendar day changes or the app
+    /// becomes active, so leaving the window open overnight doesn't leave
+    /// "Today" showing yesterday's data. No-op when the user has navigated
+    /// to a past period.
+    func syncToCurrentPeriodIfFollowing() {
+        guard isFollowingCurrent, !isCurrentPeriod else { return }
+        adjustDateRange(for: granularity)
+        triggerRefresh()
     }
     
     /// Whether the current view is showing the current period (today, this week, etc.)

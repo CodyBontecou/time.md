@@ -4,7 +4,6 @@ import SwiftUI
 struct RootSplitView: View {
     let filters: GlobalFilterStore
     @Bindable var navigation: NavigationCoordinator
-    @ObservedObject private var store = StoreManager.shared
 
     var body: some View {
         ZStack {
@@ -13,22 +12,12 @@ struct RootSplitView: View {
                     ForEach(NavigationSection.visibleSections) { section in
                         Section(section.rawValue) {
                             ForEach(NavigationDestination.allCases.filter { $0.section == section }) { destination in
-                                let locked = destination.minimumTier > store.tier
                                 Label {
-                                    HStack {
-                                        Text(destination.title)
-                                            .font(.system(size: 13, weight: .semibold, design: .default))
-                                        if locked {
-                                            Spacer()
-                                            Image(systemName: "lock.fill")
-                                                .font(.system(size: 10, weight: .medium))
-                                                .foregroundColor(BrutalTheme.textTertiary)
-                                        }
-                                    }
+                                    Text(destination.title)
+                                        .font(.system(size: 13, weight: .semibold, design: .default))
                                 } icon: {
                                     Image(systemName: destination.systemImage)
                                         .font(.system(size: 12, weight: .semibold))
-                                        .foregroundColor(locked ? BrutalTheme.textTertiary : nil)
                                 }
                                 .tag(destination)
                             }
@@ -45,26 +34,19 @@ struct RootSplitView: View {
                         case .overview:
                             TimingOverviewView(filters: filters)
                         case .review:
-                            if store.tier >= .base { TimingReviewView(filters: filters) }
-                            else { MacPaywallView() }
+                            TimingReviewView(filters: filters)
                         case .details:
-                            if store.tier >= .base { TimingDetailsView(filters: filters) }
-                            else { MacPaywallView() }
+                            TimingDetailsView(filters: filters)
                         case .projects:
-                            if store.tier >= .base { TimingProjectsView(filters: filters) }
-                            else { MacPaywallView() }
+                            TimingProjectsView(filters: filters)
                         case .rules:
-                            if store.tier >= .base { TimingRulesView(filters: filters) }
-                            else { MacPaywallView() }
+                            TimingRulesView(filters: filters)
                         case .webHistory:
-                            if store.tier >= .base { WebHistoryView(filters: filters) }
-                            else { MacPaywallView() }
+                            WebHistoryView(filters: filters)
                         case .reports:
-                            if store.tier >= .base { TimingReportsView(filters: filters) }
-                            else { MacPaywallView() }
+                            TimingReportsView(filters: filters)
                         case .export:
-                            if store.tier >= .base { ExportsView(filters: filters) }
-                            else { MacPaywallView() }
+                            ExportsView(filters: filters)
                         case .settings:
                             SettingsScaffoldView(filters: filters)
                         }
@@ -104,9 +86,9 @@ private struct SettingsScaffoldView: View {
     @AppStorage("appNameDisplayMode") private var appNameDisplayModeRaw: String = AppNameDisplayMode.short.rawValue
     @AppStorage("insightTickerAutoScroll") private var insightTickerAutoScroll: Bool = true
     @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
+    @AppStorage("hideFromDockWhenClosed") private var hideFromDockWhenClosed: Bool = false
     @AppStorage("enableMCPServer") private var enableMCPServer: Bool = false
 
-    @ObservedObject private var store = StoreManager.shared
     @State private var browserSettings = BrowserSettingsStore.shared
     @State private var mcpStatus: MCPIntegrationService.Status = .inactive
 
@@ -256,6 +238,42 @@ private struct SettingsScaffoldView: View {
                         Text("The menu bar item displays your daily screen time and allows quick sync.")
                             .font(BrutalTheme.captionMono)
                             .foregroundColor(BrutalTheme.textTertiary)
+
+                        Divider()
+                            .padding(.vertical, 4)
+
+                        HStack(spacing: 16) {
+                            Toggle(isOn: $hideFromDockWhenClosed) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: hideFromDockWhenClosed ? "menubar.dock.rectangle" : "dock.rectangle")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(hideFromDockWhenClosed ? .green : .orange)
+
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(hideFromDockWhenClosed ? "Menu bar only on close" : "Stay in Dock on close")
+                                            .font(.system(size: 13, weight: .semibold))
+                                            .foregroundColor(BrutalTheme.textPrimary)
+
+                                        Text(hideFromDockWhenClosed
+                                             ? "Closing the window hides the Dock icon and Cmd-Tab entry"
+                                             : "Closing the window keeps time.md in the Dock")
+                                            .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                            .foregroundColor(BrutalTheme.textTertiary)
+                                    }
+                                }
+                            }
+                            .toggleStyle(.switch)
+                            .tint(.green)
+                            .disabled(!showMenuBarItem)
+
+                            Spacer()
+                        }
+
+                        Text(showMenuBarItem
+                             ? "Click \u{201C}Open time.md\u{201D} in the menu bar to restore the Dock icon."
+                             : "Enable the menu bar item above to use this option.")
+                            .font(BrutalTheme.captionMono)
+                            .foregroundColor(BrutalTheme.textTertiary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -284,7 +302,7 @@ private struct SettingsScaffoldView: View {
                     footnote: nil
                 )
 
-                // ─── Claude Code Integration (Pro) ───
+                // ─── Claude Code Integration ───
                 claudeCodeIntegrationSection
 
                 // Device info
@@ -414,54 +432,49 @@ private struct SettingsScaffoldView: View {
                     .foregroundColor(BrutalTheme.textPrimary)
                     .lineSpacing(3)
 
-                if store.tier >= .pro {
-                    HStack(spacing: 16) {
-                        Toggle(isOn: Binding(
-                            get: { enableMCPServer },
-                            set: { newValue in
-                                enableMCPServer = newValue
-                                if newValue {
-                                    mcpStatus = MCPIntegrationService.shared.register()
-                                } else {
-                                    mcpStatus = MCPIntegrationService.shared.unregister()
-                                }
-                            }
-                        )) {
-                            HStack(spacing: 8) {
-                                Image(systemName: enableMCPServer ? "terminal.fill" : "terminal")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundColor(enableMCPServer ? .green : .orange)
-
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(enableMCPServer ? "Enabled" : "Disabled")
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundColor(BrutalTheme.textPrimary)
-
-                                    Text(enableMCPServer ? "Claude Code can query your data" : "Toggle on to enable querying via Claude Code")
-                                        .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                        .foregroundColor(BrutalTheme.textTertiary)
-                                }
+                HStack(spacing: 16) {
+                    Toggle(isOn: Binding(
+                        get: { enableMCPServer },
+                        set: { newValue in
+                            enableMCPServer = newValue
+                            if newValue {
+                                mcpStatus = MCPIntegrationService.shared.register()
+                            } else {
+                                mcpStatus = MCPIntegrationService.shared.unregister()
                             }
                         }
-                        .toggleStyle(.switch)
-                        .tint(.green)
+                    )) {
+                        HStack(spacing: 8) {
+                            Image(systemName: enableMCPServer ? "terminal.fill" : "terminal")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(enableMCPServer ? .green : .orange)
 
-                        Spacer()
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(enableMCPServer ? "Enabled" : "Disabled")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(BrutalTheme.textPrimary)
+
+                                Text(enableMCPServer ? "Claude Code can query your data" : "Toggle on to enable querying via Claude Code")
+                                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                    .foregroundColor(BrutalTheme.textTertiary)
+                            }
+                        }
                     }
+                    .toggleStyle(.switch)
+                    .tint(.green)
 
-                    mcpStatusFooter
-
-                    Text("Writes to ~/.claude.json. Restart Claude Code after enabling to pick up the new tools.")
-                        .font(BrutalTheme.captionMono)
-                        .foregroundColor(BrutalTheme.textTertiary)
-                } else {
-                    UpgradeView(requiredTier: .pro, compact: true)
+                    Spacer()
                 }
+
+                mcpStatusFooter
+
+                Text("Writes to ~/.claude.json. Restart Claude Code after enabling to pick up the new tools.")
+                    .font(BrutalTheme.captionMono)
+                    .foregroundColor(BrutalTheme.textTertiary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onAppear {
-            guard store.tier >= .pro else { return }
             mcpStatus = MCPIntegrationService.shared.currentStatus()
             if enableMCPServer, case .registered = mcpStatus {
                 // Already registered — nothing to do.

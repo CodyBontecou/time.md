@@ -3,7 +3,6 @@ import Combine
 #if !APPSTORE
 import Sparkle
 #endif
-import StoreKit
 import SwiftUI
 
 @main
@@ -12,8 +11,8 @@ struct TimeMdApp: App {
     @State private var navigation = NavigationCoordinator()
     @AppStorage("appNameDisplayMode") private var appNameDisplayMode: String = AppNameDisplayMode.short.rawValue
     @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
+    @AppStorage("hideFromDockWhenClosed") private var hideFromDockWhenClosed: Bool = false
     @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedMacOnboarding")
-    @StateObject private var storeManager = StoreManager.shared
 
     #if !APPSTORE
     /// Sparkle updater controller for auto-updates
@@ -21,7 +20,7 @@ struct TimeMdApp: App {
     #endif
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "main") {
             Group {
                 RootSplitView(filters: filters, navigation: navigation)
             }
@@ -43,6 +42,15 @@ struct TimeMdApp: App {
             }
             .onReceive(NotificationCenter.default.publisher(for: ActiveAppTracker.didRecordSessionNotification)) { _ in
                 filters.triggerRefresh()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+                filters.syncToCurrentPeriodIfFollowing()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                filters.syncToCurrentPeriodIfFollowing()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { notification in
+                handleWindowWillClose(notification)
             }
         }
         .windowResizability(.contentSize)
@@ -80,6 +88,22 @@ struct TimeMdApp: App {
         // Prefetch browser history databases in background so Web History view loads instantly
         Task.detached(priority: .utility) {
             SQLiteBrowsingHistoryService().prefetchDatabases()
+        }
+    }
+
+    /// When the last main window closes and the setting is on, drop the Dock
+    /// icon so the app lives entirely in the menu bar (hidden from Cmd+Tab).
+    /// The menu bar extra's "Open time.md" action restores `.regular` policy.
+    private func handleWindowWillClose(_ notification: Notification) {
+        guard hideFromDockWhenClosed, showMenuBarItem else { return }
+        guard let closingWindow = notification.object as? NSWindow, closingWindow.canBecomeMain else { return }
+        DispatchQueue.main.async {
+            let hasOtherMainWindow = NSApp.windows.contains { window in
+                window !== closingWindow && window.canBecomeMain && window.isVisible
+            }
+            if !hasOtherMainWindow {
+                NSApp.setActivationPolicy(.accessory)
+            }
         }
     }
 }

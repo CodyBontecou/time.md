@@ -5,6 +5,7 @@ import SwiftUI
 /// Menu bar extra showing today's screen time at a glance
 struct TimeMdMenuBarExtra: View {
     @Environment(\.appEnvironment) private var appEnvironment
+    @Environment(\.openWindow) private var openWindow
     @State private var todayTotal: TimeInterval = 0
     @State private var topApps: [AppUsageSummary] = []
     @State private var isLoading = true
@@ -136,11 +137,17 @@ struct TimeMdMenuBarExtra: View {
     }
 
     private func openMainWindow() {
+        // Restore Dock presence in case user enabled "menu bar only on close"
+        if NSApp.activationPolicy() != .regular {
+            NSApp.setActivationPolicy(.regular)
+        }
+
         NSApplication.shared.activate(ignoringOtherApps: true)
-        
-        // Open or bring main window to front
-        if let window = NSApplication.shared.windows.first(where: { $0.canBecomeMain }) {
+
+        if let window = NSApplication.shared.windows.first(where: { $0.canBecomeMain && $0.isVisible }) {
             window.makeKeyAndOrderFront(nil)
+        } else {
+            openWindow(id: "main")
         }
     }
 }

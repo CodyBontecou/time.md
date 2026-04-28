@@ -28,3 +28,10 @@ dist/
 *.zip
 time.md-v*-macOS
 time.md-v*-macOS.zip
+
+# Translation working files
+TRANSLATION_SUMMARY.txt
+translations_*.json
+
+# Generated screenshots (Simulator captures, ASO assets, App Store exports)
+screenshots/

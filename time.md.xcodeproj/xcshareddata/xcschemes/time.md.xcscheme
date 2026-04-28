@@ -40,7 +40,8 @@
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
-      allowLocationSimulation = "YES">
+      allowLocationSimulation = "YES"
+      StoreKitConfigurationFileReference = "../../../time.md/StoreKitConfiguration.storekit">
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference

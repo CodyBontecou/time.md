@@ -12,17 +12,54 @@ struct TimeMdApp: App {
     @AppStorage("appNameDisplayMode") private var appNameDisplayMode: String = AppNameDisplayMode.short.rawValue
     @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
     @AppStorage("hideFromDockWhenClosed") private var hideFromDockWhenClosed: Bool = false
-    @State private var showOnboarding = !UserDefaults.standard.bool(forKey: "hasCompletedMacOnboarding")
+    @AppStorage("hasCompletedMacOnboarding") private var hasCompletedMacOnboarding: Bool = false
+    @AppStorage("isGrandfathered") private var isGrandfathered: Bool = false
+    @StateObject private var subscriptionStore = SubscriptionStore.shared
 
     #if !APPSTORE
     /// Sparkle updater controller for auto-updates
     @StateObject private var updaterController = UpdaterController()
     #endif
 
+    init() {
+        Self.performGrandfatherCheckIfNeeded()
+    }
+
+    /// Stamps `isGrandfathered` once when the paywall build first launches.
+    /// Anyone who already completed onboarding under a free build is considered
+    /// an existing user and gets lifetime access without going through the paywall.
+    private static func performGrandfatherCheckIfNeeded() {
+        let defaults = UserDefaults.standard
+        let key = "grandfatherCheckPerformed"
+        guard !defaults.bool(forKey: key) else { return }
+        let isExistingUser = defaults.bool(forKey: "hasCompletedMacOnboarding")
+        defaults.set(isExistingUser, forKey: "isGrandfathered")
+        defaults.set(true, forKey: key)
+    }
+
+    private var hasFullAccess: Bool {
+        isGrandfathered || subscriptionStore.isEntitled
+    }
+
     var body: some Scene {
         WindowGroup(id: "main") {
             Group {
-                RootSplitView(filters: filters, navigation: navigation)
+                if hasFullAccess && hasCompletedMacOnboarding {
+                    RootSplitView(filters: filters, navigation: navigation)
+                } else if !hasCompletedMacOnboarding {
+                    MacOnboardingView(
+                        isPresented: .init(
+                            get: { !hasCompletedMacOnboarding },
+                            set: { if !$0 { hasCompletedMacOnboarding = true } }
+                        ),
+                        requiresPaywall: !isGrandfathered
+                    )
+                } else {
+                    // Lapsed: completed onboarding previously but no active subscription.
+                    PaywallView()
+                        .frame(minWidth: 640, minHeight: 520)
+                        .background(BrutalTheme.background)
+                }
             }
             .environment(\.appEnvironment, .live)
             .environment(\.appNameDisplayMode, AppNameDisplayMode(rawValue: appNameDisplayMode) ?? .short)
@@ -33,9 +70,6 @@ struct TimeMdApp: App {
                 Task.detached(priority: .utility) {
                     AppCategorizer.autoPopulateCategories()
                 }
-            }
-            .sheet(isPresented: $showOnboarding) {
-                MacOnboardingView(isPresented: $showOnboarding)
             }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
                 ActiveAppTracker.shared.stop()
@@ -48,6 +82,7 @@ struct TimeMdApp: App {
             }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                 filters.syncToCurrentPeriodIfFollowing()
+                Task { await subscriptionStore.refreshEntitlement() }
             }
             .onReceive(NotificationCenter.default.publisher(for: NSWindow.willCloseNotification)) { notification in
                 handleWindowWillClose(notification)

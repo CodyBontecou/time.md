@@ -1,0 +1,127 @@
+{
+  "identifier" : "com.bontecou.time.md.storekit",
+  "type" : "local",
+  "version" : 4,
+  "products" : [],
+  "subscriptionGroups" : [
+    {
+      "id" : "21000000",
+      "name" : "time.md Pro",
+      "localizations" : [
+        {
+          "description" : "Access to time.md.",
+          "displayName" : "time.md Pro",
+          "locale" : "en_US"
+        }
+      ],
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "21000001",
+          "introductoryOffer" : {
+            "internalID" : "21000003",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1M"
+          },
+          "localizations" : [
+            {
+              "description" : "Full access to time.md, billed yearly.",
+              "displayName" : "time.md Pro Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.bontecou.time.md.pro.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "time.md Pro Yearly",
+          "subscriptionGroupID" : "21000000",
+          "type" : "RecurringSubscription",
+          "winBackOffers" : []
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "4.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "21000002",
+          "introductoryOffer" : {
+            "internalID" : "21000004",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1M"
+          },
+          "localizations" : [
+            {
+              "description" : "Full access to time.md, billed monthly.",
+              "displayName" : "time.md Pro Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.bontecou.time.md.pro.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "time.md Pro Monthly",
+          "subscriptionGroupID" : "21000000",
+          "type" : "RecurringSubscription",
+          "winBackOffers" : []
+        }
+      ]
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6762019113",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  }
+}

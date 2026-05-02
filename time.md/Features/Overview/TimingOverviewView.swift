@@ -190,7 +190,7 @@ struct TimingOverviewView: View {
 
                     RoundedRectangle(cornerRadius: 4)
                         .fill(BrutalTheme.color(for: entry.appName))
-                        .frame(width: blockWidth, height: isFocused && focusedApp != nil ? barHeight - 2 : barHeight - 6)
+                        .frame(width: blockWidth, height: barHeight - 6)
                         .opacity(isFocused ? 1.0 : 0.15)
                         .offset(x: startX)
                         .onHover { isHovering in
@@ -236,7 +236,7 @@ struct TimingOverviewView: View {
                         .fill(BrutalTheme.color(for: appName))
                         .frame(width: 10, height: 10)
                     AppNameText(appName)
-                        .font(.system(size: 13, weight: isFocused && focusedApp != nil ? .bold : .medium))
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundColor(isFocused ? BrutalTheme.textPrimary : BrutalTheme.textTertiary)
                 }
                 .opacity(isFocused ? 1.0 : 0.4)

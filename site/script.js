@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════
-   TIMEPRINT — Scroll reveal & micro-interactions
+   time.md — Scroll reveal & micro-interactions
    ═══════════════════════════════════════════════ */
 
 // Scroll reveal with IntersectionObserver
@@ -48,29 +48,44 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
   });
 });
 
-// Animate mock bars on showcase visibility
-const showcase = document.querySelector('.interface-showcase');
-const mockBars = document.querySelectorAll('.mock-bar');
+// Hero slideshow
+(() => {
+  const slides = document.querySelectorAll('.hero-slide');
+  const dots = document.querySelectorAll('.hero-dot-btn');
+  const titleEl = document.querySelector('[data-slide-title]');
+  if (slides.length === 0) return;
 
-const showcaseObserver = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        mockBars.forEach((bar, i) => {
-          bar.style.animationDelay = `${i * 0.06}s`;
-          bar.style.animationPlayState = 'running';
-        });
-        showcaseObserver.unobserve(entry.target);
-      }
+  let current = 0;
+  const interval = 4500;
+  let timer = null;
+
+  const show = (i) => {
+    current = (i + slides.length) % slides.length;
+    slides.forEach((s, idx) => s.classList.toggle('is-active', idx === current));
+    dots.forEach((d, idx) => d.classList.toggle('is-active', idx === current));
+    if (titleEl) titleEl.textContent = slides[current].dataset.title || '';
+  };
+
+  const next = () => show(current + 1);
+
+  const start = () => {
+    stop();
+    timer = setInterval(next, interval);
+  };
+  const stop = () => {
+    if (timer) { clearInterval(timer); timer = null; }
+  };
+
+  dots.forEach((dot) => {
+    dot.addEventListener('click', () => {
+      show(parseInt(dot.dataset.slide, 10));
+      start();
     });
-  },
-  { threshold: 0.3 }
-);
-
-if (showcase) {
-  // Pause bar animations initially
-  mockBars.forEach((bar) => {
-    bar.style.animationPlayState = 'paused';
   });
-  showcaseObserver.observe(showcase);
-}
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop(); else start();
+  });
+
+  start();
+})();

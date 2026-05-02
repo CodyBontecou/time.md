@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   TIMEPRINT — Brutal Marketing Site
+   time.md — Brutal Marketing Site
    Design System: Ice Blue + Monospace + Sharp Edges
    Inspired by Teenage Engineering + BrutalTheme.swift
    ═══════════════════════════════════════════════════════════ */
@@ -220,10 +220,18 @@ a {
   max-width: var(--content-max);
   margin: 0 auto;
   padding: 80px 32px 60px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 48px;
+  align-items: center;
+}
+
+.hero-text {
+  min-width: 0;
 }
 
 .hero-headline {
-  font-size: clamp(48px, 8vw, 96px);
+  font-size: clamp(40px, 5.5vw, 80px);
   font-weight: 800;
   line-height: 0.95;
   letter-spacing: -2px;
@@ -265,6 +273,94 @@ a {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
+}
+
+/* ─── Hero Slideshow ─── */
+.hero-slideshow {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.hero-window {
+  background: var(--surface);
+  border: 1.5px solid var(--border-strong);
+  box-shadow: 16px 16px 0 rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.hero-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--surface-alt);
+  border-bottom: 1.5px solid var(--border);
+}
+
+.hero-window-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text-tertiary);
+}
+
+.hero-slides {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--bg);
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+.hero-slide.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hero-slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.hero-slide-dots {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.hero-dot-btn {
+  appearance: none;
+  border: 1.5px solid var(--border-strong);
+  background: transparent;
+  width: 28px;
+  height: 6px;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.hero-dot-btn:hover {
+  background: var(--text-tertiary);
+}
+
+.hero-dot-btn.is-active {
+  background: var(--text-primary);
+}
+
+.hero-dot-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* ─── Stats Strip ─── */
@@ -534,164 +630,10 @@ a {
   color: var(--text-tertiary);
 }
 
-.showcase-body {
-  display: flex;
-  min-height: 380px;
-}
-
-/* Mock sidebar */
-.mock-sidebar {
-  width: 120px;
-  flex-shrink: 0;
-  background: var(--surface-alt);
-  border-right: 1px solid var(--border);
-  padding: 12px 0;
-}
-
-.mock-sidebar-item {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  padding: 8px 14px;
-  color: var(--text-tertiary);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.mock-sidebar-item.active {
-  color: var(--accent);
-  background: var(--accent-muted);
-  border-right: 2px solid var(--accent);
-}
-
-.mock-icon {
-  font-size: 11px;
-}
-
-/* Mock main content */
-.mock-main {
-  flex: 1;
-  padding: 16px;
-  background: var(--bg);
-}
-
-.mock-header {
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 12px;
-}
-
-.mock-metrics {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.mock-metric {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 8px 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.mock-metric-icon {
-  font-size: 12px;
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--accent-muted);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.mock-metric-label {
-  font-size: 7px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  color: var(--text-tertiary);
-}
-
-.mock-metric-value {
-  font-size: 11px;
-  font-weight: 800;
-}
-
-/* Mock chart */
-.mock-chart {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 12px;
-  margin-bottom: 12px;
-  height: 100px;
-}
-
-.mock-bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 4px;
-  height: 100%;
-}
-
-.mock-bar {
-  flex: 1;
-  height: var(--h);
-  background: var(--accent);
-  animation: barGrow 1s ease-out forwards;
-  transform-origin: bottom;
-}
-
-@keyframes barGrow {
-  from { transform: scaleY(0); }
-  to { transform: scaleY(1); }
-}
-
-/* Mock table */
-.mock-table {
-  background: var(--surface);
-  border: 1px solid var(--border);
-}
-
-.mock-table-header,
-.mock-table-row {
-  display: grid;
-  grid-template-columns: 28px 1fr 70px 60px;
-  font-size: 8px;
-  padding: 6px 10px;
-  align-items: center;
-}
-
-.mock-table-header {
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: var(--text-tertiary);
-  border-bottom: 1.5px solid var(--border-strong);
-}
-
-.mock-table-row {
-  font-weight: 500;
-  border-bottom: 1px solid var(--border);
-}
-
-.mock-table-row:last-child {
-  border-bottom: none;
-}
-
-.mock-pct {
-  height: 3px;
-  background: var(--intensity-0);
-  overflow: hidden;
-}
-
-.mock-pct span {
+.showcase-screenshot {
   display: block;
-  height: 100%;
-  background: var(--accent-muted);
+  width: 100%;
+  height: auto;
 }
 
 /* ─── Privacy Grid ─── */
@@ -938,9 +880,16 @@ a {
   .usecases-grid {
     grid-template-columns: 1fr;
   }
+}
 
-  .mock-metrics {
-    grid-template-columns: repeat(2, 1fr);
+@media (max-width: 720px) {
+  .hero-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .hero-window {
+    box-shadow: 8px 8px 0 rgba(0,0,0,0.06);
   }
 }
 
@@ -958,22 +907,5 @@ a {
     flex-direction: column;
     gap: 16px;
     text-align: center;
-  }
-
-  .showcase-body {
-    flex-direction: column;
-  }
-
-  .mock-sidebar {
-    width: 100%;
-    display: flex;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    padding: 8px;
-    gap: 4px;
-  }
-
-  .mock-metrics {
-    grid-template-columns: 1fr 1fr;
   }
 }

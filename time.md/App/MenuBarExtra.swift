@@ -137,10 +137,10 @@ struct TimeMdMenuBarExtra: View {
     }
 
     private func openMainWindow() {
-        // Restore Dock presence in case user enabled "menu bar only on close"
-        if NSApp.activationPolicy() != .regular {
-            NSApp.setActivationPolicy(.regular)
-        }
+        // Honor the user's visibility mode — don't force a Dock icon on if
+        // they've chosen `.menuBarOnly` or `.hidden`. The window can still
+        // be focused under `.accessory` policy.
+        AppVisibilityMode.current.apply()
 
         NSApplication.shared.activate(ignoringOtherApps: true)
 

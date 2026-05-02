@@ -1,6 +1,3 @@
-#if !APPSTORE
-import Sparkle
-#endif
 import SwiftUI
 
 #if os(macOS)
@@ -8,22 +5,13 @@ import SwiftUI
 struct TimeMdCommands: Commands {
     var navigation: NavigationCoordinator
     var filters: GlobalFilterStore
-    #if !APPSTORE
-    @ObservedObject var updaterController: UpdaterController
-    #endif
-    @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
+    @AppStorage(AppVisibilityMode.storageKey) private var visibilityModeRaw: String = AppVisibilityMode.dockAndMenuBar.rawValue
+
+    private var visibilityMode: AppVisibilityMode {
+        AppVisibilityMode(rawValue: visibilityModeRaw) ?? .dockAndMenuBar
+    }
 
     var body: some Commands {
-        #if !APPSTORE
-        // Check for Updates in App menu
-        CommandGroup(after: .appInfo) {
-            Button("Check for Updates...") {
-                updaterController.checkForUpdates()
-            }
-            .disabled(!updaterController.canCheckForUpdates)
-        }
-        #endif
-        
         // Replace default "New" command group
         CommandGroup(replacing: .newItem) {
             // No new document creation in time.md
@@ -84,8 +72,20 @@ struct TimeMdCommands: Commands {
                 .keyboardShortcut("8", modifiers: .command)
                 
                 Divider()
-                
-                Toggle("Show Menu Bar Item", isOn: $showMenuBarItem)
+
+                Menu("Visibility") {
+                    ForEach(AppVisibilityMode.allCases) { mode in
+                        Button {
+                            visibilityModeRaw = mode.rawValue
+                        } label: {
+                            if visibilityMode == mode {
+                                Label(mode.title, systemImage: "checkmark")
+                            } else {
+                                Text(mode.title)
+                            }
+                        }
+                    }
+                }
             }
         }
         
@@ -176,7 +176,7 @@ struct TimeMdCommands: Commands {
  ⌘8          Settings
  
  View:
- (toggle)    Show Menu Bar Item
+ (submenu)   Visibility (Dock + Menu Bar / Menu Bar Only / Dock Only / Hidden)
  
  Time Range:
  ⇧⌘T         Today

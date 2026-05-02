@@ -85,15 +85,76 @@ private struct SettingsScaffoldView: View {
     let filters: GlobalFilterStore
     @AppStorage("appNameDisplayMode") private var appNameDisplayModeRaw: String = AppNameDisplayMode.short.rawValue
     @AppStorage("insightTickerAutoScroll") private var insightTickerAutoScroll: Bool = true
-    @AppStorage("showMenuBarItem") private var showMenuBarItem: Bool = true
-    @AppStorage("hideFromDockWhenClosed") private var hideFromDockWhenClosed: Bool = false
+    @AppStorage(AppVisibilityMode.storageKey) private var visibilityModeRaw: String = AppVisibilityMode.dockAndMenuBar.rawValue
     @AppStorage("enableMCPServer") private var enableMCPServer: Bool = false
+
+    private var visibilityMode: AppVisibilityMode {
+        AppVisibilityMode(rawValue: visibilityModeRaw) ?? .dockAndMenuBar
+    }
 
     @State private var browserSettings = BrowserSettingsStore.shared
     @State private var mcpStatus: MCPIntegrationService.Status = .inactive
 
     private var displayMode: AppNameDisplayMode {
         AppNameDisplayMode(rawValue: appNameDisplayModeRaw) ?? .short
+    }
+
+    private var visibilityFootnote: String {
+        switch visibilityMode {
+        case .dockAndMenuBar:
+            return "Default. Click \u{201C}Open time.md\u{201D} from the menu bar or use Cmd-Tab."
+        case .menuBarOnly:
+            return "No Dock icon or Cmd-Tab entry. Click the menu bar item to reveal the window."
+        case .dockOnly:
+            return "Use the Dock icon or Cmd-Tab to bring time.md forward."
+        case .hidden:
+            return "Fully hidden. Reopen time.md from Spotlight, Finder, or Launchpad to access it again."
+        }
+    }
+
+    @ViewBuilder
+    private func visibilityModeRow(_ mode: AppVisibilityMode) -> some View {
+        let isSelected = visibilityMode == mode
+        Button {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                visibilityModeRaw = mode.rawValue
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: mode.systemImage)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(isSelected ? .white : BrutalTheme.textSecondary)
+                    .frame(width: 24)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(mode.title)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(isSelected ? .white : BrutalTheme.textPrimary)
+                    Text(mode.summary)
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundColor(isSelected ? Color.white.opacity(0.85) : BrutalTheme.textTertiary)
+                }
+
+                Spacer()
+
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(isSelected ? BrutalTheme.accent : Color.white.opacity(0.04))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(isSelected ? Color.clear : Color.white.opacity(0.08), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     var body: some View {
@@ -198,80 +259,26 @@ private struct SettingsScaffoldView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
-                // ─── Menu Bar ───
+                // ─── Visibility ───
                 GlassCard {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text(BrutalTheme.sectionLabel(3, "MENU BAR"))
+                        Text(BrutalTheme.sectionLabel(3, "VISIBILITY"))
                             .font(BrutalTheme.headingFont)
                             .foregroundColor(BrutalTheme.textSecondary)
                             .tracking(1.5)
 
-                        Text("Show a menu bar icon for quick access to today's screen time.")
+                        Text("Choose where time.md appears. macOS controls the Dock icon and Cmd-Tab entry together.")
                             .font(BrutalTheme.bodyMono)
                             .foregroundColor(BrutalTheme.textPrimary)
                             .lineSpacing(3)
 
-                        HStack(spacing: 16) {
-                            Toggle(isOn: $showMenuBarItem) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: showMenuBarItem ? "menubar.rectangle" : "menubar.arrow.up.rectangle")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(showMenuBarItem ? .green : .orange)
-                                    
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(showMenuBarItem ? "Visible" : "Hidden")
-                                            .font(.system(size: 13, weight: .semibold))
-                                            .foregroundColor(BrutalTheme.textPrimary)
-                                        
-                                        Text(showMenuBarItem ? "Menu bar item shows today's screen time" : "Menu bar item is hidden")
-                                            .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                            .foregroundColor(BrutalTheme.textTertiary)
-                                    }
-                                }
+                        VStack(spacing: 8) {
+                            ForEach(AppVisibilityMode.allCases) { mode in
+                                visibilityModeRow(mode)
                             }
-                            .toggleStyle(.switch)
-                            .tint(.green)
-                            
-                            Spacer()
                         }
 
-                        Text("The menu bar item displays your daily screen time and allows quick sync.")
-                            .font(BrutalTheme.captionMono)
-                            .foregroundColor(BrutalTheme.textTertiary)
-
-                        Divider()
-                            .padding(.vertical, 4)
-
-                        HStack(spacing: 16) {
-                            Toggle(isOn: $hideFromDockWhenClosed) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: hideFromDockWhenClosed ? "menubar.dock.rectangle" : "dock.rectangle")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(hideFromDockWhenClosed ? .green : .orange)
-
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(hideFromDockWhenClosed ? "Menu bar only on close" : "Stay in Dock on close")
-                                            .font(.system(size: 13, weight: .semibold))
-                                            .foregroundColor(BrutalTheme.textPrimary)
-
-                                        Text(hideFromDockWhenClosed
-                                             ? "Closing the window hides the Dock icon and Cmd-Tab entry"
-                                             : "Closing the window keeps time.md in the Dock")
-                                            .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                            .foregroundColor(BrutalTheme.textTertiary)
-                                    }
-                                }
-                            }
-                            .toggleStyle(.switch)
-                            .tint(.green)
-                            .disabled(!showMenuBarItem)
-
-                            Spacer()
-                        }
-
-                        Text(showMenuBarItem
-                             ? "Click \u{201C}Open time.md\u{201D} in the menu bar to restore the Dock icon."
-                             : "Enable the menu bar item above to use this option.")
+                        Text(visibilityFootnote)
                             .font(BrutalTheme.captionMono)
                             .foregroundColor(BrutalTheme.textTertiary)
                     }

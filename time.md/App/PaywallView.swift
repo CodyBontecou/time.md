@@ -10,9 +10,16 @@ struct PaywallView: View {
     var onEntitled: (() -> Void)?
 
     private var selectedProduct: Product? {
-        selectedProductID == SubscriptionStore.yearlyProductID
-            ? store.yearlyProduct
-            : store.monthlyProduct
+        switch selectedProductID {
+        case SubscriptionStore.yearlyProductID: return store.yearlyProduct
+        case SubscriptionStore.monthlyProductID: return store.monthlyProduct
+        case SubscriptionStore.lifetimeProductID: return store.lifetimeProduct
+        default: return nil
+        }
+    }
+
+    private var isLifetimeSelected: Bool {
+        selectedProductID == SubscriptionStore.lifetimeProductID
     }
 
     var body: some View {
@@ -30,21 +37,19 @@ struct PaywallView: View {
                 .foregroundStyle(.blue)
                 .padding(.bottom, 18)
 
-            Text(introEligible ? "Try time.md Free for 30 Days" : "Subscribe to time.md")
+            Text(headlineText)
                 .font(.system(size: 24, weight: .black, design: .monospaced))
                 .foregroundColor(BrutalTheme.textPrimary)
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 6)
 
-            Text(introEligible
-                 ? "Then continue for the price below. Cancel anytime."
-                 : "Choose a plan to unlock time.md.")
+            Text(subheadText)
                 .font(.system(size: 12, weight: .regular, design: .monospaced))
                 .foregroundColor(BrutalTheme.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 22)
 
-            HStack(spacing: 12) {
+            HStack(spacing: 10) {
                 planCard(
                     productID: SubscriptionStore.yearlyProductID,
                     title: "Yearly",
@@ -61,8 +66,16 @@ struct PaywallView: View {
                     badge: nil,
                     subtitle: nil
                 )
+                planCard(
+                    productID: SubscriptionStore.lifetimeProductID,
+                    title: "Lifetime",
+                    price: store.lifetimeProduct?.displayPrice ?? "$49",
+                    cadence: "once",
+                    badge: "PAY ONCE",
+                    subtitle: "Own it forever"
+                )
             }
-            .padding(.horizontal, 40)
+            .padding(.horizontal, 32)
             .padding(.bottom, 18)
 
             Button(action: startPurchase) {
@@ -202,8 +215,21 @@ struct PaywallView: View {
 
     // MARK: - Computed copy
 
+    private var headlineText: String {
+        if isLifetimeSelected { return "Get time.md, Forever" }
+        return introEligible ? "Try time.md Free for 30 Days" : "Subscribe to time.md"
+    }
+
+    private var subheadText: String {
+        if isLifetimeSelected { return "One-time purchase. Yours to keep." }
+        return introEligible
+            ? "Then continue for the price below. Cancel anytime."
+            : "Choose a plan to unlock time.md."
+    }
+
     private var ctaLabel: String {
         if store.isLoading { return "Processing..." }
+        if isLifetimeSelected { return "Buy Lifetime Access" }
         return introEligible ? "Start 30-Day Free Trial" : "Subscribe"
     }
 
@@ -220,6 +246,9 @@ struct PaywallView: View {
     }
 
     private var footnote: String {
+        if isLifetimeSelected {
+            return "One-time purchase. No subscription, no recurring charges. Includes all future updates."
+        }
         if introEligible {
             return "30 days free, then your selected plan. Renews automatically. Cancel anytime in System Settings → Apple ID → Subscriptions."
         } else {

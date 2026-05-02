@@ -2,7 +2,23 @@
   "identifier" : "com.bontecou.time.md.storekit",
   "type" : "local",
   "version" : 4,
-  "products" : [],
+  "products" : [
+    {
+      "displayPrice" : "49.00",
+      "familyShareable" : false,
+      "internalID" : "21000005",
+      "localizations" : [
+        {
+          "description" : "One-time purchase. Full access to time.md forever.",
+          "displayName" : "time.md Lifetime",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.bontecou.time.md.lifetime",
+      "referenceName" : "Lifetime Access",
+      "type" : "NonConsumable"
+    }
+  ],
   "subscriptionGroups" : [
     {
       "id" : "21000000",

@@ -44,17 +44,13 @@ final class Database {
     private let handle: OpaquePointer
     private let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
-    static let screentimeDBPath: String = {
-        NSHomeDirectory() + "/Library/Application Support/time.md/screentime.db"
+    private static let appDataDir: String = {
+        NSHomeDirectory() + "/Library/Containers/com.bontecou.time.md/Data/Library/Application Support/time.md"
     }()
 
-    static let categoryMappingsDBPath: String = {
-        NSHomeDirectory() + "/Library/Application Support/time.md/category-mappings.db"
-    }()
-
-    static let currentSessionPath: String = {
-        NSHomeDirectory() + "/Library/Application Support/time.md/current_session.json"
-    }()
+    static let screentimeDBPath: String = appDataDir + "/screentime.db"
+    static let categoryMappingsDBPath: String = appDataDir + "/category-mappings.db"
+    static let currentSessionPath: String = appDataDir + "/current_session.json"
 
     // MARK: - Current session hint
 

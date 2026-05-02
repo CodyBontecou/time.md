@@ -13,7 +13,6 @@
 		A4A812968C8116EFD69A76D1 /* timemd-mcp in Embed timemd-mcp */ = {isa = PBXBuildFile; fileRef = 7398318A84C4E38901A89C1A /* timemd-mcp */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		CB3E7F56FDC1E5CF05F80818 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0759D0ECDA299009E810F4D /* main.swift */; };
 		CCDA4AD69E798E00D277283B /* Tools.swift in Sources */ = {isa = PBXBuildFile; fileRef = A94EC78028C81AC167C7C03B /* Tools.swift */; };
-		SPARKLE003000000000000001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = SPARKLE002000000000000001 /* Sparkle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,7 +49,6 @@
 		FD65EC6D1AD4EE69F36DF681 /* Database.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		62B65C162F4C534F00A5B243 /* time.md */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -71,7 +69,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				SPARKLE003000000000000001 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,7 +84,6 @@
 				A94EC78028C81AC167C7C03B /* Tools.swift */,
 				7AFD4FB6382AB13703B46E0E /* Handlers.swift */,
 			);
-			name = "timemd-mcp";
 			path = "timemd-mcp";
 			sourceTree = "<group>";
 		};
@@ -131,7 +127,6 @@
 			);
 			name = time.md;
 			packageProductDependencies = (
-				SPARKLE002000000000000001 /* Sparkle */,
 			);
 			productName = time.md;
 			productReference = 62B65C142F4C534F00A5B243 /* time.md.app */;
@@ -179,7 +174,6 @@
 			mainGroup = 62B65C0B2F4C534F00A5B243;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				SPARKLE001000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 62B65C152F4C534F00A5B243 /* Products */;
@@ -239,6 +233,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "timemd-mcp/timemd-mcp.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -381,7 +376,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = 67KC823C9A;
 				ENABLE_APP_SANDBOX = NO;
@@ -390,13 +385,14 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "time.md uses Apple Events to read the active tab URL from your browser so it can record web usage alongside app usage.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.0.1;
+				MARKETING_VERSION = 2.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bontecou.time.md;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -421,7 +417,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = 67KC823C9A;
 				ENABLE_APP_SANDBOX = NO;
@@ -430,13 +426,14 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "time.md uses Apple Events to read the active tab URL from your browser so it can record web usage alongside app usage.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.0.1;
+				MARKETING_VERSION = 2.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bontecou.time.md;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -457,6 +454,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = "timemd-mcp/timemd-mcp.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -506,25 +504,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		SPARKLE001000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sparkle-project/Sparkle";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 2.6.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		SPARKLE002000000000000001 /* Sparkle */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = SPARKLE001000000000000001 /* XCRemoteSwiftPackageReference "Sparkle" */;
-			productName = Sparkle;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 62B65C0C2F4C534F00A5B243 /* Project object */;
 }

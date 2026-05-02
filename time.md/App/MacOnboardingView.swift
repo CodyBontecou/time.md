@@ -5,18 +5,12 @@ import SwiftUI
 /// First-launch onboarding for macOS — explains features, data flow, and limitations.
 struct MacOnboardingView: View {
     @Binding var isPresented: Bool
-    /// When true, the paywall slide is included as the final page and the user
-    /// must subscribe (or restore) before the flow can complete. When false
-    /// (e.g. for grandfathered users), onboarding ends at the informational
-    /// slides with a normal "Get Started" close button.
-    var requiresPaywall: Bool = false
     @State private var currentPage = 0
     @State private var animateIn = false
     @ObservedObject private var subscriptionStore = SubscriptionStore.shared
 
-    /// Index used by the paywall slide. -1 means "no paywall".
-    private var paywallIndex: Int { requiresPaywall ? pages.count : -1 }
-    private var totalSlides: Int { pages.count + (requiresPaywall ? 1 : 0) }
+    private var paywallIndex: Int { pages.count }
+    private var totalSlides: Int { pages.count + 1 }
     private var isOnPaywall: Bool { currentPage == paywallIndex }
     private var isOnLastInfoSlide: Bool { currentPage == pages.count - 1 }
 
@@ -173,30 +167,10 @@ struct MacOnboardingView: View {
 
                     Spacer()
 
-                    // Skip — only on intermediate info slides, never when a paywall awaits.
-                    if !isOnLastInfoSlide && !requiresPaywall {
-                        Button {
-                            completeOnboarding()
-                        } label: {
-                            Text("Skip")
-                                .font(.system(size: 12, weight: .medium, design: .monospaced))
-                                .foregroundColor(BrutalTheme.textTertiary)
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    // Continue / Get Started
+                    // Continue
                     Button {
-                        if !isOnLastInfoSlide {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                currentPage += 1
-                            }
-                        } else if requiresPaywall {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                currentPage = paywallIndex
-                            }
-                        } else {
-                            completeOnboarding()
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            currentPage = isOnLastInfoSlide ? paywallIndex : currentPage + 1
                         }
                     } label: {
                         HStack(spacing: 8) {
@@ -254,10 +228,7 @@ struct MacOnboardingView: View {
         }
     }
 
-    private var continueLabel: String {
-        if !isOnLastInfoSlide { return "Continue" }
-        return requiresPaywall ? "Continue" : "Get Started"
-    }
+    private var continueLabel: String { "Continue" }
 
     private func completeOnboarding() {
         UserDefaults.standard.set(true, forKey: "hasCompletedMacOnboarding")

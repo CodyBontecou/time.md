@@ -8,10 +8,13 @@ final class SubscriptionStore: ObservableObject {
 
     nonisolated static let yearlyProductID = "com.bontecou.time.md.pro.yearly"
     nonisolated static let monthlyProductID = "com.bontecou.time.md.pro.monthly"
-    nonisolated static let allProductIDs: [String] = [yearlyProductID, monthlyProductID]
+    nonisolated static let lifetimeProductID = "com.bontecou.time.md.lifetime"
+    nonisolated static let subscriptionProductIDs: [String] = [yearlyProductID, monthlyProductID]
+    nonisolated static let allProductIDs: [String] = [yearlyProductID, monthlyProductID, lifetimeProductID]
 
     @Published private(set) var yearlyProduct: Product?
     @Published private(set) var monthlyProduct: Product?
+    @Published private(set) var lifetimeProduct: Product?
     @Published private(set) var isEntitled: Bool = false
     @Published private(set) var isInTrial: Bool = false
     @Published private(set) var purchaseError: String?
@@ -39,9 +42,10 @@ final class SubscriptionStore: ObservableObject {
             for product in products {
                 if product.id == Self.yearlyProductID { yearlyProduct = product }
                 if product.id == Self.monthlyProductID { monthlyProduct = product }
+                if product.id == Self.lifetimeProductID { lifetimeProduct = product }
             }
         } catch {
-            purchaseError = "Couldn't load subscription options. Check your connection."
+            purchaseError = "Couldn't load purchase options. Check your connection."
         }
     }
 
@@ -82,7 +86,7 @@ final class SubscriptionStore: ObservableObject {
         await refreshEntitlement()
 
         if !isEntitled {
-            purchaseError = "No active subscription found."
+            purchaseError = "No active purchase found."
         }
     }
 

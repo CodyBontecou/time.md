@@ -1,3 +1,4 @@
+import AppKit
 import Observation
 import SwiftUI
 
@@ -86,14 +87,17 @@ private struct SettingsScaffoldView: View {
     @AppStorage("appNameDisplayMode") private var appNameDisplayModeRaw: String = AppNameDisplayMode.short.rawValue
     @AppStorage("insightTickerAutoScroll") private var insightTickerAutoScroll: Bool = true
     @AppStorage(AppVisibilityMode.storageKey) private var visibilityModeRaw: String = AppVisibilityMode.dockAndMenuBar.rawValue
-    @AppStorage("enableMCPServer") private var enableMCPServer: Bool = false
 
     private var visibilityMode: AppVisibilityMode {
         AppVisibilityMode(rawValue: visibilityModeRaw) ?? .dockAndMenuBar
     }
 
     @State private var browserSettings = BrowserSettingsStore.shared
-    @State private var mcpStatus: MCPIntegrationService.Status = .inactive
+    @State private var mcpStatuses: [MCPIntegrationService.Agent: MCPIntegrationService.Status] = [:]
+    @State private var mcpSnippetCopied: Bool = false
+    @State private var mcpAvailableTools: [MCPIntegrationService.ToolInfo] = []
+    @State private var mcpDisabledTools: Set<String> = []
+    @State private var mcpToolsExpanded: Bool = false
 
     private var displayMode: AppNameDisplayMode {
         AppNameDisplayMode(rawValue: appNameDisplayModeRaw) ?? .short
@@ -309,8 +313,8 @@ private struct SettingsScaffoldView: View {
                     footnote: nil
                 )
 
-                // ─── Claude Code Integration ───
-                claudeCodeIntegrationSection
+                // ─── MCP Integration ───
+                mcpIntegrationSection
 
                 // Device info
                 deviceInfoSection
@@ -424,79 +428,276 @@ private struct SettingsScaffoldView: View {
         )
     }
     
-    // MARK: - Claude Code Integration Section
+    // MARK: - MCP Integration Section
 
-    private var claudeCodeIntegrationSection: some View {
+    private var mcpIntegrationSection: some View {
         GlassCard {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(BrutalTheme.sectionLabel(8, "CLAUDE CODE INTEGRATION"))
+            VStack(alignment: .leading, spacing: 12) {
+                Text(BrutalTheme.sectionLabel(8, "MCP INTEGRATION"))
                     .font(BrutalTheme.headingFont)
                     .foregroundColor(BrutalTheme.textSecondary)
                     .tracking(1.5)
 
-                Text("Expose your time.md data to Claude Code as an MCP server. When enabled, time.md registers a bundled server with Claude Code so you can query your screen time data through natural conversation without exporting files.")
+                Text("Expose your time.md data to any MCP-compatible coding agent. The bundled timemd-mcp server speaks standard MCP, so you can query your screen time data through natural conversation without exporting files.")
                     .font(BrutalTheme.bodyMono)
                     .foregroundColor(BrutalTheme.textPrimary)
                     .lineSpacing(3)
 
-                HStack(spacing: 16) {
-                    Toggle(isOn: Binding(
-                        get: { enableMCPServer },
-                        set: { newValue in
-                            enableMCPServer = newValue
-                            if newValue {
-                                mcpStatus = MCPIntegrationService.shared.register()
-                            } else {
-                                mcpStatus = MCPIntegrationService.shared.unregister()
-                            }
-                        }
-                    )) {
-                        HStack(spacing: 8) {
-                            Image(systemName: enableMCPServer ? "terminal.fill" : "terminal")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundColor(enableMCPServer ? .green : .orange)
-
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(enableMCPServer ? "Enabled" : "Disabled")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(BrutalTheme.textPrimary)
-
-                                Text(enableMCPServer ? "Claude Code can query your data" : "Toggle on to enable querying via Claude Code")
-                                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                    .foregroundColor(BrutalTheme.textTertiary)
-                            }
-                        }
-                    }
-                    .toggleStyle(.switch)
-                    .tint(.green)
-
-                    Spacer()
+                if MCPIntegrationService.shared.bundledBinaryPath == nil {
+                    mcpMissingBinaryRow
+                } else {
+                    mcpQuickInstallRows
+                    mcpToolPickerSection
+                    mcpBinaryPathRow
+                    mcpManualConfigBlock
                 }
-
-                mcpStatusFooter
-
-                Text("Writes to ~/.claude.json. Restart Claude Code after enabling to pick up the new tools.")
-                    .font(BrutalTheme.captionMono)
-                    .foregroundColor(BrutalTheme.textTertiary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onAppear {
-            mcpStatus = MCPIntegrationService.shared.currentStatus()
-            if enableMCPServer, case .registered = mcpStatus {
-                // Already registered — nothing to do.
-            } else if enableMCPServer, MCPIntegrationService.shared.bundledBinaryPath != nil {
-                mcpStatus = MCPIntegrationService.shared.register()
+            refreshMCPStatuses()
+            mcpAvailableTools = MCPIntegrationService.shared.availableTools()
+            mcpDisabledTools = MCPIntegrationService.shared.disabledTools()
+        }
+    }
+
+    // MARK: - MCP tool picker
+
+    private var mcpToolPickerSection: some View {
+        let total = mcpAvailableTools.count
+        let enabled = total - mcpDisabledTools.intersection(mcpAvailableTools.map(\.name)).count
+
+        return VStack(alignment: .leading, spacing: 6) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    mcpToolsExpanded.toggle()
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(BrutalTheme.textSecondary)
+                        .rotationEffect(.degrees(mcpToolsExpanded ? 90 : 0))
+
+                    Text("TOOLS")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .tracking(1.5)
+                        .foregroundColor(BrutalTheme.textTertiary)
+
+                    Text("\(enabled) of \(total) enabled")
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundColor(BrutalTheme.textTertiary)
+
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 4)
+
+            if mcpToolsExpanded {
+                mcpToolPickerControls
+                mcpToolPickerList
             }
         }
     }
 
+    private var mcpToolPickerControls: some View {
+        HStack(spacing: 8) {
+            Button {
+                applyDisabledTools([])
+            } label: {
+                Text("All on")
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textSecondary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(BrutalTheme.surface.opacity(0.6))
+                    )
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                applyDisabledTools(Set(mcpAvailableTools.map(\.name)))
+            } label: {
+                Text("All off")
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textSecondary)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(BrutalTheme.surface.opacity(0.6))
+                    )
+            }
+            .buttonStyle(.plain)
+
+            Spacer()
+        }
+        .padding(.bottom, 4)
+    }
+
+    private var mcpToolPickerList: some View {
+        VStack(spacing: 4) {
+            ForEach(mcpAvailableTools) { tool in
+                mcpToolRow(tool)
+            }
+        }
+    }
+
+    private func mcpToolRow(_ tool: MCPIntegrationService.ToolInfo) -> some View {
+        let isEnabled = !mcpDisabledTools.contains(tool.name)
+        return HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(tool.name)
+                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    .foregroundColor(isEnabled ? BrutalTheme.textPrimary : BrutalTheme.textTertiary)
+
+                Text(tool.description)
+                    .font(.system(size: 10, weight: .regular, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textTertiary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Toggle("", isOn: Binding(
+                get: { isEnabled },
+                set: { newValue in
+                    var next = mcpDisabledTools
+                    if newValue {
+                        next.remove(tool.name)
+                    } else {
+                        next.insert(tool.name)
+                    }
+                    applyDisabledTools(next)
+                }
+            ))
+            .toggleStyle(.switch)
+            .tint(.green)
+            .labelsHidden()
+            .controlSize(.small)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(BrutalTheme.surface.opacity(isEnabled ? 0.5 : 0.2))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(BrutalTheme.border.opacity(0.25), lineWidth: 1)
+                )
+        )
+    }
+
+    private func applyDisabledTools(_ next: Set<String>) {
+        mcpDisabledTools = next
+        let updates = MCPIntegrationService.shared.setDisabledTools(next)
+        for (agent, status) in updates {
+            mcpStatuses[agent] = status
+        }
+    }
+
+    private var mcpQuickInstallRows: some View {
+        VStack(spacing: 6) {
+            Text("QUICK INSTALL")
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                .tracking(1.5)
+                .foregroundColor(BrutalTheme.textTertiary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 4)
+
+            ForEach(MCPIntegrationService.Agent.allCases) { agent in
+                mcpAgentRow(agent)
+            }
+        }
+    }
+
+    private func mcpAgentRow(_ agent: MCPIntegrationService.Agent) -> some View {
+        let status = mcpStatuses[agent] ?? .inactive
+        let isRegistered: Bool = {
+            if case .registered = status { return true }
+            return false
+        }()
+
+        return HStack(spacing: 12) {
+            Image(systemName: isRegistered ? "terminal.fill" : "terminal")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(isRegistered ? .green : BrutalTheme.textTertiary)
+                .frame(width: 20)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(agent.displayName)
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(BrutalTheme.textPrimary)
+
+                mcpAgentStatusLabel(agent: agent, status: status)
+            }
+
+            Spacer()
+
+            Toggle("", isOn: Binding(
+                get: { isRegistered },
+                set: { newValue in
+                    if newValue {
+                        mcpStatuses[agent] = MCPIntegrationService.shared.register(agent: agent)
+                    } else {
+                        mcpStatuses[agent] = MCPIntegrationService.shared.unregister(agent: agent)
+                    }
+                }
+            ))
+            .toggleStyle(.switch)
+            .tint(.green)
+            .labelsHidden()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(BrutalTheme.surface.opacity(0.5))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isRegistered ? BrutalTheme.accent.opacity(0.3) : BrutalTheme.border.opacity(0.3), lineWidth: 1)
+                )
+        )
+    }
+
     @ViewBuilder
-    private var mcpStatusFooter: some View {
-        switch mcpStatus {
+    private func mcpAgentStatusLabel(
+        agent: MCPIntegrationService.Agent,
+        status: MCPIntegrationService.Status
+    ) -> some View {
+        switch status {
+        case .registered:
+            Text("Registered · \(agent.displayConfigPath)")
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundColor(.green)
+                .lineLimit(1)
+                .truncationMode(.middle)
         case .inactive:
-            EmptyView()
-        case .registered(let path):
+            Text("Writes to \(agent.displayConfigPath)")
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundColor(BrutalTheme.textTertiary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+        case .missingBinary:
+            Text("timemd-mcp binary missing")
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundColor(.orange)
+        case .error(let message):
+            Text(verbatim: message)
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundColor(.red)
+                .lineLimit(1)
+                .truncationMode(.middle)
+        }
+    }
+
+    @ViewBuilder
+    private var mcpBinaryPathRow: some View {
+        if let path = MCPIntegrationService.shared.bundledBinaryPath {
             HStack(spacing: 6) {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.green)
@@ -506,23 +707,88 @@ private struct SettingsScaffoldView: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
-        case .missingBinary:
-            HStack(spacing: 6) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundColor(.orange)
-                Text("Bundled timemd-mcp binary not found. Rebuild time.md to include it.")
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundColor(.orange)
-            }
-        case .error(let message):
-            HStack(spacing: 6) {
-                Image(systemName: "xmark.octagon.fill")
-                    .foregroundColor(.red)
-                Text(verbatim: message)
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundColor(.red)
-            }
+            .padding(.top, 4)
         }
+    }
+
+    @ViewBuilder
+    private var mcpManualConfigBlock: some View {
+        if let snippet = MCPIntegrationService.shared.configSnippet() {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("MANUAL CONFIG")
+                        .font(.system(size: 9, weight: .bold, design: .monospaced))
+                        .tracking(1.5)
+                        .foregroundColor(BrutalTheme.textTertiary)
+
+                    Spacer()
+
+                    Button {
+                        let pasteboard = NSPasteboard.general
+                        pasteboard.clearContents()
+                        pasteboard.setString(snippet, forType: .string)
+                        mcpSnippetCopied = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            mcpSnippetCopied = false
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: mcpSnippetCopied ? "checkmark" : "doc.on.doc")
+                                .font(.system(size: 10, weight: .semibold))
+                            Text(mcpSnippetCopied ? "Copied" : "Copy")
+                                .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                        }
+                        .foregroundColor(mcpSnippetCopied ? .green : BrutalTheme.textSecondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(BrutalTheme.surface.opacity(0.6))
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Text("For agents we don't auto-install (Zed, Cline, Continue, Codex, etc.), paste this into their MCP config:")
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textTertiary)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    Text(verbatim: snippet)
+                        .font(.system(size: 11, weight: .regular, design: .monospaced))
+                        .foregroundColor(BrutalTheme.textPrimary)
+                        .textSelection(.enabled)
+                        .padding(10)
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.black.opacity(0.25))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(BrutalTheme.border.opacity(0.3), lineWidth: 1)
+                )
+            }
+            .padding(.top, 4)
+        }
+    }
+
+    private var mcpMissingBinaryRow: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(.orange)
+            Text("Bundled timemd-mcp binary not found. Rebuild time.md to include it.")
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .foregroundColor(.orange)
+        }
+    }
+
+    private func refreshMCPStatuses() {
+        var next: [MCPIntegrationService.Agent: MCPIntegrationService.Status] = [:]
+        for agent in MCPIntegrationService.Agent.allCases {
+            next[agent] = MCPIntegrationService.shared.status(for: agent)
+        }
+        mcpStatuses = next
     }
 
     // MARK: - Device Info Section

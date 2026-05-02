@@ -19,6 +19,37 @@ func log(_ message: String) {
     stderrHandle.write(Data("[timemd-mcp] \(message)\n".utf8))
 }
 
+// Tool catalog introspection: `timemd-mcp --list-tools` prints the catalog as
+// a JSON array of `{name, description}` objects to stdout and exits. The
+// containing app uses this to populate its tool picker UI without duplicating
+// the catalog.
+if CommandLine.arguments.dropFirst().contains("--list-tools") {
+    let catalog: [[String: String]] = Tools.all().compactMap { entry in
+        guard let name = entry["name"] as? String,
+              let description = entry["description"] as? String else { return nil }
+        return ["name": name, "description": description]
+    }
+    if let data = try? JSONSerialization.data(withJSONObject: catalog, options: [.prettyPrinted]) {
+        stdoutHandle.write(data)
+        stdoutHandle.write(Data([0x0A]))
+    }
+    exit(0)
+}
+
+/// Tools the operator has disabled, sourced from the `TIMEMD_DISABLED_TOOLS`
+/// environment variable (comma-separated tool names). `tools/list` filters
+/// these out and `tools/call` rejects them.
+let disabledTools: Set<String> = {
+    guard let raw = ProcessInfo.processInfo.environment["TIMEMD_DISABLED_TOOLS"] else {
+        return []
+    }
+    let names = raw
+        .split(separator: ",")
+        .map { $0.trimmingCharacters(in: .whitespaces) }
+        .filter { !$0.isEmpty }
+    return Set(names)
+}()
+
 let database: Database
 do {
     database = try Database()
@@ -28,6 +59,9 @@ do {
 }
 
 log("Starting — reading \(Database.screentimeDBPath)")
+if !disabledTools.isEmpty {
+    log("Disabled tools: \(disabledTools.sorted().joined(separator: ", "))")
+}
 
 while let line = readLine(strippingNewline: true) {
     if line.isEmpty { continue }
@@ -67,11 +101,22 @@ func handle(line: String, db: Database) {
         ])
 
     case "tools/list":
-        respond(id: id!, result: ["tools": Tools.all()])
+        let visible = Tools.all().filter { entry in
+            guard let name = entry["name"] as? String else { return true }
+            return !disabledTools.contains(name)
+        }
+        respond(id: id!, result: ["tools": visible])
 
     case "tools/call":
         let name = params["name"] as? String ?? ""
         let arguments = params["arguments"] as? [String: Any]
+        if disabledTools.contains(name) {
+            respond(id: id!, result: [
+                "content": [["type": "text", "text": "Error: tool '\(name)' is disabled in time.md settings."]],
+                "isError": true
+            ])
+            return
+        }
         do {
             let text = try Handlers.dispatch(name: name, arguments: arguments, db: db)
             respond(id: id!, result: [

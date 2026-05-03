@@ -864,7 +864,7 @@ struct ExportCoordinator: ExportCoordinating {
 
         let outputDirectory = try ensureOutputDirectory()
         let fileURL = outputDirectory
-            .appendingPathComponent("timeprint-weekly-summary-\(exportTimestamp(Date()))")
+            .appendingPathComponent("timemd-weekly-summary-\(exportTimestamp(Date()))")
             .appendingPathExtension("png")
 
         try renderWeeklySummaryCard(
@@ -1592,7 +1592,7 @@ private extension ExportCoordinator {
             
             // Tags inline
             if obsOpts.includeTags {
-                var tags = ["#timeprint", "#screentime"]
+                var tags = ["#timemd", "#screentime"]
                 tags.append(contentsOf: obsOpts.customTags.map { "#\($0)" })
                 lines.append(tags.joined(separator: " "))
                 lines.append("")
@@ -1816,7 +1816,7 @@ private extension ExportCoordinator {
             
             // Tags
             if obsOpts.includeTags {
-                var tags = ["#timeprint", "#screentime", "#data-export"]
+                var tags = ["#timemd", "#screentime", "#data-export"]
                 tags.append(contentsOf: obsOpts.customTags.map { "#\($0)" })
                 lines.append(tags.joined(separator: " "))
                 lines.append("")
@@ -2408,7 +2408,7 @@ private extension ExportCoordinator {
             lines.append("")
             
             if obsOpts.includeTags {
-                var tags = ["#timeprint", "#screentime", "#raw-data"]
+                var tags = ["#timemd", "#screentime", "#raw-data"]
                 tags.append(contentsOf: obsOpts.customTags.map { "#\($0)" })
                 lines.append(tags.joined(separator: " "))
                 lines.append("")
@@ -2561,7 +2561,7 @@ private extension ExportCoordinator {
             .font: NSFont.systemFont(ofSize: 24, weight: .heavy),
             .foregroundColor: accentColor
         ]
-        NSString(string: "TIMEPRINT").draw(at: CGPoint(x: margin, y: cursorY), withAttributes: brandAttributes)
+        NSString(string: "TIME.MD").draw(at: CGPoint(x: margin, y: cursorY), withAttributes: brandAttributes)
         cursorY -= 60
 
         // ─── Title ───
@@ -2733,7 +2733,7 @@ private extension ExportCoordinator {
     ) -> String {
         var lines: [String] = []
 
-        lines.append("📊 TIMEPRINT SUMMARY")
+        lines.append("📊 TIME.MD SUMMARY")
         lines.append("━━━━━━━━━━━━━━━━━━━━")
         lines.append("")
         lines.append("📅 \(shortDate(filters.startDate)) → \(shortDate(filters.endDate))")

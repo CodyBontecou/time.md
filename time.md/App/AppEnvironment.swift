@@ -24,6 +24,17 @@ struct AppEnvironment: Sendable {
     }()
 }
 
+/// Process-wide singletons for the scheduled-export feature. Lives outside
+/// `AppEnvironment` because it owns mutable state and a Timer.
+@MainActor
+enum ScheduledExportEnvironment {
+    static let store = ExportScheduleStore()
+    static let runner = ScheduledExportRunner(
+        store: store,
+        dataService: AppEnvironment.live.dataService
+    )
+}
+
 private struct AppEnvironmentKey: EnvironmentKey {
     static var defaultValue: AppEnvironment { .preview }
 }

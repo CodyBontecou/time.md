@@ -43,6 +43,14 @@ struct ExportsView: View {
     // Progress
     @State private var exportProgress = ExportProgress()
 
+    // Automation
+    private var scheduleStore: ExportScheduleStore { ScheduledExportEnvironment.store }
+    private var scheduleRunner: ScheduledExportRunner { ScheduledExportEnvironment.runner }
+    @State private var scheduleHour: Int = 8
+    @State private var scheduleMinute: Int = 0
+    @State private var scheduleRange: RelativeDateRange = .yesterday
+    @State private var isRunningScheduleNow = false
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
@@ -52,6 +60,7 @@ struct ExportsView: View {
                 filterSection
                 formatSelectionSection
                 destinationSection
+                automationSection
                 exportButtonSection
 
                 if showSuccess || showError {
@@ -87,7 +96,15 @@ struct ExportsView: View {
         }
         .task {
             await loadAvailableData()
+            hydrateScheduleStateFromStore()
         }
+    }
+
+    private func hydrateScheduleStateFromStore() {
+        guard let s = scheduleStore.schedule else { return }
+        scheduleHour = s.hour
+        scheduleMinute = s.minute
+        scheduleRange = s.relativeDateRange
     }
 
     // MARK: - Export Mode
@@ -804,8 +821,10 @@ struct ExportsView: View {
             allowsMultipleSelection: false
         ) { result in
             if case .success(let urls) = result, let url = urls.first {
-                var settings = ExportSettings.load()
-                settings.setDefaultExportDirectory(url)
+                SecurityScopedBookmark.withAccess(to: url) {
+                    var settings = ExportSettings.load()
+                    settings.setDefaultExportDirectory(url)
+                }
                 exportDirectory = url
             }
         }
@@ -816,6 +835,207 @@ struct ExportsView: View {
             return dir.path.replacingOccurrences(of: NSHomeDirectory(), with: "~")
         }
         return "~/Downloads/time.md Exports"
+    }
+
+    // MARK: - Automation
+
+    private var automationSection: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text("AUTOMATION")
+                        .font(BrutalTheme.headingFont)
+                        .foregroundColor(BrutalTheme.textSecondary)
+                        .tracking(1)
+
+                    Spacer()
+
+                    if let s = scheduleStore.schedule {
+                        Toggle("", isOn: Binding(
+                            get: { s.isEnabled },
+                            set: { scheduleStore.setEnabled($0) }
+                        ))
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
+                        .labelsHidden()
+                    }
+                }
+
+                Text(scheduleStore.schedule == nil
+                     ? "Run this export automatically on a schedule and write results to the destination above."
+                     : "An export runs automatically using the current sections, format, and destination above.")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(BrutalTheme.textTertiary)
+
+                scheduleControls
+
+                if let s = scheduleStore.schedule {
+                    Divider().opacity(0.3)
+                    scheduleSummary(s)
+                }
+
+                HStack(spacing: 8) {
+                    Button {
+                        saveOrUpdateSchedule()
+                    } label: {
+                        Text(scheduleStore.schedule == nil ? "Schedule This Export" : "Update Schedule")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 7)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8).fill(BrutalTheme.accent)
+                            )
+                    }
+                    .buttonStyle(.plain)
+
+                    if scheduleStore.schedule != nil {
+                        Button {
+                            Task {
+                                isRunningScheduleNow = true
+                                await scheduleRunner.runNow()
+                                isRunningScheduleNow = false
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                if isRunningScheduleNow {
+                                    ProgressView().scaleEffect(0.6)
+                                } else {
+                                    Image(systemName: "play.fill")
+                                        .font(.system(size: 10, weight: .semibold))
+                                }
+                                Text("Run Now")
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                            .foregroundColor(BrutalTheme.accent)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(BrutalTheme.accent.opacity(0.1))
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isRunningScheduleNow)
+
+                        Spacer()
+
+                        Button(role: .destructive) {
+                            scheduleStore.clear()
+                        } label: {
+                            Text("Remove")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.red.opacity(0.85))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
+    private var scheduleControls: some View {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("TIME")
+                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textTertiary)
+                    .tracking(0.5)
+                DatePicker("", selection: scheduleTimeBinding, displayedComponents: [.hourAndMinute])
+                    .datePickerStyle(.field)
+                    .labelsHidden()
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("DATE RANGE")
+                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textTertiary)
+                    .tracking(0.5)
+                Picker("", selection: $scheduleRange) {
+                    ForEach(scheduledRangeOptions) { range in
+                        Text(range.displayName).tag(range)
+                    }
+                }
+                .labelsHidden()
+                .pickerStyle(.menu)
+            }
+
+            Spacer()
+        }
+    }
+
+    private var scheduledRangeOptions: [RelativeDateRange] {
+        [.yesterday, .today, .last7Days, .last30Days, .thisWeek, .lastWeek, .thisMonth, .lastMonth]
+    }
+
+    private var scheduleTimeBinding: Binding<Date> {
+        Binding(
+            get: {
+                Calendar.current.date(bySettingHour: scheduleHour, minute: scheduleMinute, second: 0, of: Date()) ?? Date()
+            },
+            set: { newValue in
+                let comps = Calendar.current.dateComponents([.hour, .minute], from: newValue)
+                scheduleHour = comps.hour ?? 8
+                scheduleMinute = comps.minute ?? 0
+            }
+        )
+    }
+
+    private func scheduleSummary(_ s: ExportSchedule) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Image(systemName: "clock.badge.checkmark")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(BrutalTheme.accent)
+                Text(verbatim: "\(s.scheduleDescription) · \(s.relativeDateRange.displayName)")
+                    .font(.system(size: 12, weight: .semibold, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textSecondary)
+            }
+
+            if let last = s.lastRunAt {
+                let icon = (s.lastRunSuccess ?? false) ? "checkmark.circle.fill" : "exclamationmark.triangle.fill"
+                let color: Color = (s.lastRunSuccess ?? false) ? .green : .orange
+                HStack(spacing: 6) {
+                    Image(systemName: icon)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(color)
+                    Text(verbatim: "Last run \(Self.lastRunFormatter.string(from: last))\(s.lastRunError.map { " — \($0)" } ?? "")")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(BrutalTheme.textTertiary)
+                        .lineLimit(2)
+                }
+            } else {
+                Text(verbatim: "No runs yet")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(BrutalTheme.textTertiary)
+            }
+        }
+    }
+
+    private static let lastRunFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .medium
+        f.timeStyle = .short
+        return f
+    }()
+
+    private func saveOrUpdateSchedule() {
+        let settings = ExportSettings.load()
+        let bookmark = settings.defaultExportDirectoryBookmark
+        let path = settings.defaultExportDirectoryPath
+
+        let schedule = ExportSchedule(
+            frequency: .daily,
+            hour: scheduleHour,
+            minute: scheduleMinute,
+            format: selectedFormat,
+            sections: sectionSelection,
+            relativeDateRange: scheduleRange,
+            outputBookmark: bookmark,
+            outputPath: path,
+            isEnabled: true
+        )
+        scheduleStore.save(schedule)
     }
 
     // MARK: - Export Button

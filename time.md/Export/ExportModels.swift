@@ -253,7 +253,7 @@ struct ObsidianExportOptions: Codable, Equatable {
     var includeFrontmatter: Bool = true
     var frontmatterStyle: FrontmatterStyle = .yaml
     var includeWikiLinks: Bool = true      // [[App Name]] style links
-    var includeTags: Bool = true           // #timeprint #screentime etc
+    var includeTags: Bool = true           // #timemd #screentime etc
     var includeAliases: Bool = false       // Frontmatter aliases
     var dailyNoteFormat: String = "yyyy-MM-dd"  // For date linking
     var appNoteFolder: String = "Apps"     // Folder for app notes (Apps/Safari.md)
@@ -315,7 +315,7 @@ struct ObsidianExportOptions: Codable, Equatable {
             }
             
             if includeTags {
-                var tags = ["timeprint", "screentime"]
+                var tags = ["timemd", "screentime"]
                 tags.append(contentsOf: customTags)
                 lines.append("tags:")
                 for tag in tags {
@@ -355,7 +355,7 @@ struct ObsidianExportOptions: Codable, Equatable {
             }
             
             if includeTags {
-                var tags = ["timeprint", "screentime"]
+                var tags = ["timemd", "screentime"]
                 tags.append(contentsOf: customTags)
                 let tagsStr = tags.map { "\"\($0)\"" }.joined(separator: ", ")
                 lines.append("tags = [\(tagsStr)]")
@@ -597,7 +597,7 @@ struct CombinedExportConfig: Codable {
     init(
         sections: ExportSectionSelection = .allExceptRaw,
         format: ExportFormat = .csv,
-        filenameTemplate: String = "timeprint-export",
+        filenameTemplate: String = "timemd-export",
         includeTimestamp: Bool = true
     ) {
         self.sections = sections
@@ -778,9 +778,12 @@ struct ExportSettings: Codable {
     /// Custom default export directory path chosen by the user (nil = ~/Downloads/time.md Exports/)
     var defaultExportDirectoryPath: String?
 
+    /// Security-scoped bookmark for the user-chosen export directory. Required for sandboxed writes.
+    var defaultExportDirectoryBookmark: Data?
+
     /// Per-scope field selections (persisted separately for flexibility)
     var fieldSelections: [String: ExportFieldSelection] = [:]
-    
+
     private static let key = "com.timeprint.exportSettings"
 
     static func load() -> ExportSettings {
@@ -797,20 +800,37 @@ struct ExportSettings: Codable {
         }
     }
 
-    /// Resolve the saved default export directory to a URL
+    /// Resolve the saved default export directory to a URL.
+    /// Prefers the security-scoped bookmark (sandbox-safe). Starts access on the
+    /// returned URL when a bookmark is used; access is held for the process lifetime.
     func resolveDefaultExportDirectory() -> URL? {
-        guard let path = defaultExportDirectoryPath else { return nil }
-        let url = URL(fileURLWithPath: path, isDirectory: true)
-        var isDirectory: ObjCBool = false
-        if FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory), isDirectory.boolValue {
-            return url
+        if let data = defaultExportDirectoryBookmark {
+            do {
+                let resolved = try SecurityScopedBookmark.resolve(data)
+                _ = resolved.url.startAccessingSecurityScopedResource()
+                if let refreshed = resolved.refreshedData {
+                    var copy = self
+                    copy.defaultExportDirectoryBookmark = refreshed
+                    copy.defaultExportDirectoryPath = resolved.url.path
+                    copy.save()
+                }
+                return resolved.url
+            } catch {
+                print("Failed to resolve export directory bookmark: \(error)")
+            }
         }
-        return url
+        guard let path = defaultExportDirectoryPath else { return nil }
+        return URL(fileURLWithPath: path, isDirectory: true)
     }
 
-    /// Save a user-chosen directory
+    /// Save a user-chosen directory along with a security-scoped bookmark for sandboxed writes.
     mutating func setDefaultExportDirectory(_ url: URL?) {
         defaultExportDirectoryPath = url?.path
+        if let url {
+            defaultExportDirectoryBookmark = try? SecurityScopedBookmark.makeBookmark(for: url)
+        } else {
+            defaultExportDirectoryBookmark = nil
+        }
         save()
     }
 
@@ -1189,53 +1209,72 @@ enum ScheduleFrequency: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-/// A scheduled export configuration
-struct ExportSchedule: Identifiable, Codable {
-    var id: UUID
-    var presetId: UUID
+/// A scheduled export configuration. The app supports a single active schedule.
+struct ExportSchedule: Codable {
+    // Trigger
     var frequency: ScheduleFrequency
     var hour: Int  // 0-23
     var minute: Int  // 0-59
     var dayOfWeek: Int?  // 1-7 for weekly (1=Sun)
     var dayOfMonth: Int?  // 1-31 for monthly
-    var outputPath: String  // Path to output directory
+
+    // What to export
+    var format: ExportFormat
+    var sections: ExportSectionSelection
+    var relativeDateRange: RelativeDateRange
+
+    // Where to write. Bookmark is preferred; outputPath is for display only.
+    var outputBookmark: Data?
+    var outputPath: String?
+
+    // State
     var isEnabled: Bool
     var lastRunAt: Date?
     var lastRunSuccess: Bool?
     var lastRunError: String?
-    
+
     init(
-        id: UUID = UUID(),
-        presetId: UUID,
         frequency: ScheduleFrequency = .daily,
         hour: Int = 8,
         minute: Int = 0,
         dayOfWeek: Int? = nil,
         dayOfMonth: Int? = nil,
-        outputPath: String = "",
+        format: ExportFormat = .csv,
+        sections: ExportSectionSelection = ExportSectionSelection(sections: [.summary, .apps, .categories, .trends]),
+        relativeDateRange: RelativeDateRange = .yesterday,
+        outputBookmark: Data? = nil,
+        outputPath: String? = nil,
         isEnabled: Bool = true
     ) {
-        self.id = id
-        self.presetId = presetId
         self.frequency = frequency
         self.hour = hour
         self.minute = minute
         self.dayOfWeek = dayOfWeek
         self.dayOfMonth = dayOfMonth
-        self.outputPath = outputPath.isEmpty ? Self.defaultOutputPath : outputPath
+        self.format = format
+        self.sections = sections
+        self.relativeDateRange = relativeDateRange
+        self.outputBookmark = outputBookmark
+        self.outputPath = outputPath
         self.isEnabled = isEnabled
     }
-    
+
     static var defaultOutputPath: String {
         let downloads = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!
         return downloads.appendingPathComponent("time.md Exports", isDirectory: true).path
     }
-    
+
+    /// Display path for UI; resolves to default if no custom directory is saved.
+    var displayPath: String {
+        outputPath ?? Self.defaultOutputPath
+    }
+
     /// Human-readable schedule description
     var scheduleDescription: String {
-        let timeStr = String(format: "%d:%02d", hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour), minute)
+        let displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour)
+        let timeStr = String(format: "%d:%02d", displayHour, minute)
         let ampm = hour >= 12 ? "PM" : "AM"
-        
+
         switch frequency {
         case .daily:
             return "Daily at \(timeStr) \(ampm)"
@@ -1248,7 +1287,7 @@ struct ExportSchedule: Identifiable, Codable {
             return "Monthly on the \(ordinal) at \(timeStr) \(ampm)"
         }
     }
-    
+
     private static func ordinalSuffix(_ n: Int) -> String {
         let ones = n % 10
         let tens = (n / 10) % 10
@@ -1260,101 +1299,124 @@ struct ExportSchedule: Identifiable, Codable {
         default: return "th"
         }
     }
-    
-    /// Calculate next run date from the current date
-    func nextRunDate(from date: Date = Date()) -> Date? {
-        let calendar = Calendar.current
+
+    /// The most-recent moment at or before `date` when this schedule should have fired.
+    /// Used by the runner to detect missed runs.
+    func mostRecentFireDate(at date: Date = Date(), calendar: Calendar = .current) -> Date? {
         var components = DateComponents()
         components.hour = hour
         components.minute = minute
-        
+        components.second = 0
+
         switch frequency {
         case .daily:
-            // Next occurrence of this time
+            guard let todayFire = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: date) else {
+                return nil
+            }
+            if todayFire <= date { return todayFire }
+            return calendar.date(byAdding: .day, value: -1, to: todayFire)
+
+        case .weekly:
+            components.weekday = dayOfWeek ?? 1
+            return calendar.nextDate(after: date, matching: components, matchingPolicy: .nextTime, direction: .backward)
+
+        case .monthly:
+            components.day = dayOfMonth ?? 1
+            return calendar.nextDate(after: date, matching: components, matchingPolicy: .nextTime, direction: .backward)
+        }
+    }
+
+    /// Calculate next run date from the current date
+    func nextRunDate(from date: Date = Date(), calendar: Calendar = .current) -> Date? {
+        var components = DateComponents()
+        components.hour = hour
+        components.minute = minute
+        components.second = 0
+
+        switch frequency {
+        case .daily:
             if let today = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: date),
                today > date {
                 return today
             }
             return calendar.date(byAdding: .day, value: 1, to: calendar.date(bySettingHour: hour, minute: minute, second: 0, of: date)!)
-            
+
         case .weekly:
             components.weekday = dayOfWeek ?? 1
             return calendar.nextDate(after: date, matching: components, matchingPolicy: .nextTime)
-            
+
         case .monthly:
             components.day = dayOfMonth ?? 1
             return calendar.nextDate(after: date, matching: components, matchingPolicy: .nextTime)
         }
     }
+
+    /// Whether the schedule is due to run, given the last run date.
+    func isDue(at date: Date = Date(), lastRun: Date? = nil) -> Bool {
+        guard isEnabled, let fire = mostRecentFireDate(at: date) else { return false }
+        guard let lastRun else { return true }
+        return lastRun < fire
+    }
 }
 
-/// Manages scheduled exports
+/// Persists the user's single export schedule.
 @MainActor
 @Observable
 final class ExportScheduleStore {
-    private(set) var schedules: [ExportSchedule] = []
+    private(set) var schedule: ExportSchedule?
     private let storageURL: URL
-    
+
     init() {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
         let timeprintDir = appSupport.appendingPathComponent("time.md", isDirectory: true)
         try? FileManager.default.createDirectory(at: timeprintDir, withIntermediateDirectories: true)
-        storageURL = timeprintDir.appendingPathComponent("export-schedules.json")
-        loadSchedules()
+        storageURL = timeprintDir.appendingPathComponent("export-schedule.json")
+        loadSchedule()
     }
-    
-    var enabledSchedules: [ExportSchedule] {
-        schedules.filter(\.isEnabled)
+
+    func save(_ schedule: ExportSchedule) {
+        self.schedule = schedule
+        persist()
     }
-    
-    func addSchedule(_ schedule: ExportSchedule) {
-        schedules.append(schedule)
-        saveSchedules()
+
+    func clear() {
+        schedule = nil
+        try? FileManager.default.removeItem(at: storageURL)
     }
-    
-    func updateSchedule(_ schedule: ExportSchedule) {
-        guard let index = schedules.firstIndex(where: { $0.id == schedule.id }) else { return }
-        schedules[index] = schedule
-        saveSchedules()
+
+    func setEnabled(_ enabled: Bool) {
+        guard var current = schedule else { return }
+        current.isEnabled = enabled
+        save(current)
     }
-    
-    func deleteSchedule(id: UUID) {
-        schedules.removeAll { $0.id == id }
-        saveSchedules()
+
+    func recordRun(success: Bool, error: String? = nil) {
+        guard var current = schedule else { return }
+        current.lastRunAt = Date()
+        current.lastRunSuccess = success
+        current.lastRunError = error
+        save(current)
     }
-    
-    func toggleSchedule(id: UUID) {
-        guard let index = schedules.firstIndex(where: { $0.id == id }) else { return }
-        schedules[index].isEnabled.toggle()
-        saveSchedules()
-    }
-    
-    func recordRun(id: UUID, success: Bool, error: String? = nil) {
-        guard let index = schedules.firstIndex(where: { $0.id == id }) else { return }
-        schedules[index].lastRunAt = Date()
-        schedules[index].lastRunSuccess = success
-        schedules[index].lastRunError = error
-        saveSchedules()
-    }
-    
-    private func loadSchedules() {
+
+    private func loadSchedule() {
         guard FileManager.default.fileExists(atPath: storageURL.path) else { return }
         do {
             let data = try Data(contentsOf: storageURL)
-            schedules = try JSONDecoder().decode([ExportSchedule].self, from: data)
+            schedule = try JSONDecoder().decode(ExportSchedule.self, from: data)
         } catch {
-            print("Failed to load schedules: \(error)")
+            print("Failed to load schedule: \(error)")
         }
     }
-    
-    private func saveSchedules() {
+
+    private func persist() {
+        guard let schedule else { return }
         do {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-            let data = try encoder.encode(schedules)
+            let data = try encoder.encode(schedule)
             try data.write(to: storageURL, options: .atomic)
         } catch {
-            print("Failed to save schedules: \(error)")
+            print("Failed to save schedule: \(error)")
         }
     }
 }

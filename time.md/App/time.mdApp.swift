@@ -48,6 +48,7 @@ struct TimeMdApp: App {
             .task {
                 await initialSync()
                 ActiveAppTracker.shared.start()
+                ScheduledExportEnvironment.runner.start()
                 Task.detached(priority: .utility) {
                     AppCategorizer.autoPopulateCategories()
                 }

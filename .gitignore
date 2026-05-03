@@ -35,3 +35,6 @@ translations_*.json
 
 # Generated screenshots (Simulator captures, ASO assets, App Store exports)
 screenshots/
+
+# Playwright CLI session cache
+.playwright-cli/

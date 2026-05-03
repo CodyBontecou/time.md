@@ -87,9 +87,14 @@ private struct SettingsScaffoldView: View {
     @AppStorage("appNameDisplayMode") private var appNameDisplayModeRaw: String = AppNameDisplayMode.short.rawValue
     @AppStorage("insightTickerAutoScroll") private var insightTickerAutoScroll: Bool = true
     @AppStorage(AppVisibilityMode.storageKey) private var visibilityModeRaw: String = AppVisibilityMode.dockAndMenuBar.rawValue
+    @AppStorage(MenuBarStyle.storageKey) private var menuBarStyleRaw: String = MenuBarStyle.clockAndTime.rawValue
 
     private var visibilityMode: AppVisibilityMode {
         AppVisibilityMode(rawValue: visibilityModeRaw) ?? .dockAndMenuBar
+    }
+
+    private var menuBarStyle: MenuBarStyle {
+        MenuBarStyle(rawValue: menuBarStyleRaw) ?? .clockAndTime
     }
 
     @State private var browserSettings = BrowserSettingsStore.shared
@@ -135,6 +140,51 @@ private struct SettingsScaffoldView: View {
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(isSelected ? .white : BrutalTheme.textPrimary)
                     Text(mode.summary)
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundColor(isSelected ? Color.white.opacity(0.85) : BrutalTheme.textTertiary)
+                }
+
+                Spacer()
+
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(isSelected ? BrutalTheme.accent : Color.white.opacity(0.04))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(isSelected ? Color.clear : Color.white.opacity(0.08), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func menuBarStyleRow(_ style: MenuBarStyle) -> some View {
+        let isSelected = menuBarStyle == style
+        Button {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                menuBarStyleRaw = style.rawValue
+            }
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: style.systemImage)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(isSelected ? .white : BrutalTheme.textSecondary)
+                    .frame(width: 24)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(style.title)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(isSelected ? .white : BrutalTheme.textPrimary)
+                    Text(style.summary)
                         .font(.system(size: 10, weight: .medium, design: .monospaced))
                         .foregroundColor(isSelected ? Color.white.opacity(0.85) : BrutalTheme.textTertiary)
                 }
@@ -289,25 +339,49 @@ private struct SettingsScaffoldView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
+                // ─── Menu Bar ───
+                if visibilityMode.showsMenuBar {
+                    GlassCard {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(BrutalTheme.sectionLabel(4, "MENU BAR"))
+                                .font(BrutalTheme.headingFont)
+                                .foregroundColor(BrutalTheme.textSecondary)
+                                .tracking(1.5)
+
+                            Text("Choose what appears in the menu bar.")
+                                .font(BrutalTheme.bodyMono)
+                                .foregroundColor(BrutalTheme.textPrimary)
+                                .lineSpacing(3)
+
+                            VStack(spacing: 8) {
+                                ForEach(MenuBarStyle.allCases) { style in
+                                    menuBarStyleRow(style)
+                                }
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+
                 // ─── Web Browsers ───
                 browserSettingsSection
 
                 settingsBlock(
-                    number: 5,
+                    number: 6,
                     title: "DATA SOURCE",
                     body: "Data loads from local normalized screentime.db",
                     footnote: "Category mappings saved at ~/Library/Application Support/time.md/category-mappings.db."
                 )
 
                 settingsBlock(
-                    number: 6,
+                    number: 7,
                     title: "CATEGORY MAPPING",
                     body: "Mappings are edited from the Apps & Categories view. Single source of truth — no conflicting state.",
                     footnote: nil
                 )
 
                 settingsBlock(
-                    number: 7,
+                    number: 8,
                     title: "PRIVACY",
                     body: "time.md is local-first. Your raw data never leaves this Mac.",
                     footnote: nil
@@ -329,7 +403,7 @@ private struct SettingsScaffoldView: View {
     private var browserSettingsSection: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
-                Text(BrutalTheme.sectionLabel(4, "WEB BROWSERS"))
+                Text(BrutalTheme.sectionLabel(5, "WEB BROWSERS"))
                     .font(BrutalTheme.headingFont)
                     .foregroundColor(BrutalTheme.textSecondary)
                     .tracking(1.5)

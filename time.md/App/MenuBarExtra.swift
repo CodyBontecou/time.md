@@ -152,30 +152,87 @@ struct TimeMdMenuBarExtra: View {
     }
 }
 
+// MARK: - Menu Bar Style
+
+/// Controls what the menu bar item displays.
+enum MenuBarStyle: String, CaseIterable, Identifiable {
+    case clockAndTime
+    case clockOnly
+    case timeOnly
+
+    var id: String { rawValue }
+
+    static let storageKey = "menuBarStyle"
+
+    var title: String {
+        switch self {
+        case .clockAndTime: return "Clock + Time"
+        case .clockOnly: return "Clock Only"
+        case .timeOnly: return "Time Only"
+        }
+    }
+
+    var summary: String {
+        switch self {
+        case .clockAndTime: return "Clock icon and today's accumulated time"
+        case .clockOnly: return "Just the clock icon"
+        case .timeOnly: return "Just today's accumulated time"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .clockAndTime: return "clock.badge"
+        case .clockOnly: return "clock.fill"
+        case .timeOnly: return "textformat.123"
+        }
+    }
+
+    var showsIcon: Bool {
+        self == .clockAndTime || self == .clockOnly
+    }
+
+    var showsTime: Bool {
+        self == .clockAndTime || self == .timeOnly
+    }
+}
+
 // MARK: - Menu Bar Label
 
 struct MenuBarLabel: View {
     @Environment(\.appEnvironment) private var appEnvironment
+    @AppStorage(MenuBarStyle.storageKey) private var menuBarStyleRaw: String = MenuBarStyle.clockAndTime.rawValue
     @State private var todayTotal: TimeInterval = 0
 
     private let refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
+    private var style: MenuBarStyle {
+        MenuBarStyle(rawValue: menuBarStyleRaw) ?? .clockAndTime
+    }
+
     var body: some View {
         HStack(spacing: 4) {
-            Image(systemName: "clock.fill")
-            Text(formatCompact(todayTotal))
-                .monospacedDigit()
+            if style.showsIcon {
+                Image(systemName: "clock.fill")
+            }
+            if style.showsTime {
+                Text(formatCompact(todayTotal))
+                    .monospacedDigit()
+            }
         }
         .task {
-            await loadTotal()
+            if style.showsTime {
+                await loadTotal()
+            }
         }
         .onReceive(refreshTimer) { _ in
+            guard style.showsTime else { return }
             Task {
                 await loadTotal()
             }
         }
     }
-    
+
     private func loadTotal() async {
         do {
             let summary = try await appEnvironment.dataService.fetchTodaySummary()
@@ -184,11 +241,11 @@ struct MenuBarLabel: View {
             print("[MenuBar] Failed to load total: \(error)")
         }
     }
-    
+
     private func formatCompact(_ seconds: TimeInterval) -> String {
         let hours = Int(seconds) / 3600
         let minutes = (Int(seconds) % 3600) / 60
-        
+
         if hours > 0 {
             return "\(hours):\(String(format: "%02d", minutes))"
         }

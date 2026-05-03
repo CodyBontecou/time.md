@@ -601,7 +601,7 @@ private extension SQLiteScreenTimeDataService {
             COUNT(*) AS session_count
         FROM usage u
         \(join)
-        WHERE \(filter.whereClause)
+        WHERE \(filter.whereClause) AND u.stream_type != 'web_usage'
         GROUP BY u.app_name
         ORDER BY total_seconds DESC
         LIMIT ?

@@ -57,6 +57,8 @@ enum HistoryStore {
         sqlite3_exec(db, "ALTER TABLE usage ADD COLUMN source_timestamp REAL", nil, nil, nil)
         sqlite3_exec(db, "ALTER TABLE usage ADD COLUMN device_id TEXT", nil, nil, nil)
         sqlite3_exec(db, "ALTER TABLE usage ADD COLUMN metadata_hash TEXT", nil, nil, nil)
+        sqlite3_exec(db, "ALTER TABLE usage ADD COLUMN url TEXT", nil, nil, nil)
+        sqlite3_exec(db, "ALTER TABLE usage ADD COLUMN title TEXT", nil, nil, nil)
 
         // Indexes (idempotent).
         let indexSQL = """

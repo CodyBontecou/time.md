@@ -113,7 +113,7 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
             defer { sqlite3_close(db) }
 
             var sql = """
-            SELECT app_name, start_time, duration_seconds
+            SELECT app_name, start_time, duration_seconds, url, title
             FROM usage
             WHERE stream_type = 'web_usage'
               AND start_time >= ?
@@ -121,7 +121,7 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
             """
             let trimmed = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmed.isEmpty {
-                sql += " AND app_name LIKE ?"
+                sql += " AND (app_name LIKE ? OR url LIKE ? OR title LIKE ?)"
             }
             sql += " ORDER BY start_time DESC LIMIT ?"
 
@@ -135,7 +135,10 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
             sqlite3_bind_text(s, idx, self.startISO(startDate), -1, Self.sqliteTransient); idx += 1
             sqlite3_bind_text(s, idx, self.startISO(endDate), -1, Self.sqliteTransient); idx += 1
             if !trimmed.isEmpty {
-                sqlite3_bind_text(s, idx, "%\(trimmed)%", -1, Self.sqliteTransient); idx += 1
+                let needle = "%\(trimmed)%"
+                sqlite3_bind_text(s, idx, needle, -1, Self.sqliteTransient); idx += 1
+                sqlite3_bind_text(s, idx, needle, -1, Self.sqliteTransient); idx += 1
+                sqlite3_bind_text(s, idx, needle, -1, Self.sqliteTransient); idx += 1
             }
             sqlite3_bind_int64(s, idx, Int64(limit))
 
@@ -147,11 +150,13 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
                 let domain = String(cString: cName)
                 let startStr = String(cString: cStart)
                 let duration = sqlite3_column_double(s, 2)
+                let url = sqlite3_column_text(s, 3).map { String(cString: $0) } ?? "https://\(domain)/"
+                let title = sqlite3_column_text(s, 4).map { String(cString: $0) } ?? domain
                 let when = self.date(fromISO: startStr)
                 rows.append(BrowsingVisit(
-                    id: "\(startStr)|\(domain)",
-                    url: "https://\(domain)/",
-                    title: domain,
+                    id: "\(startStr)|\(url)",
+                    url: url,
+                    title: title,
                     domain: domain,
                     visitTime: when,
                     durationSeconds: duration,
@@ -308,9 +313,8 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
 
     // MARK: - Pages for domain
 
-    /// We only have domain-level data — there are no per-path rows. The
-    /// drill-down returns a single `PageSummary` per domain whose visits are
-    /// the underlying sample rows.
+    /// Returns one `PageSummary` per unique URL path within `domain`. Legacy
+    /// rows that pre-date URL capture fall back to the synthetic root URL.
     func fetchPagesForDomain(
         domain: String,
         browser: BrowserSource,
@@ -323,7 +327,7 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
             defer { sqlite3_close(db) }
 
             let sql = """
-            SELECT start_time, duration_seconds
+            SELECT start_time, duration_seconds, url, title
             FROM usage
             WHERE stream_type = 'web_usage'
               AND app_name = ?
@@ -349,28 +353,52 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
                 guard let cStart = sqlite3_column_text(s, 0) else { continue }
                 let startStr = String(cString: cStart)
                 let duration = sqlite3_column_double(s, 1)
+                let url = sqlite3_column_text(s, 2).map { String(cString: $0) } ?? "https://\(domain)/"
+                let title = sqlite3_column_text(s, 3).map { String(cString: $0) } ?? domain
+                let path = Self.path(from: url)
                 let when = self.date(fromISO: startStr)
                 visits.append(PageVisit(
-                    id: "\(startStr)|\(domain)",
-                    url: "https://\(domain)/",
-                    path: "/",
-                    title: domain,
+                    id: "\(startStr)|\(url)",
+                    url: url,
+                    path: path,
+                    title: title,
                     visitTime: when,
                     durationSeconds: duration,
                     browser: .all
                 ))
             }
 
-            guard let last = visits.first?.visitTime else { return [] }
-            let total = visits.compactMap(\.durationSeconds).reduce(0, +)
-            return [PageSummary(
-                path: "/",
-                title: domain,
-                visitCount: visits.count,
-                visits: visits,
-                lastVisitTime: last,
-                totalDurationSeconds: total
-            )]
+            // Group by path; preserve existing newest-first ordering.
+            var order: [String] = []
+            var grouped: [String: [PageVisit]] = [:]
+            for v in visits {
+                if grouped[v.path] == nil { order.append(v.path) }
+                grouped[v.path, default: []].append(v)
+            }
+
+            return order.compactMap { path in
+                guard let bucket = grouped[path], let first = bucket.first else { return nil }
+                let total = bucket.compactMap(\.durationSeconds).reduce(0, +)
+                return PageSummary(
+                    path: path,
+                    title: first.title,
+                    visitCount: bucket.count,
+                    visits: bucket,
+                    lastVisitTime: first.visitTime,
+                    totalDurationSeconds: total
+                )
+            }
         }.value
+    }
+
+    /// Extracts the URL path (with query and fragment if present), defaulting
+    /// to `"/"` when the URL can't be parsed or has no path.
+    private static func path(from url: String) -> String {
+        guard let parsed = URL(string: url) else { return "/" }
+        var p = parsed.path
+        if p.isEmpty { p = "/" }
+        if let q = parsed.query, !q.isEmpty { p += "?\(q)" }
+        if let f = parsed.fragment, !f.isEmpty { p += "#\(f)" }
+        return p
     }
 }

@@ -16,7 +16,9 @@ final class ActiveAppTracker: @unchecked Sendable {
     private var observers: [NSObjectProtocol] = []
 
     // Web tab tracking state (browsers only).
+    private var webURL: String?
     private var webDomain: String?
+    private var webTitle: String?
     private var webStartTime: Date?
     private var webBrowserBundleID: String?
     private var webPollTimer: DispatchSourceTimer?
@@ -294,10 +296,12 @@ final class ActiveAppTracker: @unchecked Sendable {
         // Browser may have changed underneath us during the AppleScript call.
         guard webBrowserBundleID == bundleID, isScreenActive else { return }
 
-        if tab.domain == webDomain { return }
+        if tab.url == webURL { return }
 
         finalizeCurrentWebSession()
+        webURL = tab.url
         webDomain = tab.domain
+        webTitle = tab.title
         webStartTime = Date()
     }
 
@@ -306,13 +310,19 @@ final class ActiveAppTracker: @unchecked Sendable {
     private func finalizeCurrentWebSession() {
         guard let domain = webDomain,
               let start = webStartTime else {
+            webURL = nil
             webDomain = nil
+            webTitle = nil
             webStartTime = nil
             return
         }
 
         let duration = Date().timeIntervalSince(start)
+        let url = webURL
+        let title = webTitle
+        webURL = nil
         webDomain = nil
+        webTitle = nil
         webStartTime = nil
 
         guard duration >= minimumSessionDuration else { return }
@@ -324,6 +334,8 @@ final class ActiveAppTracker: @unchecked Sendable {
         DispatchQueue.global(qos: .utility).async {
             Self.writeWebSession(
                 domain: domain,
+                url: url,
+                title: title,
                 startTime: startISO,
                 durationSeconds: duration,
                 sourceTimestamp: sourceTimestamp,
@@ -394,6 +406,8 @@ final class ActiveAppTracker: @unchecked Sendable {
 
     private static func writeWebSession(
         domain: String,
+        url: String?,
+        title: String?,
         startTime: String,
         durationSeconds: Double,
         sourceTimestamp: Double,
@@ -418,8 +432,8 @@ final class ActiveAppTracker: @unchecked Sendable {
             let sql = """
             INSERT OR IGNORE INTO usage
                 (app_name, duration_seconds, start_time, stream_type,
-                 source_timestamp, device_id, metadata_hash)
-            VALUES (?, ?, ?, 'web_usage', ?, ?, 'direct_observation')
+                 source_timestamp, device_id, metadata_hash, url, title)
+            VALUES (?, ?, ?, 'web_usage', ?, ?, 'direct_observation', ?, ?)
             """
 
             let transient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
@@ -436,6 +450,10 @@ final class ActiveAppTracker: @unchecked Sendable {
             sqlite3_bind_text(statement, 3, startTime, -1, transient)
             sqlite3_bind_double(statement, 4, sourceTimestamp)
             sqlite3_bind_text(statement, 5, deviceId, -1, transient)
+            if let url { sqlite3_bind_text(statement, 6, url, -1, transient) }
+            else { sqlite3_bind_null(statement, 6) }
+            if let title { sqlite3_bind_text(statement, 7, title, -1, transient) }
+            else { sqlite3_bind_null(statement, 7) }
 
             let result = sqlite3_step(statement)
             if result != SQLITE_DONE {

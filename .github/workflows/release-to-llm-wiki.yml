@@ -1,0 +1,32 @@
+name: release-to-llm-wiki
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Strip leading v from tag
+        id: ver
+        run: |
+          tag="${{ github.event.release.tag_name }}"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger llm-wiki launch checklist scaffold
+        env:
+          GH_TOKEN: ${{ secrets.LLM_WIKI_DISPATCH_TOKEN }}
+          APP_SLUG: time-md
+          PUBLIC_URL: https://timemd.isolated.tech
+        run: |
+          set -euo pipefail
+          gh api -X POST repos/CodyBontecou/llm-wiki/dispatches \
+            -f event_type=generate-launch-checklist \
+            -F client_payload[app]="$APP_SLUG" \
+            -F client_payload[version]="${{ steps.ver.outputs.version }}" \
+            -F client_payload[asc_id]="" \
+            -F client_payload[repo]="${{ github.repository }}" \
+            -F client_payload[public_url]="$PUBLIC_URL"

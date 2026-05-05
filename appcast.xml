@@ -5,7 +5,39 @@
         <link>https://github.com/codybontecou/time.md/releases</link>
         <description>time.md macOS App Updates</description>
         <language>en</language>
-        
+
+        <item>
+            <title>Version 2.2.0</title>
+            <pubDate>Tue, 05 May 2026 18:37:00 +0000</pubDate>
+            <sparkle:version>18</sparkle:version>
+            <sparkle:shortVersionString>2.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>
+                <![CDATA[
+                    <h2>What's New in 2.2.0</h2>
+                    <h3>time.md is now free</h3>
+                    <ul>
+                        <li>All paywall and subscription functionality has been removed</li>
+                        <li>No purchase, account, or trial required</li>
+                    </ul>
+                    <h3>Direct distribution</h3>
+                    <ul>
+                        <li>The app is no longer published to the Mac App Store</li>
+                        <li>Releases are notarized and distributed via GitHub Releases and isolated.tech</li>
+                        <li>Auto-updates continue to be delivered through Sparkle</li>
+                    </ul>
+                    <h3>Why</h3>
+                    <p>The Mac App Store sandbox prevents reading other apps' history files, so web-history tracking can't ship through the store. Going direct lets us keep that feature and drop the paywall in the same release.</p>
+                ]]>
+            </description>
+            <enclosure
+                url="https://github.com/codybontecou/time.md/releases/download/v2.2.0/time.md-v2.2.0-macOS.zip"
+                length="9254133"
+                type="application/octet-stream"
+                sparkle:edSignature="wmUzSXX5gvs1NWD6ypc0A28DQP7wUi6gVFAALV46ht8YOAXroXACasBsHwIhKKd+vrriO9qUKJEj4Ws9khLGCA=="
+            />
+        </item>
+
         <item>
             <title>Version 1.1.0</title>
             <pubDate>Wed, 26 Feb 2026 22:10:00 +0000</pubDate>

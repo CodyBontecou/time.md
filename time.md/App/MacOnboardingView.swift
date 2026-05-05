@@ -7,11 +7,8 @@ struct MacOnboardingView: View {
     @Binding var isPresented: Bool
     @State private var currentPage = 0
     @State private var animateIn = false
-    @ObservedObject private var subscriptionStore = SubscriptionStore.shared
 
-    private var paywallIndex: Int { pages.count }
-    private var totalSlides: Int { pages.count + 1 }
-    private var isOnPaywall: Bool { currentPage == paywallIndex }
+    private var totalSlides: Int { pages.count }
     private var isOnLastInfoSlide: Bool { currentPage == pages.count - 1 }
 
     private let pages: [MacOnboardingPage] = [
@@ -124,103 +121,72 @@ struct MacOnboardingView: View {
             .padding(.top, 32)
 
             // Page content
-            Group {
-                if isOnPaywall {
-                    PaywallView(onEntitled: completeOnboarding)
-                } else {
-                    MacOnboardingPageView(page: pages[currentPage], isActive: true)
-                }
-            }
-            .id(currentPage)
-            .transition(.asymmetric(
-                insertion: .opacity.combined(with: .offset(x: 20)),
-                removal: .opacity.combined(with: .offset(x: -20))
-            ))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            MacOnboardingPageView(page: pages[currentPage], isActive: true)
+                .id(currentPage)
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .offset(x: 20)),
+                    removal: .opacity.combined(with: .offset(x: -20))
+                ))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Bottom actions — hidden on paywall slide; the paywall has its own CTA.
-            if !isOnPaywall {
-                HStack(spacing: 16) {
-                    // Back button
-                    if currentPage > 0 {
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                currentPage -= 1
-                            }
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 11, weight: .semibold))
-                                Text("Back")
-                                    .font(.system(size: 13, weight: .medium, design: .monospaced))
-                            }
-                            .foregroundColor(BrutalTheme.textSecondary)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: BrutalTheme.pillCornerRadius)
-                                    .fill(Color.primary.opacity(0.06))
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    Spacer()
-
-                    // Continue
+            HStack(spacing: 16) {
+                // Back button
+                if currentPage > 0 {
                     Button {
                         withAnimation(.easeInOut(duration: 0.3)) {
-                            currentPage = isOnLastInfoSlide ? paywallIndex : currentPage + 1
+                            currentPage -= 1
                         }
                     } label: {
-                        HStack(spacing: 8) {
-                            Text(continueLabel)
-                                .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                            Image(systemName: !isOnLastInfoSlide ? "chevron.right" : "arrow.right")
-                                .font(.system(size: 12, weight: .semibold))
+                        HStack(spacing: 6) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 11, weight: .semibold))
+                            Text("Back")
+                                .font(.system(size: 13, weight: .medium, design: .monospaced))
                         }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 28)
-                        .padding(.vertical, 12)
+                        .foregroundColor(BrutalTheme.textSecondary)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 10)
                         .background(
                             RoundedRectangle(cornerRadius: BrutalTheme.pillCornerRadius)
-                                .fill(Color.accentColor)
+                                .fill(Color.primary.opacity(0.06))
                         )
                     }
                     .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 40)
-                .padding(.bottom, 32)
-            }
-        }
-        .frame(width: 640, height: 600)
-        .background(BrutalTheme.background)
-        .overlay(alignment: .topLeading) {
-            if isOnPaywall {
+
+                Spacer()
+
+                // Continue / Get Started
                 Button {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        currentPage = pages.count - 1
+                    if isOnLastInfoSlide {
+                        completeOnboarding()
+                    } else {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            currentPage += 1
+                        }
                     }
                 } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 11, weight: .semibold))
-                        Text("Back")
-                            .font(.system(size: 13, weight: .medium, design: .monospaced))
+                    HStack(spacing: 8) {
+                        Text(continueLabel)
+                            .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                        Image(systemName: !isOnLastInfoSlide ? "chevron.right" : "arrow.right")
+                            .font(.system(size: 12, weight: .semibold))
                     }
-                    .foregroundColor(BrutalTheme.textSecondary)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 12)
                     .background(
                         RoundedRectangle(cornerRadius: BrutalTheme.pillCornerRadius)
-                            .fill(Color.primary.opacity(0.06))
+                            .fill(Color.accentColor)
                     )
                 }
                 .buttonStyle(.plain)
-                .padding(.top, 24)
-                .padding(.leading, 24)
             }
+            .padding(.horizontal, 40)
+            .padding(.bottom, 32)
         }
+        .frame(width: 640, height: 600)
+        .background(BrutalTheme.background)
         .onAppear {
             withAnimation(.easeOut(duration: 0.5)) {
                 animateIn = true
@@ -228,7 +194,7 @@ struct MacOnboardingView: View {
         }
     }
 
-    private var continueLabel: String { "Continue" }
+    private var continueLabel: String { isOnLastInfoSlide ? "Get Started" : "Continue" }
 
     private func completeOnboarding() {
         UserDefaults.standard.set(true, forKey: "hasCompletedMacOnboarding")

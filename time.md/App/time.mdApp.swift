@@ -10,7 +10,6 @@ struct TimeMdApp: App {
     @AppStorage("appNameDisplayMode") private var appNameDisplayMode: String = AppNameDisplayMode.short.rawValue
     @AppStorage(AppVisibilityMode.storageKey) private var visibilityModeRaw: String = AppVisibilityMode.dockAndMenuBar.rawValue
     @AppStorage("hasCompletedMacOnboarding") private var hasCompletedMacOnboarding: Bool = false
-    @StateObject private var subscriptionStore = SubscriptionStore.shared
 
     private var visibilityMode: AppVisibilityMode {
         AppVisibilityMode(rawValue: visibilityModeRaw) ?? .dockAndMenuBar
@@ -26,20 +25,15 @@ struct TimeMdApp: App {
     var body: some Scene {
         WindowGroup(id: "main") {
             Group {
-                if subscriptionStore.isEntitled && hasCompletedMacOnboarding {
+                if hasCompletedMacOnboarding {
                     RootSplitView(filters: filters, navigation: navigation)
-                } else if !hasCompletedMacOnboarding {
+                } else {
                     MacOnboardingView(
                         isPresented: .init(
                             get: { !hasCompletedMacOnboarding },
                             set: { if !$0 { hasCompletedMacOnboarding = true } }
                         )
                     )
-                } else {
-                    // Lapsed: completed onboarding previously but no active subscription.
-                    PaywallView()
-                        .frame(minWidth: 640, minHeight: 520)
-                        .background(BrutalTheme.background)
                 }
             }
             .environment(\.appEnvironment, .live)
@@ -67,7 +61,6 @@ struct TimeMdApp: App {
             }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                 filters.syncToCurrentPeriodIfFollowing()
-                Task { await subscriptionStore.refreshEntitlement() }
             }
         }
         .windowResizability(.contentSize)

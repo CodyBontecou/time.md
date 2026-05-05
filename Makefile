@@ -1,7 +1,7 @@
 # time.md Build Commands
 # Usage: make <target>
 
-.PHONY: help build-mac build-ios test archive upload clean package-gumroad
+.PHONY: help build-mac clean release-mac sign-update appcast-template bump-build lint format check version stats open logs-mac
 
 # Default target
 help:
@@ -9,15 +9,9 @@ help:
 	@echo ""
 	@echo "Development:"
 	@echo "  make build-mac     Build macOS app"
-	@echo "  make build-ios     Build iOS app (simulator)"
-	@echo "  make build-all     Build both macOS and iOS"
-	@echo "  make test          Run unit tests"
 	@echo "  make clean         Clean build artifacts"
 	@echo ""
-	@echo "Release:"
-	@echo "  make archive       Archive iOS app for App Store"
-	@echo "  make upload        Archive and upload to App Store Connect"
-	@echo "  make package-gumroad  Build, sign, notarize, and package for Gumroad"
+	@echo "Release (Sparkle / GitHub Releases):"
 	@echo "  make release-mac   Build, notarize, and ZIP for Sparkle release"
 	@echo "  make sign-update   Sign release ZIP for Sparkle auto-updates"
 	@echo "  make appcast-template  Show appcast.xml entry template"
@@ -39,49 +33,9 @@ build-mac:
 		-destination 'platform=macOS' \
 		build
 
-build-ios:
-	xcodebuild -scheme time.mdIOS \
-		-destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
-		build
-
-build-ios-device:
-	xcodebuild -scheme time.mdIOS \
-		-destination 'generic/platform=iOS' \
-		build
-
-build-all: build-mac build-ios
-	@echo "All builds succeeded!"
-
 # CI check (lint + build)
-check: lint build-all
+check: lint build-mac
 	@echo "All checks passed!"
-
-# Test target
-test:
-	xcodebuild -scheme time.mdIOS \
-		-destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
-		test
-
-# Archive for App Store
-ARCHIVE_PATH = build/time.mdIOS.xcarchive
-EXPORT_PATH = build/export
-
-archive:
-	@echo "Archiving time.mdIOS..."
-	xcodebuild -scheme time.mdIOS \
-		-destination 'generic/platform=iOS' \
-		-archivePath $(ARCHIVE_PATH) \
-		archive
-	@echo "Archive created at $(ARCHIVE_PATH)"
-
-# Export and upload to App Store Connect
-upload: archive
-	@echo "Exporting for App Store Connect..."
-	xcodebuild -exportArchive -allowProvisioningUpdates \
-		-archivePath $(ARCHIVE_PATH) \
-		-exportPath $(EXPORT_PATH) \
-		-exportOptionsPlist ExportOptions.plist
-	@echo "Upload complete! Check App Store Connect for the build."
 
 # Clean build artifacts
 clean:
@@ -120,13 +74,6 @@ bump-build:
 open:
 	open time.md.xcodeproj
 
-simulator:
-	open -a Simulator
-
-logs-ios:
-	@echo "Streaming iOS logs (Ctrl+C to stop)..."
-	log stream --predicate 'subsystem BEGINSWITH "com.codybontecou.time.md"' --info
-
 logs-mac:
 	@echo "Streaming macOS logs (Ctrl+C to stop)..."
 	log stream --predicate 'subsystem BEGINSWITH "com.codybontecou.time.md"' --info
@@ -148,81 +95,13 @@ stats:
 	@find . -name "*.md" -not -path "./.build/*" -not -path "./DerivedData/*" -not -path "./.git/*" -not -path "./node_modules/*" -not -path "./.pi/*" -maxdepth 3 | wc -l | tr -d ' '
 
 # ============================================================================
-# GUMROAD DISTRIBUTION
+# SPARKLE AUTO-UPDATES
 # ============================================================================
 
 VERSION := $(shell grep -m1 'MARKETING_VERSION' time.md.xcodeproj/project.pbxproj | sed 's/.*= //' | tr -d ';' | tr -d ' ')
 DEVELOPER_ID := "Developer ID Application: Cody Russell Bontecou (67KC823C9A)"
 TEAM_ID := 67KC823C9A
 BUNDLE_ID := com.bontecou.time.md
-
-# Build, sign, notarize, and package for Gumroad distribution
-package-gumroad:
-	@echo "=== Building time.md v$(VERSION) for Gumroad ==="
-	@echo ""
-	@# Clean previous builds
-	rm -rf build/release dist
-	mkdir -p build/release dist
-	@# Build universal release
-	@echo "► Building universal binary..."
-	xcodebuild -scheme time.md \
-		-configuration Release \
-		-destination 'generic/platform=macOS' \
-		-archivePath build/release/time.md.xcarchive \
-		archive
-	@# Export the app
-	@echo "► Exporting app..."
-	xcodebuild -exportArchive -allowProvisioningUpdates \
-		-archivePath build/release/time.md.xcarchive \
-		-exportPath build/release \
-		-exportOptionsPlist ExportOptions-macOS.plist
-	@# Create DMG
-	@echo "► Creating DMG..."
-	hdiutil create -volname "time.md" \
-		-srcfolder build/release/time.md.app \
-		-ov -format UDZO \
-		build/release/time.md.dmg
-	@# Sign DMG
-	@echo "► Signing DMG..."
-	codesign --force --sign $(DEVELOPER_ID) build/release/time.md.dmg
-	@# Notarize
-	@echo "► Notarizing (this may take a few minutes)..."
-	xcrun notarytool submit build/release/time.md.dmg \
-		--keychain-profile "notarytool-profile" \
-		--wait
-	@# Staple
-	@echo "► Stapling notarization ticket..."
-	xcrun stapler staple build/release/time.md.dmg
-	@# Create distribution package
-	@echo "► Creating distribution package..."
-	cp build/release/time.md.dmg dist/
-	cp dist-assets/README.txt dist/ 2>/dev/null || cp dist/README.txt dist/ 2>/dev/null || true
-	cp LICENSE dist/LICENSE.txt
-	cd dist && zip -r ../time.md-v$(VERSION)-macOS.zip .
-	@echo ""
-	@echo "=== Package Complete ==="
-	@echo "Upload to Gumroad: time.md-v$(VERSION)-macOS.zip"
-	@echo "Size: $$(du -h time.md-v$(VERSION)-macOS.zip | cut -f1)"
-	@echo ""
-
-# Quick repackage (skip build, use existing app)
-repackage-gumroad:
-	@echo "=== Repackaging time.md v$(VERSION) ==="
-	rm -rf dist
-	mkdir -p dist
-	cp build/release/time.md.dmg dist/
-	cp LICENSE dist/LICENSE.txt
-	@echo "Creating README..."
-	@cat > dist/README.txt << 'EOFREADME'
-	@# README is created inline - see existing dist/README.txt
-	@test -f dist/README.txt || echo "Add README.txt to dist/"
-	cd dist && zip -r ../time.md-v$(VERSION)-macOS.zip .
-	@echo "Done: time.md-v$(VERSION)-macOS.zip"
-
-# ============================================================================
-# SPARKLE AUTO-UPDATES
-# ============================================================================
-
 SPARKLE_BIN := $(shell find ~/Library/Developer/Xcode/DerivedData/time.md-*/SourcePackages/artifacts/sparkle/Sparkle/bin -maxdepth 0 2>/dev/null | head -1)
 BUILD_NUMBER := $(shell grep -m1 'CURRENT_PROJECT_VERSION' time.md.xcodeproj/project.pbxproj | sed 's/.*= //' | tr -d ';' | tr -d ' ')
 

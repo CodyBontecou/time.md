@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-05-05
+
+### Added
+- **Input tracking (opt-in)** — capture keystrokes and cursor activity locally to power per-app typing intensity, top-typed-words, top-typed-keys, and a per-screen cursor heatmap. Off by default; gated behind Accessibility + Input Monitoring permissions. Granular tracking levels for both streams and a global ⌥⌘P pause hotkey.
+- Privacy guards: Secure Input mode auto-redacts characters; configurable per-app exclusion list (1Password, Bitwarden, Keychain Access, etc. by default); raw events pruned on a configurable retention window (default 14 days keystrokes / 7 days mouse).
+- Input data is exposed to the timemd-mcp server via new tools: `get_cursor_heatmap`, `get_top_typed_words`, `get_top_typed_keys`, `get_typing_intensity`, `get_input_event_counts`.
+- Export coordinator can include raw keystroke / mouse rows and the derived aggregates.
+
+### Changed
+- Input-tracking tables now live in a sibling `input-tracking.db` rather than the main `screentime.db`. Dashboard and menu-bar queries that take a snapshot copy of the main DB no longer carry the high-volume `mouse_events` rows, restoring snappy load times. A one-time migration moves any existing rows out of `screentime.db` and reclaims the freed pages.
+
 ## [2.2.0] - 2026-05-05
 
 ### Changed

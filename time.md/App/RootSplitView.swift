@@ -5,6 +5,13 @@ import SwiftUI
 struct RootSplitView: View {
     let filters: GlobalFilterStore
     @Bindable var navigation: NavigationCoordinator
+    @AppStorage(InputEventTracker.enabledKey) private var inputTrackingEnabled: Bool = false
+
+    private var visibleDestinations: [NavigationDestination] {
+        NavigationDestination.allCases.filter {
+            $0 != .input || inputTrackingEnabled
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -12,7 +19,7 @@ struct RootSplitView: View {
                 List(selection: $navigation.selectedDestination) {
                     ForEach(NavigationSection.visibleSections) { section in
                         Section(section.rawValue) {
-                            ForEach(NavigationDestination.allCases.filter { $0.section == section }) { destination in
+                            ForEach(visibleDestinations.filter { $0.section == section }) { destination in
                                 Label {
                                     Text(destination.title)
                                         .font(.system(size: 13, weight: .semibold, design: .default))
@@ -44,6 +51,8 @@ struct RootSplitView: View {
                             TimingRulesView(filters: filters)
                         case .webHistory:
                             WebHistoryView(filters: filters)
+                        case .input:
+                            InputTrackingView(filters: filters)
                         case .reports:
                             TimingReportsView(filters: filters)
                         case .export:
@@ -386,6 +395,9 @@ private struct SettingsScaffoldView: View {
                     body: "time.md is local-first. Your raw data never leaves this Mac.",
                     footnote: nil
                 )
+
+                // ─── Input Tracking (opt-in keystrokes + cursor) ───
+                InputTrackingSettingsSection()
 
                 // ─── MCP Integration ───
                 mcpIntegrationSection

@@ -46,12 +46,20 @@ struct TimeMdApp: App {
                 Task.detached(priority: .utility) {
                     AppCategorizer.autoPopulateCategories()
                 }
+                if UserDefaults.standard.bool(forKey: InputEventTracker.enabledKey) {
+                    InputEventTracker.shared.start()
+                    InputAggregator.shared.start()
+                    InputDataPruner.shared.start()
+                }
             }
             .onChange(of: visibilityModeRaw) { _, _ in
                 visibilityMode.apply()
             }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
                 ActiveAppTracker.shared.stop()
+                InputEventTracker.shared.stop()
+                InputAggregator.shared.stop()
+                InputDataPruner.shared.stop()
             }
             .onReceive(NotificationCenter.default.publisher(for: ActiveAppTracker.didRecordSessionNotification)) { _ in
                 filters.triggerRefresh()
@@ -90,6 +98,13 @@ struct TimeMdApp: App {
         // Prefetch browser history databases in background so Web History view loads instantly
         Task.detached(priority: .utility) {
             SQLiteBrowsingHistoryService().prefetchDatabases()
+        }
+
+        // One-time: split input-tracking tables out of screentime.db into a
+        // sibling DB so the dashboard temp-copy doesn't carry their bulk.
+        // Idempotent — gated by a UserDefaults flag inside HistoryStore.
+        Task.detached(priority: .utility) {
+            _ = try? HistoryStore.inputTrackingDatabaseURL()
         }
     }
 }

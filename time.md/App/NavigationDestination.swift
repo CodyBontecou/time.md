@@ -7,6 +7,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
     case projects
     case rules
     case webHistory
+    case input
     case reports
     case export
     case settings
@@ -21,6 +22,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         case .projects: String(localized: "Projects")
         case .rules: String(localized: "Rules")
         case .webHistory: String(localized: "Web History")
+        case .input: String(localized: "Input")
         case .reports: String(localized: "Reports")
         case .export: String(localized: "Export")
         case .settings: String(localized: "Settings")
@@ -35,6 +37,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         case .projects: "folder.fill"
         case .rules: "gearshape.2.fill"
         case .webHistory: "globe"
+        case .input: "keyboard"
         case .reports: "doc.text.fill"
         case .export: "square.and.arrow.up"
         case .settings: "gear"
@@ -50,6 +53,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         case .projects: .organize
         case .rules: .organize
         case .webHistory: .data
+        case .input: .data
         case .reports: .data
         case .export: .data
         case .settings: .system
@@ -59,7 +63,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
     /// Whether this destination can be exported
     var isExportable: Bool {
         switch self {
-        case .overview, .review, .details, .projects, .webHistory, .reports, .export:
+        case .overview, .review, .details, .projects, .webHistory, .input, .reports, .export:
             return true
         case .rules, .settings:
             return false

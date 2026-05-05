@@ -10,28 +10,52 @@ enum ExportField: String, CaseIterable, Identifiable, Codable, Hashable {
     case startTime = "start_time"
     case endTime = "end_time"
     case durationSeconds = "duration_seconds"
-    
+
     // App/Category fields
     case totalSeconds = "total_seconds"
     case sessionCount = "session_count"
     case category = "category"
-    
+
     // Trend/Date fields
     case date = "date"
-    
+
     // Heatmap fields
     case weekday = "weekday"
     case hour = "hour"
-    
+
     // Focus fields
     case focusBlocks = "focus_blocks"
-    
+
     // Summary fields
     case metric = "metric"
     case value = "value"
-    
+
+    // Input-tracking fields
+    case word = "word"
+    case wordCount = "word_count"
+    case keyCode = "key_code"
+    case keyLabel = "key_label"
+    case keyCount = "key_count"
+    case screenID = "screen_id"
+    case binX = "bin_x"
+    case binY = "bin_y"
+    case samples = "samples"
+    case timestamp = "timestamp"
+    case bundleID = "bundle_id"
+    case modifiers = "modifiers"
+    case char = "char"
+    case isWordBoundary = "is_word_boundary"
+    case secureInput = "secure_input"
+    case eventKind = "event_kind"
+    case mouseButton = "mouse_button"
+    case x = "x"
+    case y = "y"
+    case scrollDX = "scroll_dx"
+    case scrollDY = "scroll_dy"
+    case intensityCount = "intensity_count"
+
     var id: String { rawValue }
-    
+
     var displayName: String {
         switch self {
         case .appName: return String(localized: "App Name")
@@ -47,32 +71,66 @@ enum ExportField: String, CaseIterable, Identifiable, Codable, Hashable {
         case .focusBlocks: return String(localized: "Focus Blocks")
         case .metric: return String(localized: "Metric")
         case .value: return String(localized: "Value")
+        case .word: return String(localized: "Word")
+        case .wordCount: return String(localized: "Count")
+        case .keyCode: return String(localized: "Key Code")
+        case .keyLabel: return String(localized: "Key Label")
+        case .keyCount: return String(localized: "Press Count")
+        case .screenID: return String(localized: "Screen")
+        case .binX: return String(localized: "Bin X")
+        case .binY: return String(localized: "Bin Y")
+        case .samples: return String(localized: "Samples")
+        case .timestamp: return String(localized: "Timestamp")
+        case .bundleID: return String(localized: "Bundle ID")
+        case .modifiers: return String(localized: "Modifiers")
+        case .char: return String(localized: "Character")
+        case .isWordBoundary: return String(localized: "Word Boundary")
+        case .secureInput: return String(localized: "Secure Input")
+        case .eventKind: return String(localized: "Kind")
+        case .mouseButton: return String(localized: "Button")
+        case .x: return String(localized: "X")
+        case .y: return String(localized: "Y")
+        case .scrollDX: return String(localized: "Scroll ΔX")
+        case .scrollDY: return String(localized: "Scroll ΔY")
+        case .intensityCount: return String(localized: "Keystrokes")
         }
     }
-    
+
     /// Fields available for Raw Sessions export
     static let rawSessionFields: [ExportField] = [.appName, .startTime, .endTime, .durationSeconds]
-    
+
     /// Fields available for Apps export
     static let appFields: [ExportField] = [.appName, .totalSeconds, .sessionCount]
-    
+
     /// Fields available for Categories export
     static let categoryFields: [ExportField] = [.category, .totalSeconds]
-    
+
     /// Fields available for Trends export
     static let trendFields: [ExportField] = [.date, .totalSeconds]
-    
+
     /// Fields available for Sessions (buckets) export
     static let sessionBucketFields: [ExportField] = [.metric, .sessionCount]
-    
+
     /// Fields available for Heatmap export
     static let heatmapFields: [ExportField] = [.weekday, .hour, .totalSeconds]
-    
+
     /// Fields available for Focus export
     static let focusFields: [ExportField] = [.date, .focusBlocks, .totalSeconds]
-    
+
     /// Fields available for Overview summary export
     static let overviewFields: [ExportField] = [.metric, .value]
+
+    // Input-tracking field lists
+    static let inputWordFields: [ExportField] = [.word, .wordCount]
+    static let inputKeyFields: [ExportField] = [.keyCode, .keyLabel, .keyCount]
+    static let inputCursorHeatmapFields: [ExportField] = [.screenID, .binX, .binY, .samples]
+    static let inputIntensityFields: [ExportField] = [.timestamp, .intensityCount]
+    static let inputRawKeystrokeFields: [ExportField] = [
+        .timestamp, .bundleID, .appName, .keyCode, .modifiers, .char, .isWordBoundary, .secureInput
+    ]
+    static let inputRawMouseFields: [ExportField] = [
+        .timestamp, .bundleID, .appName, .eventKind, .mouseButton, .x, .y, .screenID, .scrollDX, .scrollDY
+    ]
 }
 
 /// User's field selection for export
@@ -397,18 +455,26 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
     case sessions = "sessions"
     case heatmap = "heatmap"
     case rawSessions = "raw_sessions"
-    
+
     // Web browsing sections
     case webHistory = "web_history"
     case topDomains = "top_domains"
-    
+
     // Analytics sections
     case contextSwitches = "context_switches"
     case appTransitions = "app_transitions"
     case periodComparison = "period_comparison"
-    
+
+    // Input tracking sections
+    case inputTopWords = "input_top_words"
+    case inputTopKeys = "input_top_keys"
+    case inputCursorHeatmap = "input_cursor_heatmap"
+    case inputTypingIntensity = "input_typing_intensity"
+    case inputRawKeystrokes = "input_raw_keystrokes"
+    case inputRawMouseEvents = "input_raw_mouse_events"
+
     var id: String { rawValue }
-    
+
     var displayName: String {
         switch self {
         case .summary: return String(localized: "Summary")
@@ -423,9 +489,15 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
         case .contextSwitches: return String(localized: "Context Switches")
         case .appTransitions: return String(localized: "App Transitions")
         case .periodComparison: return String(localized: "Period Comparison")
+        case .inputTopWords: return String(localized: "Top Typed Words")
+        case .inputTopKeys: return String(localized: "Top Typed Keys")
+        case .inputCursorHeatmap: return String(localized: "Cursor Heatmap Bins")
+        case .inputTypingIntensity: return String(localized: "Typing Intensity")
+        case .inputRawKeystrokes: return String(localized: "Raw Keystrokes")
+        case .inputRawMouseEvents: return String(localized: "Raw Mouse Events")
         }
     }
-    
+
     var systemImage: String {
         switch self {
         case .summary: return "chart.bar.doc.horizontal"
@@ -440,9 +512,15 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
         case .contextSwitches: return "arrow.triangle.swap"
         case .appTransitions: return "arrow.right.arrow.left"
         case .periodComparison: return "chart.bar.xaxis.ascending"
+        case .inputTopWords: return "text.word.spacing"
+        case .inputTopKeys: return "keyboard"
+        case .inputCursorHeatmap: return "square.grid.3x3.topleft.filled"
+        case .inputTypingIntensity: return "waveform.path.ecg"
+        case .inputRawKeystrokes: return "keyboard.badge.eye"
+        case .inputRawMouseEvents: return "cursorarrow.motionlines"
         }
     }
-    
+
     var description: String {
         switch self {
         case .summary: return String(localized: "Total time and averages")
@@ -457,9 +535,15 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
         case .contextSwitches: return String(localized: "App switching frequency by hour")
         case .appTransitions: return String(localized: "Most common app-to-app switches")
         case .periodComparison: return String(localized: "Current vs previous period delta")
+        case .inputTopWords: return String(localized: "Most-typed words (requires Full content)")
+        case .inputTopKeys: return String(localized: "Press counts per virtual key code")
+        case .inputCursorHeatmap: return String(localized: "Cursor density bins per screen")
+        case .inputTypingIntensity: return String(localized: "Keystrokes per minute over time")
+        case .inputRawKeystrokes: return String(localized: "Every keystroke event row (very large)")
+        case .inputRawMouseEvents: return String(localized: "Every mouse event row (very large)")
         }
     }
-    
+
     /// Estimated row count weight for this section (relative)
     var rowWeight: Int {
         switch self {
@@ -475,17 +559,25 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
         case .contextSwitches: return 100
         case .appTransitions: return 50
         case .periodComparison: return 20
+        case .inputTopWords: return 500
+        case .inputTopKeys: return 50
+        case .inputCursorHeatmap: return 2000
+        case .inputTypingIntensity: return 500
+        case .inputRawKeystrokes: return 50_000
+        case .inputRawMouseEvents: return 200_000
         }
     }
-    
+
     /// Whether this section supports field customization
     var supportsFieldSelection: Bool {
         switch self {
-        case .rawSessions: return true
-        default: return false  // Most sections have fixed fields
+        case .rawSessions, .inputRawKeystrokes, .inputRawMouseEvents:
+            return true
+        default:
+            return false
         }
     }
-    
+
     /// Whether this is an analytics (computed) section
     var isAnalytics: Bool {
         switch self {
@@ -495,7 +587,7 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
             return false
         }
     }
-    
+
     /// Whether this is a web browsing section
     var isWebBrowsing: Bool {
         switch self {
@@ -505,20 +597,42 @@ enum ExportSection: String, CaseIterable, Identifiable, Codable {
             return false
         }
     }
-    
+
+    /// Whether this is an input tracking section
+    var isInputTracking: Bool {
+        switch self {
+        case .inputTopWords, .inputTopKeys, .inputCursorHeatmap,
+             .inputTypingIntensity, .inputRawKeystrokes, .inputRawMouseEvents:
+            return true
+        default:
+            return false
+        }
+    }
+
     /// Basic data sections only
     static let basicSections: [ExportSection] = [
         .summary, .apps, .categories, .trends, .sessions, .heatmap, .rawSessions
     ]
-    
+
     /// Web browsing sections only
     static let webBrowsingSections: [ExportSection] = [
         .webHistory, .topDomains
     ]
-    
+
     /// Analytics sections only
     static let analyticsSections: [ExportSection] = [
         .contextSwitches, .appTransitions, .periodComparison
+    ]
+
+    /// Input tracking sections only
+    static let inputTrackingSections: [ExportSection] = [
+        .inputTopWords, .inputTopKeys, .inputCursorHeatmap, .inputTypingIntensity,
+        .inputRawKeystrokes, .inputRawMouseEvents
+    ]
+
+    /// Input tracking aggregates only (no raw rows)
+    static let inputTrackingAggregateSections: [ExportSection] = [
+        .inputTopWords, .inputTopKeys, .inputCursorHeatmap, .inputTypingIntensity
     ]
 }
 
@@ -861,6 +975,13 @@ struct ExportSettings: Codable {
             return ExportField.overviewFields + ExportField.trendFields
         case .reports:
             return ExportField.trendFields + ExportField.appFields
+        case .input:
+            return ExportField.inputWordFields
+                + ExportField.inputKeyFields
+                + ExportField.inputCursorHeatmapFields
+                + ExportField.inputIntensityFields
+                + ExportField.inputRawKeystrokeFields
+                + ExportField.inputRawMouseFields
         case .webHistory, .rules, .settings, .export:
             return []
         }

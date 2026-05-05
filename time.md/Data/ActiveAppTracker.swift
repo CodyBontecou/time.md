@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import Foundation
 import SQLite3
 
@@ -34,6 +35,29 @@ final class ActiveAppTracker: @unchecked Sendable {
 
     /// Posted on the main queue after a session is written to the database.
     static let didRecordSessionNotification = Notification.Name("ActiveAppTrackerDidRecordSession")
+
+    /// Lightweight snapshot used by `InputEventTracker` to attribute keystroke
+    /// and mouse events to whatever app was frontmost at flush time.
+    struct CurrentAppSnapshot: Sendable {
+        let bundleID: String?
+        let switchTime: Date?
+        let secureInput: Bool
+        let isScreenActive: Bool
+    }
+
+    /// Returns the active app and secure-input state at the moment of the call.
+    /// Reads under the existing lock so the result is consistent with whatever
+    /// `handleAppSwitch` last committed. Thread-safe.
+    func snapshot() -> CurrentAppSnapshot {
+        lock.lock()
+        defer { lock.unlock() }
+        return CurrentAppSnapshot(
+            bundleID: currentApp,
+            switchTime: switchTime,
+            secureInput: IsSecureEventInputEnabled(),
+            isScreenActive: isScreenActive
+        )
+    }
 
     /// Sessions shorter than this are discarded (filters Cmd-Tab fly-throughs).
     private let minimumSessionDuration: TimeInterval = 2.0

@@ -176,6 +176,18 @@ struct ExportCoordinator: ExportCoordinating {
                 limit: 10000
             )
             rowCount = visits.count
+        case .input:
+            async let keystrokeCount = dataService.fetchRawKeystrokeEventCount(
+                startDate: filters.startDate, endDate: filters.endDate
+            )
+            async let mouseCount = dataService.fetchRawMouseEventCount(
+                startDate: filters.startDate, endDate: filters.endDate
+            )
+            // Aggregates are bounded; raw counts dominate.
+            let kCount = (try? await keystrokeCount) ?? 0
+            let mCount = (try? await mouseCount) ?? 0
+            // Aggregate row caps: words 500, keys 200, heatmap 5000, intensity 1440.
+            rowCount = 500 + 200 + 5000 + 1440 + min(kCount, 100_000) + min(mCount, 500_000)
         case .rules, .settings, .export:
             rowCount = 0
         }
@@ -295,9 +307,35 @@ struct ExportCoordinator: ExportCoordinating {
             case .periodComparison:
                 let comparison = try await dataService.fetchPeriodComparison(current: filters, previous: filters)
                 totalRows += 5 + min(comparison.appDeltas.count, 20)  // Base metrics + app deltas
+
+            // Input tracking sections
+            case .inputTopWords:
+                totalRows += 500
+            case .inputTopKeys:
+                totalRows += 200
+            case .inputCursorHeatmap:
+                let bins = try await dataService.fetchCursorHeatmap(
+                    startDate: filters.startDate, endDate: filters.endDate, screenID: nil, bundleID: nil
+                )
+                totalRows += bins.count
+            case .inputTypingIntensity:
+                let intensity = try await dataService.fetchTypingIntensity(
+                    startDate: filters.startDate, endDate: filters.endDate, granularity: .hour
+                )
+                totalRows += intensity.count
+            case .inputRawKeystrokes:
+                let count = try await dataService.fetchRawKeystrokeEventCount(
+                    startDate: filters.startDate, endDate: filters.endDate
+                )
+                totalRows += min(count, 100_000)
+            case .inputRawMouseEvents:
+                let count = try await dataService.fetchRawMouseEventCount(
+                    startDate: filters.startDate, endDate: filters.endDate
+                )
+                totalRows += min(count, 500_000)
             }
         }
-        
+
         return ExportEstimate.estimate(rowCount: totalRows, format: format)
     }
     
@@ -563,6 +601,80 @@ struct ExportCoordinator: ExportCoordinating {
                         ] }
                     )
                 ]
+            )
+
+        // ── Input Tracking Sections ──
+
+        case .inputTopWords:
+            let words = try await dataService.fetchTopTypedWords(
+                startDate: filters.startDate, endDate: filters.endDate, bundleID: nil, limit: 500
+            )
+            return ExportReport(
+                title: "Top Typed Words",
+                destination: .input,
+                generatedAt: generatedAt,
+                filterSummary: filterSummary,
+                sections: [inputWordsSection(words)]
+            )
+
+        case .inputTopKeys:
+            let keys = try await dataService.fetchTopTypedKeys(
+                startDate: filters.startDate, endDate: filters.endDate, limit: 200
+            )
+            return ExportReport(
+                title: "Top Typed Keys",
+                destination: .input,
+                generatedAt: generatedAt,
+                filterSummary: filterSummary,
+                sections: [inputKeysSection(keys)]
+            )
+
+        case .inputCursorHeatmap:
+            let bins = try await dataService.fetchCursorHeatmap(
+                startDate: filters.startDate, endDate: filters.endDate, screenID: nil, bundleID: nil
+            )
+            return ExportReport(
+                title: "Cursor Heatmap Bins",
+                destination: .input,
+                generatedAt: generatedAt,
+                filterSummary: filterSummary,
+                sections: [inputCursorHeatmapSection(bins)]
+            )
+
+        case .inputTypingIntensity:
+            let points = try await dataService.fetchTypingIntensity(
+                startDate: filters.startDate, endDate: filters.endDate, granularity: .hour
+            )
+            return ExportReport(
+                title: "Typing Intensity",
+                destination: .input,
+                generatedAt: generatedAt,
+                filterSummary: filterSummary,
+                sections: [inputIntensitySection(points, settings: settings)]
+            )
+
+        case .inputRawKeystrokes:
+            let events = try await dataService.fetchRawKeystrokeEvents(
+                startDate: filters.startDate, endDate: filters.endDate, limit: 100_000
+            )
+            return ExportReport(
+                title: "Raw Keystrokes",
+                destination: .input,
+                generatedAt: generatedAt,
+                filterSummary: filterSummary,
+                sections: [inputRawKeystrokesSection(events, settings: settings)]
+            )
+
+        case .inputRawMouseEvents:
+            let events = try await dataService.fetchRawMouseEvents(
+                startDate: filters.startDate, endDate: filters.endDate, limit: 500_000
+            )
+            return ExportReport(
+                title: "Raw Mouse Events",
+                destination: .input,
+                generatedAt: generatedAt,
+                filterSummary: filterSummary,
+                sections: [inputRawMouseSection(events, settings: settings)]
             )
         }
     }
@@ -1088,9 +1200,141 @@ private extension ExportCoordinator {
                 ]
             )
 
+        case .input:
+            return try await buildInputTrackingReport(
+                filters: filters,
+                settings: settings,
+                generatedAt: generatedAt,
+                filterSummary: filterSummary
+            )
+
         case .rules, .settings, .export:
             throw ExportError.unsupportedDestination
         }
+    }
+
+    /// Builds the multi-section input-tracking report used by both the
+    /// `.input` destination and the combined-export flow when an input section
+    /// is selected. Aggregates first, then raw events. Raw events are capped at
+    /// 100k keystrokes / 500k mouse rows to keep memory bounded.
+    private func buildInputTrackingReport(
+        filters: FilterSnapshot,
+        settings: ExportSettings,
+        generatedAt: Date,
+        filterSummary: String
+    ) async throws -> ExportReport {
+        async let words = dataService.fetchTopTypedWords(
+            startDate: filters.startDate, endDate: filters.endDate, bundleID: nil, limit: 500
+        )
+        async let keys = dataService.fetchTopTypedKeys(
+            startDate: filters.startDate, endDate: filters.endDate, limit: 200
+        )
+        async let heatmap = dataService.fetchCursorHeatmap(
+            startDate: filters.startDate, endDate: filters.endDate, screenID: nil, bundleID: nil
+        )
+        async let intensity = dataService.fetchTypingIntensity(
+            startDate: filters.startDate, endDate: filters.endDate, granularity: .hour
+        )
+        async let rawKeys = dataService.fetchRawKeystrokeEvents(
+            startDate: filters.startDate, endDate: filters.endDate, limit: 100_000
+        )
+        async let rawMouse = dataService.fetchRawMouseEvents(
+            startDate: filters.startDate, endDate: filters.endDate, limit: 500_000
+        )
+
+        let wordsResult = try await words
+        let keysResult = try await keys
+        let heatmapResult = try await heatmap
+        let intensityResult = try await intensity
+        let rawKeysResult = try await rawKeys
+        let rawMouseResult = try await rawMouse
+
+        return ExportReport(
+            title: "Input Tracking",
+            destination: .input,
+            generatedAt: generatedAt,
+            filterSummary: filterSummary,
+            sections: [
+                inputWordsSection(wordsResult),
+                inputKeysSection(keysResult),
+                inputCursorHeatmapSection(heatmapResult),
+                inputIntensitySection(intensityResult, settings: settings),
+                inputRawKeystrokesSection(rawKeysResult, settings: settings),
+                inputRawMouseSection(rawMouseResult, settings: settings)
+            ]
+        )
+    }
+
+    private func inputWordsSection(_ words: [TypedWordRow]) -> ExportSectionData {
+        ExportSectionData(
+            title: "Top Typed Words",
+            headers: ["word", "count"],
+            rows: words.map { [$0.word, String($0.count)] }
+        )
+    }
+
+    private func inputKeysSection(_ keys: [TypedKeyRow]) -> ExportSectionData {
+        ExportSectionData(
+            title: "Top Typed Keys",
+            headers: ["key_code", "key_label", "count"],
+            rows: keys.map { [String($0.keyCode), $0.label, String($0.count)] }
+        )
+    }
+
+    private func inputCursorHeatmapSection(_ bins: [CursorHeatmapBin]) -> ExportSectionData {
+        ExportSectionData(
+            title: "Cursor Heatmap Bins",
+            headers: ["screen_id", "bin_x", "bin_y", "samples"],
+            rows: bins.map { [String($0.screenID), String($0.binX), String($0.binY), String($0.samples)] }
+        )
+    }
+
+    private func inputIntensitySection(_ points: [IntensityPoint], settings: ExportSettings) -> ExportSectionData {
+        ExportSectionData(
+            title: "Typing Intensity",
+            headers: ["timestamp", "keystrokes"],
+            rows: points.map { [settings.timestampFormat.format($0.date), String($0.count)] }
+        )
+    }
+
+    private func inputRawKeystrokesSection(_ events: [RawKeystrokeEvent], settings: ExportSettings) -> ExportSectionData {
+        ExportSectionData(
+            title: "Raw Keystrokes",
+            headers: ["timestamp", "bundle_id", "app_name", "key_code", "modifiers", "char", "is_word_boundary", "secure_input"],
+            rows: events.map { evt in
+                [
+                    settings.timestampFormat.format(evt.timestamp),
+                    evt.bundleID ?? "",
+                    evt.appName ?? "",
+                    String(evt.keyCode),
+                    String(evt.modifiers),
+                    evt.char ?? "",
+                    evt.isWordBoundary ? "1" : "0",
+                    evt.secureInput ? "1" : "0"
+                ]
+            }
+        )
+    }
+
+    private func inputRawMouseSection(_ events: [RawMouseEvent], settings: ExportSettings) -> ExportSectionData {
+        ExportSectionData(
+            title: "Raw Mouse Events",
+            headers: ["timestamp", "bundle_id", "app_name", "kind", "button", "x", "y", "screen_id", "scroll_dx", "scroll_dy"],
+            rows: events.map { evt in
+                [
+                    settings.timestampFormat.format(evt.timestamp),
+                    evt.bundleID ?? "",
+                    evt.appName ?? "",
+                    String(evt.kind),
+                    String(evt.button),
+                    String(format: "%.1f", evt.x),
+                    String(format: "%.1f", evt.y),
+                    String(evt.screenID),
+                    evt.scrollDX.map { String(format: "%.2f", $0) } ?? "",
+                    evt.scrollDY.map { String(format: "%.2f", $0) } ?? ""
+                ]
+            }
+        )
     }
 
     func ensureOutputDirectory() throws -> URL {

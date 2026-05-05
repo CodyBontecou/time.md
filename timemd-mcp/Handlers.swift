@@ -51,6 +51,11 @@ enum Handlers {
         case "get_typical_day":     return try typicalDay(args: args, db: db)
         case "get_metadata_hash_breakdown": return try metadataHashBreakdown(args: args, db: db)
         case "raw_query":           return try rawQuery(args: args, db: db)
+        case "get_cursor_heatmap":  return try cursorHeatmap(args: args, db: db)
+        case "get_top_typed_words": return try topTypedWords(args: args, db: db)
+        case "get_top_typed_keys":  return try topTypedKeys(args: args, db: db)
+        case "get_typing_intensity": return try typingIntensity(args: args, db: db)
+        case "get_input_event_counts": return try inputEventCounts(args: args, db: db)
         default: throw HandlerError.unknownTool(name)
         }
     }
@@ -214,6 +219,8 @@ enum Handlers {
             "database_path": Database.screentimeDBPath,
             "category_db_path": Database.categoryMappingsDBPath,
             "category_db_attached": db.hasCategoryMappings,
+            "input_tracking_db_path": Database.inputTrackingDBPath,
+            "input_tracking_db_attached": db.hasInputTrackingTable("keystroke_events"),
             "tables": [
                 [
                     "name": "usage",
@@ -235,6 +242,51 @@ enum Handlers {
                     "columns": [
                         ["name": "app_name", "type": "TEXT", "description": "Primary key — matches usage.app_name."],
                         ["name": "category", "type": "TEXT", "description": "User-assigned category label."]
+                    ]
+                ],
+                [
+                    "name": "inp.keystroke_events",
+                    "description": "Raw key-down events when input tracking is enabled. Lives in input-tracking.db attached as 'inp'.",
+                    "columns": [
+                        ["name": "ts", "type": "REAL", "description": "Unix epoch seconds."],
+                        ["name": "bundle_id", "type": "TEXT", "description": "Frontmost app bundle ID at the time of the keystroke."],
+                        ["name": "key_code", "type": "INTEGER", "description": "macOS virtual key code (or 0 if intensity-only level)."],
+                        ["name": "char", "type": "TEXT", "description": "Captured character if 'Record actual letters' is on, else NULL."],
+                        ["name": "secure_input", "type": "INTEGER", "description": "1 when macOS Secure Input was active (char dropped)."]
+                    ]
+                ],
+                [
+                    "name": "inp.mouse_events",
+                    "description": "Raw mouse events. Includes moves (kind=0), clicks (1=down, 2=up), scrolls (3), drags (4).",
+                    "columns": [
+                        ["name": "ts", "type": "REAL", "description": "Unix epoch seconds."],
+                        ["name": "bundle_id", "type": "TEXT"],
+                        ["name": "kind", "type": "INTEGER", "description": "0=move 1=down 2=up 3=scroll 4=drag"],
+                        ["name": "x", "type": "REAL"],
+                        ["name": "y", "type": "REAL"],
+                        ["name": "screen_id", "type": "INTEGER"]
+                    ]
+                ],
+                [
+                    "name": "inp.typed_words",
+                    "description": "Hourly word-frequency aggregates derived from keystroke_events.",
+                    "columns": [
+                        ["name": "word", "type": "TEXT"],
+                        ["name": "bundle_id", "type": "TEXT"],
+                        ["name": "hour_bucket", "type": "TEXT", "description": "'yyyy-MM-dd HH:00' local time."],
+                        ["name": "count", "type": "INTEGER"]
+                    ]
+                ],
+                [
+                    "name": "inp.cursor_heatmap_bins",
+                    "description": "Hourly cursor heatmap aggregates (32-px bins) derived from mouse_events.",
+                    "columns": [
+                        ["name": "hour_bucket", "type": "TEXT"],
+                        ["name": "bundle_id", "type": "TEXT"],
+                        ["name": "screen_id", "type": "INTEGER"],
+                        ["name": "bin_x", "type": "INTEGER"],
+                        ["name": "bin_y", "type": "INTEGER"],
+                        ["name": "samples", "type": "INTEGER"]
                     ]
                 ]
             ],
@@ -1304,6 +1356,171 @@ enum Handlers {
             "row_count": rows.count,
             "rows": rows
         ])
+    }
+
+    // MARK: - Input tracking handlers
+
+    /// Range start as a `'yyyy-MM-dd HH:00'` bucket label (matches how the
+    /// `cursor_heatmap_bins` and `typed_words` tables key their rows).
+    private static func hourBucket(from iso: String) -> String {
+        // Input is `yyyy-MM-ddTHH:mm:ss`. Strip the `T`, truncate to hour.
+        let s = iso.replacingOccurrences(of: "T", with: " ")
+        let prefix = String(s.prefix(13))  // "yyyy-MM-dd HH"
+        return prefix + ":00"
+    }
+
+    private static func cursorHeatmap(args: Args, db: Database) throws -> String {
+        let r = try DateRange.parse(since: args.string("since"), until: args.string("until"))
+        let startBucket = hourBucket(from: r.start)
+        let endBucket = hourBucket(from: r.end)
+
+        var sql = """
+        SELECT screen_id, bin_x, bin_y, SUM(samples) AS samples
+        FROM inp.cursor_heatmap_bins
+        WHERE hour_bucket >= ? AND hour_bucket <= ?
+        """
+        var bindings: [SQLValue] = [.text(startBucket), .text(endBucket)]
+        if let screenID = args.string("screen_id"), let id = Int(screenID) {
+            sql += " AND screen_id = ?"
+            bindings.append(.int(Int64(id)))
+        }
+        if let bundleID = args.string("bundle_id"), !bundleID.isEmpty {
+            sql += " AND bundle_id = ?"
+            bindings.append(.text(bundleID))
+        }
+        sql += " GROUP BY screen_id, bin_x, bin_y"
+
+        let rows = try db.query(sql, bindings: bindings)
+        return toJSON([
+            "range": ["start": r.start, "end": r.end],
+            "bin_size_pixels": 32,
+            "bins": rows
+        ])
+    }
+
+    private static func topTypedWords(args: Args, db: Database) throws -> String {
+        let r = try DateRange.parse(since: args.string("since"), until: args.string("until"))
+        let startBucket = hourBucket(from: r.start)
+        let endBucket = hourBucket(from: r.end)
+        let limit = max(1, min(args.int("limit", default: 50), 500))
+
+        var sql = """
+        SELECT word, SUM(count) AS total
+        FROM inp.typed_words
+        WHERE hour_bucket >= ? AND hour_bucket <= ?
+        """
+        var bindings: [SQLValue] = [.text(startBucket), .text(endBucket)]
+        if let bundleID = args.string("bundle_id"), !bundleID.isEmpty {
+            sql += " AND bundle_id = ?"
+            bindings.append(.text(bundleID))
+        }
+        sql += " GROUP BY word ORDER BY total DESC LIMIT ?"
+        bindings.append(.int(Int64(limit)))
+
+        let rows = try db.query(sql, bindings: bindings)
+        return toJSON([
+            "range": ["start": r.start, "end": r.end],
+            "words": rows
+        ])
+    }
+
+    private static func topTypedKeys(args: Args, db: Database) throws -> String {
+        let r = try DateRange.parse(since: args.string("since"), until: args.string("until"))
+        let limit = max(1, min(args.int("limit", default: 50), 500))
+        let startTS = isoToUnix(r.start)
+        let endTS = isoToUnix(r.end)
+
+        let sql = """
+        SELECT key_code, COUNT(*) AS count
+        FROM inp.keystroke_events
+        WHERE ts >= ? AND ts <= ?
+        GROUP BY key_code
+        ORDER BY count DESC
+        LIMIT ?
+        """
+        let rows = try db.query(sql, bindings: [
+            .double(startTS), .double(endTS), .int(Int64(limit))
+        ])
+        return toJSON([
+            "range": ["start": r.start, "end": r.end],
+            "keys": rows
+        ])
+    }
+
+    private static func typingIntensity(args: Args, db: Database) throws -> String {
+        let r = try DateRange.parse(since: args.string("since") ?? "1d", until: args.string("until"))
+        let granularity = (args.string("granularity") ?? "hour").lowercased()
+        let startTS = isoToUnix(r.start)
+        let endTS = isoToUnix(r.end)
+
+        let bucketExpr: String
+        switch granularity {
+        case "minute":
+            bucketExpr = "strftime('%Y-%m-%d %H:%M:00', datetime(ts, 'unixepoch', 'localtime'))"
+        default:
+            bucketExpr = "strftime('%Y-%m-%d %H:00:00', datetime(ts, 'unixepoch', 'localtime'))"
+        }
+
+        let sql = """
+        SELECT \(bucketExpr) AS bucket, COUNT(*) AS count
+        FROM inp.keystroke_events
+        WHERE ts >= ? AND ts <= ?
+        GROUP BY bucket
+        ORDER BY bucket
+        """
+        let rows = try db.query(sql, bindings: [.double(startTS), .double(endTS)])
+        return toJSON([
+            "range": ["start": r.start, "end": r.end],
+            "granularity": granularity,
+            "points": rows
+        ])
+    }
+
+    private static func inputEventCounts(args: Args, db: Database) throws -> String {
+        let r = try DateRange.parse(since: args.string("since"), until: args.string("until"))
+        let limit = max(1, min(args.int("limit", default: 25), 500))
+        let startTS = isoToUnix(r.start)
+        let endTS = isoToUnix(r.end)
+
+        let keyRows = try db.query(
+            """
+            SELECT COALESCE(bundle_id, '(unknown)') AS bundle_id, COUNT(*) AS keystroke_count
+            FROM inp.keystroke_events
+            WHERE ts >= ? AND ts <= ?
+            GROUP BY bundle_id
+            ORDER BY keystroke_count DESC
+            LIMIT ?
+            """,
+            bindings: [.double(startTS), .double(endTS), .int(Int64(limit))]
+        )
+        let mouseRows = try db.query(
+            """
+            SELECT COALESCE(bundle_id, '(unknown)') AS bundle_id, COUNT(*) AS mouse_event_count
+            FROM inp.mouse_events
+            WHERE ts >= ? AND ts <= ?
+            GROUP BY bundle_id
+            ORDER BY mouse_event_count DESC
+            LIMIT ?
+            """,
+            bindings: [.double(startTS), .double(endTS), .int(Int64(limit))]
+        )
+
+        return toJSON([
+            "range": ["start": r.start, "end": r.end],
+            "by_bundle": [
+                "keystrokes": keyRows,
+                "mouse_events": mouseRows
+            ]
+        ])
+    }
+
+    /// Converts a `DateRange` ISO string `'yyyy-MM-ddTHH:mm:ss'` to unix epoch.
+    private static func isoToUnix(_ iso: String) -> Double {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = .current
+        f.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        return f.date(from: iso)?.timeIntervalSince1970 ?? 0
     }
 
     // MARK: - JSON helper

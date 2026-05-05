@@ -1,3 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict><key>ITSAppUsesNonExemptEncryption</key><false/></dict></plist>
+<plist version="1.0">
+<dict>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+    <key>NSAccessibilityUsageDescription</key>
+    <string>time.md uses Accessibility services to listen for keyboard and mouse events when you opt in to input tracking. All captured data stays on your Mac.</string>
+    <key>NSInputMonitoringUsageDescription</key>
+    <string>time.md monitors keyboard and mouse input to power the optional cursor heatmap, top-typed-words view, and typing-intensity charts. Off by default — only enabled when you turn on Input Tracking in Settings.</string>
+</dict>
+</plist>

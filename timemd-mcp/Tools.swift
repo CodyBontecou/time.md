@@ -298,11 +298,58 @@ enum Tools {
             ),
             tool(
                 name: "raw_query",
-                description: "Run a read-only SQL SELECT against screentime.db. The category-mappings database is ATTACHed as 'cat' (cat.app_category_map). Only SELECT/WITH/EXPLAIN is permitted and only a single statement. Use get_schema first to see columns.",
+                description: "Run a read-only SQL SELECT against screentime.db. The category-mappings database is ATTACHed as 'cat' (cat.app_category_map) and the input-tracking database is ATTACHed as 'inp' (inp.keystroke_events, inp.mouse_events, inp.typed_words, inp.cursor_heatmap_bins). Only SELECT/WITH/EXPLAIN is permitted and only a single statement. Use get_schema first to see columns.",
                 properties: [
                     "sql": .string("SQL SELECT statement. No semicolons allowed.")
                 ],
                 required: ["sql"]
+            ),
+            tool(
+                name: "get_cursor_heatmap",
+                description: "Cursor heatmap bins (32-pixel grid) from the opt-in input tracker. Each row is one bin: screen_id, bin_x, bin_y, samples (sum). Filter by date, screen, or bundle_id. Empty if input tracking is off.",
+                properties: [
+                    "since": .string("Range specifier. Default 7d."),
+                    "until": .string("Optional end date."),
+                    "screen_id": .integer("Optional: restrict to a single screen index (0-based)."),
+                    "bundle_id": .string("Optional: restrict to one app bundle ID.")
+                ]
+            ),
+            tool(
+                name: "get_top_typed_words",
+                description: "Most frequently typed words in a date range, drawn from typed_words. Requires that the user enabled 'Record actual letters typed' — empty otherwise. Words are pre-filtered to drop password-shaped tokens.",
+                properties: [
+                    "since": .string("Range specifier. Default 7d."),
+                    "until": .string("Optional end date."),
+                    "bundle_id": .string("Optional: filter to one app."),
+                    "limit": .integer("Max words (default 50, max 500).")
+                ]
+            ),
+            tool(
+                name: "get_top_typed_keys",
+                description: "Most pressed keys (by macOS virtual key code) in a date range. Works regardless of content capture — just counts. Includes a human-readable label per key code.",
+                properties: [
+                    "since": .string("Range specifier. Default 7d."),
+                    "until": .string("Optional end date."),
+                    "limit": .integer("Max keys (default 50).")
+                ]
+            ),
+            tool(
+                name: "get_typing_intensity",
+                description: "Keystrokes per time bucket. Useful for 'when was I most actively typing' analyses.",
+                properties: [
+                    "since": .string("Range specifier. Default 1d."),
+                    "until": .string("Optional end date."),
+                    "granularity": .string("'minute' or 'hour'. Default 'hour'.")
+                ]
+            ),
+            tool(
+                name: "get_input_event_counts",
+                description: "Aggregate counts of keystrokes and mouse events in a date range, grouped by bundle_id. Captures total activity intensity per app.",
+                properties: [
+                    "since": .string("Range specifier. Default 7d."),
+                    "until": .string("Optional end date."),
+                    "limit": .integer("Max bundles (default 25).")
+                ]
             )
         ]
     }

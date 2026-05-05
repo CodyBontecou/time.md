@@ -105,6 +105,19 @@ struct MacOnboardingView: View {
                 MacOnboardingFeature(icon: "antenna.radiowaves.left.and.right.slash", text: "Zero tracking or analytics collected"),
             ]
         ),
+        MacOnboardingPage(
+            icon: "keyboard.badge.eye",
+            iconColor: .blue,
+            tag: "11 / OPTIONAL",
+            title: "Track typing & cursor (optional)",
+            subtitle: "Records every key press and mouse movement to power a cursor heatmap, top-typed-words view, and typing-intensity timeline. Stored only on your Mac. Off by default — you can enable it later in Settings → Input Tracking.",
+            features: [
+                MacOnboardingFeature(icon: "hand.raised.fill", text: "Off by default. Explicit opt-in required."),
+                MacOnboardingFeature(icon: "lock.fill", text: "Excludes 1Password, Bitwarden, password fields"),
+                MacOnboardingFeature(icon: "pause.circle.fill", text: "⌥⌘P pauses capture for 30 minutes"),
+                MacOnboardingFeature(icon: "trash.fill", text: "One-tap delete of all captured data"),
+            ]
+        ),
     ]
 
     var body: some View {

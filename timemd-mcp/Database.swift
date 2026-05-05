@@ -50,6 +50,7 @@ final class Database {
 
     static let screentimeDBPath: String = appDataDir + "/screentime.db"
     static let categoryMappingsDBPath: String = appDataDir + "/category-mappings.db"
+    static let inputTrackingDBPath: String = appDataDir + "/input-tracking.db"
     static let currentSessionPath: String = appDataDir + "/current_session.json"
 
     // MARK: - Current session hint
@@ -100,6 +101,28 @@ final class Database {
                 sqlite3_finalize(stmt)
             }
         }
+
+        if FileManager.default.fileExists(atPath: Database.inputTrackingDBPath) {
+            let attachSQL = "ATTACH DATABASE ? AS inp"
+            var stmt: OpaquePointer?
+            if sqlite3_prepare_v2(handle, attachSQL, -1, &stmt, nil) == SQLITE_OK, let stmt = stmt {
+                sqlite3_bind_text(stmt, 1, Database.inputTrackingDBPath, -1, sqliteTransient)
+                sqlite3_step(stmt)
+                sqlite3_finalize(stmt)
+            }
+        }
+    }
+
+    /// True iff the input-tracking sibling DB exists and the requested table
+    /// is present in it. False if the user never enabled input tracking.
+    func hasInputTrackingTable(_ name: String) -> Bool {
+        var stmt: OpaquePointer?
+        let sql = "SELECT name FROM inp.sqlite_master WHERE type='table' AND name = ? LIMIT 1"
+        guard sqlite3_prepare_v2(handle, sql, -1, &stmt, nil) == SQLITE_OK,
+              let statement = stmt else { return false }
+        defer { sqlite3_finalize(statement) }
+        sqlite3_bind_text(statement, 1, name, -1, sqliteTransient)
+        return sqlite3_step(statement) == SQLITE_ROW
     }
 
     deinit {

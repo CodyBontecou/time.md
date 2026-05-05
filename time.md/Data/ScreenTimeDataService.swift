@@ -44,6 +44,73 @@ protocol ScreenTimeDataServing: Sendable {
     // Phase E1 — raw session export
     func fetchRawSessions(filters: FilterSnapshot) async throws -> [RawSession]
     func fetchRawSessionCount(filters: FilterSnapshot) async throws -> Int
+
+    // Input tracking — opt-in keystroke + cursor capture
+    func fetchCursorHeatmap(
+        startDate: Date,
+        endDate: Date,
+        screenID: Int?,
+        bundleID: String?
+    ) async throws -> [CursorHeatmapBin]
+
+    func fetchTopTypedWords(
+        startDate: Date,
+        endDate: Date,
+        bundleID: String?,
+        limit: Int
+    ) async throws -> [TypedWordRow]
+
+    func fetchTopTypedKeys(
+        startDate: Date,
+        endDate: Date,
+        limit: Int
+    ) async throws -> [TypedKeyRow]
+
+    func fetchTypingIntensity(
+        startDate: Date,
+        endDate: Date,
+        granularity: IntensityGranularity
+    ) async throws -> [IntensityPoint]
+
+    func fetchInputTrackingScreenIDs(
+        startDate: Date,
+        endDate: Date
+    ) async throws -> [Int]
+
+    func fetchInputTrackingBundleIDs(
+        startDate: Date,
+        endDate: Date
+    ) async throws -> [String]
+
+    func fetchClickLocations(
+        startDate: Date,
+        endDate: Date,
+        screenID: Int?,
+        bundleID: String?,
+        limit: Int
+    ) async throws -> [ClickLocation]
+
+    func fetchRawKeystrokeEvents(
+        startDate: Date,
+        endDate: Date,
+        limit: Int
+    ) async throws -> [RawKeystrokeEvent]
+
+    func fetchRawKeystrokeEventCount(
+        startDate: Date,
+        endDate: Date
+    ) async throws -> Int
+
+    func fetchRawMouseEvents(
+        startDate: Date,
+        endDate: Date,
+        limit: Int
+    ) async throws -> [RawMouseEvent]
+
+    func fetchRawMouseEventCount(
+        startDate: Date,
+        endDate: Date
+    ) async throws -> Int
 }
 
 enum ScreenTimeDataError: LocalizedError, Sendable {

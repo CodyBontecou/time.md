@@ -188,4 +188,17 @@ private struct MockDataService: ScreenTimeDataServing, @unchecked Sendable {
         PeriodDelta(currentTotalSeconds: 3600, previousTotalSeconds: 3000, percentChange: 20, currentAppsUsed: 5, previousAppsUsed: 4, appDeltas: [])
     }
     func generateInsights(filters: FilterSnapshot) async throws -> [Insight] { [] }
+
+    // Input tracking
+    func fetchCursorHeatmap(startDate: Date, endDate: Date, screenID: Int?, bundleID: String?) async throws -> [CursorHeatmapBin] { [] }
+    func fetchTopTypedWords(startDate: Date, endDate: Date, bundleID: String?, limit: Int) async throws -> [TypedWordRow] { [] }
+    func fetchTopTypedKeys(startDate: Date, endDate: Date, limit: Int) async throws -> [TypedKeyRow] { [] }
+    func fetchTypingIntensity(startDate: Date, endDate: Date, granularity: IntensityGranularity) async throws -> [IntensityPoint] { [] }
+    func fetchInputTrackingScreenIDs(startDate: Date, endDate: Date) async throws -> [Int] { [] }
+    func fetchInputTrackingBundleIDs(startDate: Date, endDate: Date) async throws -> [String] { [] }
+    func fetchClickLocations(startDate: Date, endDate: Date, screenID: Int?, bundleID: String?, limit: Int) async throws -> [ClickLocation] { [] }
+    func fetchRawKeystrokeEvents(startDate: Date, endDate: Date, limit: Int) async throws -> [RawKeystrokeEvent] { [] }
+    func fetchRawKeystrokeEventCount(startDate: Date, endDate: Date) async throws -> Int { 0 }
+    func fetchRawMouseEvents(startDate: Date, endDate: Date, limit: Int) async throws -> [RawMouseEvent] { [] }
+    func fetchRawMouseEventCount(startDate: Date, endDate: Date) async throws -> Int { 0 }
 }

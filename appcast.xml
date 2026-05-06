@@ -7,6 +7,32 @@
         <language>en</language>
 
         <item>
+            <title>Version 2.4.0</title>
+            <pubDate>Wed, 06 May 2026 12:44:22 +0000</pubDate>
+            <sparkle:version>20</sparkle:version>
+            <sparkle:shortVersionString>2.4.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>
+                <![CDATA[
+                    <h2>What's New in 2.4.0</h2>
+                    <h3>In-app auto-updates are here</h3>
+                    <ul>
+                        <li>Sparkle is now integrated into the app — future updates download and install in place</li>
+                        <li>New "Check for Updates…" item in the time.md menu</li>
+                        <li>Updates are signed with an ED25519 key and verified before installation</li>
+                    </ul>
+                    <p>This is the first release with Sparkle linked. Once you're on 2.4.0, every later release will be offered to you automatically.</p>
+                ]]>
+            </description>
+            <enclosure
+                url="https://github.com/codybontecou/time.md/releases/download/v2.4.0/time.md-v2.4.0-macOS.zip"
+                length="10563417"
+                type="application/octet-stream"
+                sparkle:edSignature="IICpcg/MUKtvRJk+3QlcBG6tsasx8rDJVy1NxNSIqbh6HpAk9Xx/AYa8MAQhJ9eY85sPpfGVkBfjGfLM0BxWCQ=="
+            />
+        </item>
+
+        <item>
             <title>Version 2.2.0</title>
             <pubDate>Tue, 05 May 2026 18:37:00 +0000</pubDate>
             <sparkle:version>18</sparkle:version>

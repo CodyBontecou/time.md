@@ -1,13 +1,21 @@
 # time.md
 
-**Personal Screen Time Analytics for macOS**
+> **Open source, privacy-first screen time analytics for macOS — your data stays on your Mac.**
 
-time.md is a privacy-first screen time analytics app that gives you beautiful, detailed insights into your digital habits — all stored locally on your Mac.
-
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey)](#requirements)
+[![Swift](https://img.shields.io/badge/swift-5.9-orange)](#building)
 [![CI](https://github.com/codybontecou/time.md/actions/workflows/ci.yml/badge.svg)](https://github.com/codybontecou/time.md/actions/workflows/ci.yml)
-![Platform](https://img.shields.io/badge/platform-macOS-blue)
-![Swift](https://img.shields.io/badge/swift-5.9-orange)
-![License](https://img.shields.io/badge/license-MIT-green)
+
+time.md is a screen time analytics app for macOS. It reads Apple's `knowledgeC.db` system database, surfaces your daily, weekly, and monthly habits as charts, calendars, and heatmaps, and **keeps every byte of your data on-device**. No accounts. No cloud sync. No third-party dependencies. No analytics. Just you, your Mac, and your history.
+
+**[🌐 timemd.isolated.tech](https://timemd.isolated.tech)** · **[📦 Download](https://github.com/codybontecou/time.md/releases)** · **[🛠 Contribute](CONTRIBUTING.md)** · **[⭐ Star this repo](https://github.com/codybontecou/time.md)**
+
+## Screenshots
+
+| Track your digital day | Own your data | Export to Obsidian |
+|---|---|---|
+| ![Overview dashboard with daily totals and top apps](screenshots/aso-mac/en/01-track.png) | ![Settings showing on-device iCloud sync](screenshots/aso-mac/en/02-own.png) | ![Export view with JSON, CSV, and Markdown options](screenshots/aso-mac/en/03-export.png) |
 
 ## Features
 
@@ -32,10 +40,6 @@ time.md is a privacy-first screen time analytics app that gives you beautiful, d
 - **Local-Only** — All raw data stays on your Mac, never leaves your device
 - **No Account Required** — No sign-up, no servers, no tracking
 - **Your Data, Your Control** — Export anytime, delete anytime
-
-## Screenshots
-
-*Screenshots coming soon*
 
 ## Requirements
 

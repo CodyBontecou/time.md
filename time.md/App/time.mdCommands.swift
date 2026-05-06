@@ -1,10 +1,13 @@
 import SwiftUI
 
 #if os(macOS)
+import Sparkle
+
 /// Keyboard shortcuts and menu commands for time.md
 struct TimeMdCommands: Commands {
     var navigation: NavigationCoordinator
     var filters: GlobalFilterStore
+    var updater: SPUUpdater
     @AppStorage(AppVisibilityMode.storageKey) private var visibilityModeRaw: String = AppVisibilityMode.dockAndMenuBar.rawValue
 
     private var visibilityMode: AppVisibilityMode {
@@ -15,6 +18,11 @@ struct TimeMdCommands: Commands {
         // Replace default "New" command group
         CommandGroup(replacing: .newItem) {
             // No new document creation in time.md
+        }
+
+        // App menu - "Check for Updates…" sits right under "About time.md"
+        CommandGroup(after: .appInfo) {
+            CheckForUpdatesView(updater: updater)
         }
         
         // View menu - Navigation shortcuts

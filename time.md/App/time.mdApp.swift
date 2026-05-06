@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import Sparkle
 import SwiftUI
 
 @main
@@ -7,6 +8,11 @@ struct TimeMdApp: App {
     @NSApplicationDelegateAdaptor(TimeMdAppDelegate.self) private var appDelegate
     @State private var filters = GlobalFilterStore()
     @State private var navigation = NavigationCoordinator()
+    private let updaterController = SPUStandardUpdaterController(
+        startingUpdater: true,
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+    )
     @AppStorage("appNameDisplayMode") private var appNameDisplayMode: String = AppNameDisplayMode.short.rawValue
     @AppStorage(AppVisibilityMode.storageKey) private var visibilityModeRaw: String = AppVisibilityMode.dockAndMenuBar.rawValue
     @AppStorage("hasCompletedMacOnboarding") private var hasCompletedMacOnboarding: Bool = false
@@ -76,7 +82,8 @@ struct TimeMdApp: App {
         .commands {
             TimeMdCommands(
                 navigation: navigation,
-                filters: filters
+                filters: filters,
+                updater: updaterController.updater
             )
         }
 

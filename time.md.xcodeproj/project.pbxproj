@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0038709BBBA5FB4BF84D53EF /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD65EC6D1AD4EE69F36DF681 /* Database.swift */; };
 		1A9EFD058A65ADD1944F9DAB /* Range.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0854AAA1CC65A614DA8F48C4 /* Range.swift */; };
+		5A80000000000000000000B1 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 5A80000000000000000000B2 /* Sparkle */; };
 		A0C491357DFD7937376E660A /* Handlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AFD4FB6382AB13703B46E0E /* Handlers.swift */; };
 		A4A812968C8116EFD69A76D1 /* timemd-mcp in Embed timemd-mcp */ = {isa = PBXBuildFile; fileRef = 7398318A84C4E38901A89C1A /* timemd-mcp */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		CB3E7F56FDC1E5CF05F80818 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0759D0ECDA299009E810F4D /* main.swift */; };
@@ -69,6 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5A80000000000000000000B1 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -127,6 +129,7 @@
 			);
 			name = time.md;
 			packageProductDependencies = (
+				5A80000000000000000000B2 /* Sparkle */,
 			);
 			productName = time.md;
 			productReference = 62B65C142F4C534F00A5B243 /* time.md.app */;
@@ -174,6 +177,7 @@
 			mainGroup = 62B65C0B2F4C534F00A5B243;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				5A80000000000000000000B3 /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 62B65C152F4C534F00A5B243 /* Products */;
@@ -376,7 +380,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 19;
+				CURRENT_PROJECT_VERSION = 20;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = 67KC823C9A;
 				ENABLE_APP_SANDBOX = NO;
@@ -392,7 +396,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.3.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bontecou.time.md;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -417,7 +421,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 19;
+				CURRENT_PROJECT_VERSION = 20;
 				DEVELOPMENT_TEAM = 67KC823C9A;
 				"DEVELOPMENT_TEAM[sdk=macosx*]" = 67KC823C9A;
 				ENABLE_APP_SANDBOX = NO;
@@ -433,7 +437,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 2.3.0;
+				MARKETING_VERSION = 2.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.bontecou.time.md;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -504,6 +508,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5A80000000000000000000B3 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.7.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5A80000000000000000000B2 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5A80000000000000000000B3 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 62B65C0C2F4C534F00A5B243 /* Project object */;
 }

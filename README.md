@@ -2,7 +2,7 @@
 
 > **Open source, privacy-first screen time analytics for macOS — your data stays on your Mac.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey)](#requirements)
 [![Swift](https://img.shields.io/badge/swift-5.9-orange)](#building)
 [![CI](https://github.com/codybontecou/time.md/actions/workflows/ci.yml/badge.svg)](https://github.com/codybontecou/time.md/actions/workflows/ci.yml)
@@ -176,7 +176,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+GNU Affero General Public License v3.0 — see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 

@@ -176,7 +176,7 @@ Include:
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+By contributing, you agree that your contributions will be licensed under the GNU Affero General Public License v3.0.
 
 ---
 

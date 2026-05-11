@@ -16,7 +16,7 @@ struct ExportsView: View {
     @State private var exportMode: ExportMode = .general
 
     // Section selection (for general mode, a curated subset; for extensive, everything)
-    @State private var sectionSelection = ExportSectionSelection.allExceptRaw
+    @State private var sectionSelection = ExportAutomationFormState.generalSectionSelection
 
     // Filter presets
     @State private var filterPresetStore = ExportFilterPresetStore()
@@ -95,16 +95,23 @@ struct ExportsView: View {
             categoryPickerSheet
         }
         .task {
-            await loadAvailableData()
             hydrateScheduleStateFromStore()
+            await loadAvailableData()
         }
     }
 
     private func hydrateScheduleStateFromStore() {
-        guard let s = scheduleStore.schedule else { return }
-        scheduleHour = s.hour
-        scheduleMinute = s.minute
-        scheduleRange = s.relativeDateRange
+        guard let schedule = scheduleStore.schedule else { return }
+        applyAutomationFormState(ExportAutomationFormState(schedule: schedule))
+    }
+
+    private func applyAutomationFormState(_ state: ExportAutomationFormState) {
+        scheduleHour = state.scheduleHour
+        scheduleMinute = state.scheduleMinute
+        scheduleRange = state.scheduleRange
+        selectedFormat = state.selectedFormat
+        sectionSelection = state.sectionSelection
+        exportMode = state.exportMode
     }
 
     // MARK: - Export Mode
@@ -112,6 +119,7 @@ struct ExportsView: View {
     enum ExportMode: String, CaseIterable, Identifiable {
         case general
         case extensive
+        case custom
 
         var id: String { rawValue }
 
@@ -119,6 +127,7 @@ struct ExportsView: View {
             switch self {
             case .general: return String(localized: "General")
             case .extensive: return String(localized: "Extensive")
+            case .custom: return String(localized: "Custom")
             }
         }
 
@@ -126,6 +135,7 @@ struct ExportsView: View {
             switch self {
             case .general: return String(localized: "Summary, top apps, categories, and trends")
             case .extensive: return String(localized: "Everything including raw sessions, heatmaps, web history, and analytics")
+            case .custom: return String(localized: "Your saved or manually selected data sections")
             }
         }
 
@@ -133,6 +143,7 @@ struct ExportsView: View {
             switch self {
             case .general: return "doc.plaintext"
             case .extensive: return "doc.on.doc"
+            case .custom: return "slider.horizontal.3"
             }
         }
     }
@@ -286,9 +297,11 @@ struct ExportsView: View {
     private func applySectionDefaults(for mode: ExportMode) {
         switch mode {
         case .general:
-            sectionSelection = ExportSectionSelection(sections: [.summary, .apps, .categories, .trends])
+            sectionSelection = ExportAutomationFormState.generalSectionSelection
         case .extensive:
             sectionSelection = .full
+        case .custom:
+            break
         }
     }
 
@@ -347,6 +360,7 @@ struct ExportsView: View {
         return Button {
             withAnimation(.easeInOut(duration: 0.1)) {
                 sectionSelection.toggle(section)
+                exportMode = ExportAutomationFormState.exportMode(for: sectionSelection)
             }
         } label: {
             HStack(spacing: 8) {

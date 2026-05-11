@@ -11,7 +11,7 @@ env:
 
 jobs:
   build-macos:
-    name: Build macOS
+    name: Build and Test macOS
     runs-on: macos-15
     steps:
       - name: Checkout
@@ -23,13 +23,13 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
-      - name: Build macOS app
+      - name: Build and test macOS app
         run: |
           xcodebuild -scheme "time.md" \
             -destination 'platform=macOS' \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO \
-            build
+            test
 
   lint:
     name: SwiftLint

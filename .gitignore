@@ -38,3 +38,6 @@ screenshots/
 
 # Playwright CLI session cache
 .playwright-cli/
+
+# Claude agent state
+.claude/

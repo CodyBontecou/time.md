@@ -33,8 +33,9 @@ time.md is a screen time analytics app for macOS. It reads Apple's `knowledgeC.d
 - **Heatmaps** — Discover your most active hours and days
 
 ### 🌐 Web Browsing History
-- Per-domain visit counts and time on site across Safari, Chrome, Arc, Brave, and Edge
+- Per-domain visit counts and time on site across Safari, Chrome, Firefox, Arc, Brave, and Edge
 - Daily averages and peak browsing hours
+- Optional local-only archive so web history can persist after a browser clears its own history
 
 ### 🔒 Privacy First
 - **Local-Only** — All raw data stays on your Mac, never leaves your device
@@ -92,23 +93,24 @@ time.md/
 
 ### Data Refresh
 
-time.md reads Screen Time data from Apple's `knowledgeC.db` system database:
+time.md stores observed usage locally on your Mac:
 
-| Trigger | Interval | Details |
-|---------|----------|---------|
-| App launch | Immediate | Forces a sync on startup |
-| In-app polling | 15 minutes | Throttled to avoid excessive database reads |
-| Background sync | 4 hours | Launch Agent syncs even when the app isn't running |
+| File | Details |
+|------|---------|
+| `~/Library/Application Support/time.md/screentime.db` | Canonical SQLite history used by the app |
+| `~/Library/Application Support/time.md/screen-time-snapshot.json` | Automatically refreshed, human-readable JSON mirror for scripts and MCP tools |
+| `screen-time-auto.<ext>` in your export destination | Automatically refreshed export using the last selected export format, sections, and relative date range |
 
-Apple updates `knowledgeC.db` roughly every 15–30 minutes during active use (undocumented), so polling more frequently than 15 minutes would rarely yield new data.
+The auto-saved files refresh on launch, after recorded sessions, at day changes, and periodically while the app is running. The Export screen controls whether the formatted file is CSV, JSON, YAML, Markdown, or Obsidian-flavored Markdown.
 
 ### Key Components
 
 | Component | Purpose |
 |-----------|---------|
-| `SQLiteScreenTimeDataService` | Reads raw Screen Time data from `knowledgeC.db` |
-| `SQLiteBrowsingHistoryService` | Reads browser history databases (Safari, Chrome, Arc, Brave, Edge) |
-| `ActiveAppTracker` | Captures real-time app switch events |
+| `SQLiteScreenTimeDataService` | Reads normalized usage from the local `screentime.db` |
+| `SQLiteBrowsingHistoryService` | Reads browser history databases (Safari, Chrome, Firefox, Arc, Brave, Edge) |
+| `ActiveAppTracker` | Captures real-time app switch events into `screentime.db` |
+| `ScreenTimeAutoSaveWriter` | Maintains `screen-time-snapshot.json` and the formatted `screen-time-auto.<ext>` export |
 | `GlobalFilterStore` | Manages date range and filter selections |
 
 ## Building

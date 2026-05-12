@@ -79,7 +79,7 @@ struct MacOnboardingView: View {
             iconColor: .blue,
             tag: "08 / WEB HISTORY",
             title: "Where you spend time online",
-            subtitle: "Top domains, daily visit averages, and peak browsing hours — across Safari, Chrome, and Arc.",
+            subtitle: "Top domains, daily visit averages, and peak browsing hours — across Safari, Chrome, Firefox, Arc, Brave, and Edge.",
             features: [],
             screenshot: "OnboardingWebHistory"
         ),
@@ -100,7 +100,7 @@ struct MacOnboardingView: View {
             subtitle: "Tracks app switches in real-time. Everything stays on your Mac.",
             features: [
                 MacOnboardingFeature(icon: "bolt.fill", text: "Real-time tracking via macOS workspace events"),
-                MacOnboardingFeature(icon: "lock.fill", text: "All data stays in time.md's sandbox"),
+                MacOnboardingFeature(icon: "lock.fill", text: "All data stays on your Mac"),
                 MacOnboardingFeature(icon: "person.slash", text: "No account or sign-up required"),
                 MacOnboardingFeature(icon: "antenna.radiowaves.left.and.right.slash", text: "Zero tracking or analytics collected"),
             ]

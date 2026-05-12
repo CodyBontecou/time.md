@@ -69,11 +69,14 @@
           <h2>03 / LOCAL DATA STORAGE</h2>
           <p>time.md reads screen time data from your Mac's local Screen Time database (provided by macOS) and stores processed analytics in a local SQLite database on your machine:</p>
           <ul>
-            <li><strong>Screen time data:</strong> Read from the local <code>screentime.db</code> or <code>knowledgeC.db</code> maintained by macOS.</li>
+            <li><strong>Screen time data:</strong> Stored at <code>~/Library/Application Support/time.md/screentime.db</code>.</li>
+            <li><strong>Readable screen time snapshot:</strong> Automatically refreshed at <code>~/Library/Application Support/time.md/screen-time-snapshot.json</code> for local scripts and tools.</li>
+            <li><strong>Formatted auto-export:</strong> Automatically refreshed as <code>screen-time-auto.&lt;ext&gt;</code> in your chosen export destination, using your last selected CSV, JSON, YAML, Markdown, or Obsidian export settings.</li>
+            <li><strong>Browser history:</strong> Read from local browser history databases for the Web History view. If you explicitly enable “Persist web history locally,” visit rows are archived in <code>~/Library/Application Support/time.md/screentime.db</code> so they remain available after a browser clears its own history.</li>
             <li><strong>Category mappings:</strong> Stored at <code>~/Library/Application Support/time.md/category-mappings.db</code></li>
             <li><strong>Application preferences:</strong> Stored locally via macOS standard <code>UserDefaults</code>.</li>
           </ul>
-          <p>All data remains exclusively on your device. We have no access to it.</p>
+          <p>All data remains exclusively on your device. We have no access to it. The local screen-time files can be removed by deleting <code>~/Library/Application Support/time.md/</code>. Persisted web history can also be deleted from Settings → Web Browsers.</p>
         </section>
 
         <section class="legal-section">
@@ -94,7 +97,7 @@
 
         <section class="legal-section">
           <h2>06 / DATA EXPORT</h2>
-          <p>The App allows you to export your screen time data in PNG, PDF, and CSV formats. These exports are generated locally and saved to a location you choose on your device. We do not have access to your exports.</p>
+          <p>The App allows you to export your screen time data in CSV, JSON, YAML, Markdown, and Obsidian-flavored Markdown formats. The live <code>screen-time-auto.&lt;ext&gt;</code> export uses your last selected export settings. These files are generated locally and saved on your device. We do not have access to your exports.</p>
         </section>
 
         <section class="legal-section">

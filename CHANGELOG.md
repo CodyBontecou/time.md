@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Firefox web history support, including standard local Firefox profile databases.
+- Automatic local screen-time snapshot at `~/Library/Application Support/time.md/screen-time-snapshot.json`, refreshed without running an export.
+- Live formatted auto-export (`screen-time-auto.<ext>`) that follows the user's last selected export format, sections, and relative date range.
+
+### Changed
+- Web History now reads browser history databases directly again for direct-distribution builds, removing per-browser Apple Events prompts when Safari, Chrome, Firefox, Arc, Brave, or Edge becomes active.
+
 ## [2.3.0] - 2026-05-05
 
 ### Added

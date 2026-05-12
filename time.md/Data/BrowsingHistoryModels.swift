@@ -6,6 +6,7 @@ enum BrowserSource: String, CaseIterable, Identifiable, Sendable {
     case all = "All"
     case safari = "Safari"
     case chrome = "Chrome"
+    case firefox = "Firefox"
     case arc = "Arc"
     case brave = "Brave"
     case edge = "Edge"
@@ -17,6 +18,7 @@ enum BrowserSource: String, CaseIterable, Identifiable, Sendable {
         case .all: return String(localized: "All")
         case .safari: return "Safari"
         case .chrome: return "Chrome"
+        case .firefox: return "Firefox"
         case .arc: return "Arc"
         case .brave: return "Brave"
         case .edge: return "Edge"
@@ -28,6 +30,7 @@ enum BrowserSource: String, CaseIterable, Identifiable, Sendable {
         case .all: return "globe"
         case .safari: return "safari"
         case .chrome: return "globe.americas"
+        case .firefox: return "flame"
         case .arc: return "circle.hexagongrid"
         case .brave: return "shield.lefthalf.filled"
         case .edge: return "e.circle"
@@ -38,7 +41,7 @@ enum BrowserSource: String, CaseIterable, Identifiable, Sendable {
     var isChromiumBased: Bool {
         switch self {
         case .chrome, .arc, .brave, .edge: return true
-        case .safari, .all: return false
+        case .safari, .firefox, .all: return false
         }
     }
 }

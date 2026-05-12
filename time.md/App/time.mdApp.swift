@@ -48,6 +48,7 @@ struct TimeMdApp: App {
             .task {
                 await initialSync()
                 ActiveAppTracker.shared.start()
+                ScreenTimeAutoSaveWriter.shared.start(dataService: AppEnvironment.live.dataService)
                 ScheduledExportEnvironment.runner.start()
                 Task.detached(priority: .utility) {
                     AppCategorizer.autoPopulateCategories()
@@ -63,6 +64,7 @@ struct TimeMdApp: App {
             }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
                 ActiveAppTracker.shared.stop()
+                ScreenTimeAutoSaveWriter.shared.stop()
                 InputEventTracker.shared.stop()
                 InputAggregator.shared.stop()
                 InputDataPruner.shared.stop()
@@ -103,9 +105,10 @@ struct TimeMdApp: App {
     /// Fire-and-forget — don't block the UI waiting for sync to complete.
     private func initialSync() async {
         // Prefetch browser history databases in background so Web History view loads instantly
-        Task.detached(priority: .utility) {
-            SQLiteBrowsingHistoryService().prefetchDatabases()
-        }
+        SQLiteBrowsingHistoryService().prefetchDatabases()
+
+        // Start periodic local snapshots for opt-in web history persistence.
+        WebHistoryArchiveScheduler.shared.updateForCurrentSettings()
 
         // One-time: split input-tracking tables out of screentime.db into a
         // sibling DB so the dashboard temp-copy doesn't carry their bulk.

@@ -18,6 +18,9 @@ time.md operates entirely on your device. We have no servers, no analytics, and 
 ### On macOS
 - time.md reads Apple's Screen Time database (`knowledgeC.db`) that's already stored locally on your Mac
 - This data was collected by Apple's Screen Time feature, not by time.md
+- time.md can read local browser history files to show the Web History view
+- If you explicitly enable “Persist web history locally,” time.md stores a local copy of browser visit rows in its own database so they remain visible after a browser clears its history
+- time.md automatically keeps its local screen-time database at `~/Library/Application Support/time.md/screentime.db`, a readable JSON mirror at `~/Library/Application Support/time.md/screen-time-snapshot.json`, and a formatted `screen-time-auto.<ext>` file in your chosen export destination
 - time.md processes this data locally to show you analytics and visualizations
 - No data is sent to us
 
@@ -38,7 +41,10 @@ If you enable iCloud sync:
 
 | Data Type | Where Stored | Who Can Access |
 |-----------|--------------|----------------|
-| Raw screen time sessions | Your Mac only | Only you |
+| Raw screen time sessions (`screentime.db`) | Your Mac only | Only you |
+| Readable screen time snapshot (`screen-time-snapshot.json`) | Your Mac only | Only you |
+| Formatted auto-export (`screen-time-auto.<ext>`) | Your Mac only | Only you |
+| Opt-in web history archive | Your Mac only | Only you |
 | Daily aggregates | iCloud (if enabled) | Only you (and your Apple ID) |
 | Category mappings | Your Mac only | Only you |
 | App preferences | Your device only | Only you |
@@ -56,8 +62,9 @@ We do not use any third-party analytics, advertising, or tracking services.
 You can delete your time.md data at any time:
 
 1. **Delete app data**: Remove time.md from your device
-2. **Delete sync data**: Go to Settings → Apple ID → iCloud → Manage Storage → time.md
-3. **Delete preferences**: Remove `~/Library/Application Support/time.md/` on macOS
+2. **Delete persisted web history**: Use Settings → Web Browsers → Delete persisted web history
+3. **Delete sync data**: Go to Settings → Apple ID → iCloud → Manage Storage → time.md
+4. **Delete local screen-time files**: Remove `~/Library/Application Support/time.md/` and any `screen-time-auto.*` file in your chosen export destination on macOS
 
 ## Children's Privacy
 

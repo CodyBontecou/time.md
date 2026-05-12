@@ -10925,12 +10925,12 @@
         }
       }
     },
-    "Supported browsers: Safari, Chrome, Arc, Brave, Edge": {
+    "Supported browsers: Safari, Chrome, Firefox, Arc, Brave, Edge": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Navegadores compatibles: Safari, Chrome, Arc, Brave, Edge"
+            "value": "Navegadores compatibles: Safari, Chrome, Firefox, Arc, Brave, Edge"
           }
         }
       }

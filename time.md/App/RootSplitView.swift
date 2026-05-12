@@ -107,6 +107,9 @@ private struct SettingsScaffoldView: View {
     }
 
     @State private var browserSettings = BrowserSettingsStore.shared
+    @State private var webHistoryArchiveDeleteConfirmation = false
+    @State private var webHistoryArchiveStatus: String?
+    @State private var isDeletingWebHistoryArchive = false
     @State private var mcpStatuses: [MCPIntegrationService.Agent: MCPIntegrationService.Status] = [:]
     @State private var mcpSnippetCopied: Bool = false
     @State private var mcpAvailableTools: [MCPIntegrationService.ToolInfo] = []
@@ -378,8 +381,8 @@ private struct SettingsScaffoldView: View {
                 settingsBlock(
                     number: 6,
                     title: "DATA SOURCE",
-                    body: "Data loads from local normalized screentime.db",
-                    footnote: "Category mappings saved at ~/Library/Application Support/time.md/category-mappings.db."
+                    body: "Screen time is automatically saved to ~/Library/Application Support/time.md/screentime.db",
+                    footnote: "A readable JSON snapshot is also kept at ~/Library/Application Support/time.md/screen-time-snapshot.json. The Export screen maintains screen-time-auto in your chosen CSV/JSON/Markdown/Obsidian format."
                 )
 
                 settingsBlock(
@@ -408,6 +411,14 @@ private struct SettingsScaffoldView: View {
         }
         .scrollClipDisabled()
         .scrollIndicators(.never)
+        .alert("Delete persisted web history?", isPresented: $webHistoryArchiveDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
+                Task { await deletePersistedWebHistoryArchive() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This removes only time.md's local web history archive. It does not change any browser's own history.")
+        }
     }
     
     // MARK: - Browser Settings Section
@@ -454,6 +465,70 @@ private struct SettingsScaffoldView: View {
                         .foregroundColor(BrutalTheme.textTertiary)
                 }
                 .padding(.top, 4)
+
+                Divider()
+                    .opacity(0.35)
+                    .padding(.vertical, 4)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .top, spacing: 12) {
+                        Image(systemName: browserSettings.webHistoryPersistenceEnabled ? "archivebox.fill" : "archivebox")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(browserSettings.webHistoryPersistenceEnabled ? BrutalTheme.accent : BrutalTheme.textSecondary)
+                            .frame(width: 24, height: 24)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Persist web history locally")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(BrutalTheme.textPrimary)
+
+                            Text("Opt in to archive browser visits in time.md's local database so Web History can remain available after Safari or another browser clears its own history.")
+                                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                .foregroundColor(BrutalTheme.textTertiary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        Spacer()
+
+                        Toggle("", isOn: Binding(
+                            get: { browserSettings.webHistoryPersistenceEnabled },
+                            set: { browserSettings.setWebHistoryPersistenceEnabled($0) }
+                        ))
+                        .toggleStyle(.switch)
+                        .tint(.green)
+                        .labelsHidden()
+                    }
+
+                    HStack(spacing: 10) {
+                        Button(role: .destructive) {
+                            webHistoryArchiveDeleteConfirmation = true
+                        } label: {
+                            Label(isDeletingWebHistoryArchive ? "Deleting…" : "Delete persisted web history", systemImage: "trash")
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(isDeletingWebHistoryArchive)
+
+                        if let webHistoryArchiveStatus {
+                            Text(webHistoryArchiveStatus)
+                                .font(BrutalTheme.captionMono)
+                                .foregroundColor(BrutalTheme.textTertiary)
+                        }
+                    }
+
+                    Text("Stored only at ~/Library/Application Support/time.md/screentime.db. Disable this any time to stop future snapshots; use Delete to remove the archive.")
+                        .font(BrutalTheme.captionMono)
+                        .foregroundColor(BrutalTheme.textTertiary)
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(BrutalTheme.surface.opacity(0.35))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(browserSettings.webHistoryPersistenceEnabled ? BrutalTheme.accent.opacity(0.35) : BrutalTheme.border.opacity(0.3), lineWidth: 1)
+                        )
+                )
+                .frame(maxWidth: 500)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -512,6 +587,19 @@ private struct SettingsScaffoldView: View {
                         .stroke(isInstalled && isEnabled ? BrutalTheme.accent.opacity(0.3) : BrutalTheme.border.opacity(0.3), lineWidth: 1)
                 )
         )
+    }
+
+    @MainActor
+    private func deletePersistedWebHistoryArchive() async {
+        isDeletingWebHistoryArchive = true
+        defer { isDeletingWebHistoryArchive = false }
+
+        do {
+            try await WebHistoryArchiveStore.deleteAll()
+            webHistoryArchiveStatus = "Archive deleted."
+        } catch {
+            webHistoryArchiveStatus = "Delete failed: \(error.localizedDescription)"
+        }
     }
     
     // MARK: - MCP Integration Section

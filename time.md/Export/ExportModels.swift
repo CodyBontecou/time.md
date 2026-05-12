@@ -898,7 +898,16 @@ struct ExportSettings: Codable {
     /// Per-scope field selections (persisted separately for flexibility)
     var fieldSelections: [String: ExportFieldSelection] = [:]
 
+    /// Live auto-save mirrors the export screen's last chosen format/sections/range.
+    /// Optional for backward-compatible decoding of older settings blobs.
+    var autoSaveExportFormat: ExportFormat?
+    var autoSaveExportSections: ExportSectionSelection?
+    var autoSaveRelativeDateRange: RelativeDateRange?
+    var autoSaveFilenameTemplate: String?
+
     private static let key = "com.timeprint.exportSettings"
+    static let defaultAutoSaveFilenameTemplate = "screen-time-auto"
+    static let defaultAutoSaveSections = ExportSectionSelection(sections: [.summary, .apps, .categories, .trends])
 
     static func load() -> ExportSettings {
         guard let data = UserDefaults.standard.data(forKey: key),
@@ -912,6 +921,37 @@ struct ExportSettings: Codable {
         if let data = try? JSONEncoder().encode(self) {
             UserDefaults.standard.set(data, forKey: Self.key)
         }
+    }
+
+    var resolvedAutoSaveExportFormat: ExportFormat {
+        autoSaveExportFormat ?? .csv
+    }
+
+    var resolvedAutoSaveExportSections: ExportSectionSelection {
+        autoSaveExportSections ?? Self.defaultAutoSaveSections
+    }
+
+    var resolvedAutoSaveRelativeDateRange: RelativeDateRange {
+        autoSaveRelativeDateRange ?? .today
+    }
+
+    var resolvedAutoSaveFilenameTemplate: String {
+        if let autoSaveFilenameTemplate, !autoSaveFilenameTemplate.isEmpty {
+            return autoSaveFilenameTemplate
+        }
+        return Self.defaultAutoSaveFilenameTemplate
+    }
+
+    mutating func setAutoSaveExport(
+        format: ExportFormat,
+        sections: ExportSectionSelection,
+        relativeDateRange: RelativeDateRange
+    ) {
+        autoSaveExportFormat = format
+        autoSaveExportSections = sections
+        autoSaveRelativeDateRange = relativeDateRange
+        autoSaveFilenameTemplate = Self.defaultAutoSaveFilenameTemplate
+        save()
     }
 
     /// Resolve the saved default export directory to a URL.

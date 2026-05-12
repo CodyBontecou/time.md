@@ -96,13 +96,37 @@ struct ExportsView: View {
         }
         .task {
             hydrateScheduleStateFromStore()
+            persistAutoSaveSettings()
             await loadAvailableData()
         }
+        .onChange(of: selectedFormat) { _, _ in persistAutoSaveSettings() }
+        .onChange(of: sectionSelection) { _, _ in persistAutoSaveSettings() }
+        .onChange(of: scheduleRange) { _, _ in persistAutoSaveSettings() }
     }
 
     private func hydrateScheduleStateFromStore() {
-        guard let schedule = scheduleStore.schedule else { return }
-        applyAutomationFormState(ExportAutomationFormState(schedule: schedule))
+        if let schedule = scheduleStore.schedule {
+            applyAutomationFormState(ExportAutomationFormState(schedule: schedule))
+            return
+        }
+
+        let settings = ExportSettings.load()
+        let state = ExportAutomationFormState(
+            selectedFormat: settings.resolvedAutoSaveExportFormat,
+            sectionSelection: settings.resolvedAutoSaveExportSections,
+            scheduleRange: settings.resolvedAutoSaveRelativeDateRange
+        )
+        applyAutomationFormState(state)
+    }
+
+    private func persistAutoSaveSettings() {
+        var settings = ExportSettings.load()
+        settings.setAutoSaveExport(
+            format: selectedFormat,
+            sections: sectionSelection,
+            relativeDateRange: scheduleRange
+        )
+        ScreenTimeAutoSaveWriter.shared.requestWrite(delay: 1)
     }
 
     private func applyAutomationFormState(_ state: ExportAutomationFormState) {
@@ -807,6 +831,7 @@ struct ExportsView: View {
                             var settings = ExportSettings.load()
                             settings.setDefaultExportDirectory(nil)
                             exportDirectory = nil
+                            ScreenTimeAutoSaveWriter.shared.requestWrite(delay: 1)
                         } label: {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 14))
@@ -840,6 +865,7 @@ struct ExportsView: View {
                     settings.setDefaultExportDirectory(url)
                 }
                 exportDirectory = url
+                ScreenTimeAutoSaveWriter.shared.requestWrite(delay: 1)
             }
         }
     }
@@ -876,8 +902,8 @@ struct ExportsView: View {
                 }
 
                 Text(scheduleStore.schedule == nil
-                     ? "Run this export automatically on a schedule and write results to the destination above."
-                     : "An export runs automatically using the current sections, format, and destination above.")
+                     ? "These settings also maintain a live auto-save file named screen-time-auto.\(selectedFormat.fileExtension). Add a schedule if you want timestamped exports too."
+                     : "A live auto-save file and scheduled exports both use the current sections, format, date range, and destination above.")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(BrutalTheme.textTertiary)
 
@@ -1050,6 +1076,7 @@ struct ExportsView: View {
             isEnabled: true
         )
         scheduleStore.save(schedule)
+        persistAutoSaveSettings()
     }
 
     // MARK: - Export Button

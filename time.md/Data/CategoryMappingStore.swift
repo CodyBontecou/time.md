@@ -173,7 +173,7 @@ private extension CategoryMappingStore {
             return url
         }
 
-        let base = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+        let base = realHomeDirectory()
             .appendingPathComponent("Library/Application Support/time.md", isDirectory: true)
 
         do {

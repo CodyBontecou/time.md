@@ -5,7 +5,7 @@ import SQLite3
 /// Returns the real user home directory, bypassing the sandbox container.
 /// In a sandboxed app `NSHomeDirectory()` returns the container path;
 /// this function uses POSIX `getpwuid` to get the actual `/Users/<name>`.
-func realHomeDirectory() -> URL {
+nonisolated func realHomeDirectory() -> URL {
     if let pw = getpwuid(getuid()), let home = pw.pointee.pw_dir {
         return URL(fileURLWithPath: String(cString: home), isDirectory: true)
     }
@@ -173,8 +173,16 @@ enum ScreenTimeDataError: LocalizedError, Sendable {
 struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
     private let overridePath: String?
 
-    init(pathOverride: String? = ProcessInfo.processInfo.environment["SCREENTIME_DB_PATH"]) {
-        self.overridePath = pathOverride
+    init(pathOverride: String? = nil) {
+        self.overridePath = pathOverride ?? Self.environmentOverrideIfExplicitlyEnabled()
+    }
+
+    private static func environmentOverrideIfExplicitlyEnabled() -> String? {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["TIMEMD_ALLOW_SCREENTIME_DB_PATH"] == "1" else {
+            return nil
+        }
+        return environment["SCREENTIME_DB_PATH"]
     }
 
     func fetchDashboardSummary(filters: FilterSnapshot) async throws -> DashboardSummary {
@@ -1462,12 +1470,17 @@ private extension SQLiteScreenTimeDataService {
         }
 
         let sandboxHome = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
-        let candidates = [
+        let userHome = realHomeDirectory()
+        var candidates = [
+            userHome.appendingPathComponent("Library/Application Support/time.md/screentime.db"),
             URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true).appendingPathComponent("screentime.db"),
             URL(fileURLWithPath: "/data/screentime.db"),
             sandboxHome.appendingPathComponent("screentime.db"),
-            sandboxHome.appendingPathComponent("Library/Application Support/time.md/screentime.db"),
         ]
+        let sandboxAppSupport = sandboxHome.appendingPathComponent("Library/Application Support/time.md/screentime.db")
+        if sandboxAppSupport.path != candidates[0].path {
+            candidates.append(sandboxAppSupport)
+        }
 
         var searched: [String] = []
 

@@ -14,9 +14,11 @@ final class BrowserSettingsStore: @unchecked Sendable {
     private enum Keys {
         static let safariEnabled = "browser.safari.enabled"
         static let chromeEnabled = "browser.chrome.enabled"
+        static let firefoxEnabled = "browser.firefox.enabled"
         static let arcEnabled = "browser.arc.enabled"
         static let braveEnabled = "browser.brave.enabled"
         static let edgeEnabled = "browser.edge.enabled"
+        static let webHistoryPersistenceEnabled = WebHistoryArchiveStore.enabledKey
     }
     
     // MARK: - Browser Enable States
@@ -27,6 +29,10 @@ final class BrowserSettingsStore: @unchecked Sendable {
     
     var chromeEnabled: Bool {
         didSet { defaults.set(chromeEnabled, forKey: Keys.chromeEnabled) }
+    }
+
+    var firefoxEnabled: Bool {
+        didSet { defaults.set(firefoxEnabled, forKey: Keys.firefoxEnabled) }
     }
     
     var arcEnabled: Bool {
@@ -40,6 +46,19 @@ final class BrowserSettingsStore: @unchecked Sendable {
     var edgeEnabled: Bool {
         didSet { defaults.set(edgeEnabled, forKey: Keys.edgeEnabled) }
     }
+
+    var webHistoryPersistenceEnabled: Bool {
+        didSet {
+            defaults.set(webHistoryPersistenceEnabled, forKey: Keys.webHistoryPersistenceEnabled)
+            WebHistoryArchiveStore.setEnabled(webHistoryPersistenceEnabled)
+            WebHistoryArchiveScheduler.shared.updateForCurrentSettings()
+            if webHistoryPersistenceEnabled {
+                Task.detached(priority: .utility) {
+                    await SQLiteBrowsingHistoryService().snapshotRecentHistoryForPersistence(days: 90)
+                }
+            }
+        }
+    }
     
     // MARK: - Init
     
@@ -50,6 +69,9 @@ final class BrowserSettingsStore: @unchecked Sendable {
         }
         if defaults.object(forKey: Keys.chromeEnabled) == nil {
             defaults.set(true, forKey: Keys.chromeEnabled)
+        }
+        if defaults.object(forKey: Keys.firefoxEnabled) == nil {
+            defaults.set(true, forKey: Keys.firefoxEnabled)
         }
         if defaults.object(forKey: Keys.arcEnabled) == nil {
             defaults.set(true, forKey: Keys.arcEnabled)
@@ -64,9 +86,12 @@ final class BrowserSettingsStore: @unchecked Sendable {
         // Load current values
         self.safariEnabled = defaults.bool(forKey: Keys.safariEnabled)
         self.chromeEnabled = defaults.bool(forKey: Keys.chromeEnabled)
+        self.firefoxEnabled = defaults.bool(forKey: Keys.firefoxEnabled)
         self.arcEnabled = defaults.bool(forKey: Keys.arcEnabled)
         self.braveEnabled = defaults.bool(forKey: Keys.braveEnabled)
         self.edgeEnabled = defaults.bool(forKey: Keys.edgeEnabled)
+        self.webHistoryPersistenceEnabled = defaults.bool(forKey: Keys.webHistoryPersistenceEnabled)
+        WebHistoryArchiveScheduler.shared.updateForCurrentSettings()
     }
     
     // MARK: - Helpers
@@ -77,6 +102,7 @@ final class BrowserSettingsStore: @unchecked Sendable {
         case .all: return true
         case .safari: return safariEnabled
         case .chrome: return chromeEnabled
+        case .firefox: return firefoxEnabled
         case .arc: return arcEnabled
         case .brave: return braveEnabled
         case .edge: return edgeEnabled
@@ -89,18 +115,25 @@ final class BrowserSettingsStore: @unchecked Sendable {
         case .all: break // Cannot toggle "all"
         case .safari: safariEnabled.toggle()
         case .chrome: chromeEnabled.toggle()
+        case .firefox: firefoxEnabled.toggle()
         case .arc: arcEnabled.toggle()
         case .brave: braveEnabled.toggle()
         case .edge: edgeEnabled.toggle()
         }
     }
     
+    /// Set enabled state for web history persistence.
+    func setWebHistoryPersistenceEnabled(_ enabled: Bool) {
+        webHistoryPersistenceEnabled = enabled
+    }
+
     /// Set enabled state for a specific browser
     func setEnabled(_ browser: BrowserSource, enabled: Bool) {
         switch browser {
         case .all: break // Cannot set "all"
         case .safari: safariEnabled = enabled
         case .chrome: chromeEnabled = enabled
+        case .firefox: firefoxEnabled = enabled
         case .arc: arcEnabled = enabled
         case .brave: braveEnabled = enabled
         case .edge: edgeEnabled = enabled
@@ -131,7 +164,7 @@ final class BrowserSettingsStore: @unchecked Sendable {
     
     /// Get all browsers with their installation and enabled status
     func allBrowsersStatus() -> [(browser: BrowserSource, isInstalled: Bool, isEnabled: Bool)] {
-        let allBrowsers: [BrowserSource] = [.safari, .chrome, .arc, .brave, .edge]
+        let allBrowsers: [BrowserSource] = [.safari, .chrome, .firefox, .arc, .brave, .edge]
         let service = SQLiteBrowsingHistoryService()
         let installed = Set(service.availableBrowsers())
         

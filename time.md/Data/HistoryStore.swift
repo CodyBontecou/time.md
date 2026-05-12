@@ -15,7 +15,7 @@ enum HistoryStore {
 
     /// Location of the persistent history database.
     /// Creates the file and schema on first call if needed.
-    static func databaseURL() throws -> URL {
+    nonisolated static func databaseURL() throws -> URL {
         let base = try applicationSupportDirectory()
         let url = base.appendingPathComponent("screentime.db")
         try ensureSchema(at: url)
@@ -33,8 +33,8 @@ enum HistoryStore {
         return url
     }
 
-    private static func applicationSupportDirectory() throws -> URL {
-        let base = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+    nonisolated private static func applicationSupportDirectory() throws -> URL {
+        let base = realHomeDirectory()
             .appendingPathComponent("Library/Application Support/time.md", isDirectory: true)
         try FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
         return base
@@ -42,7 +42,7 @@ enum HistoryStore {
 
     // MARK: - Schema
 
-    private static func ensureSchema(at url: URL) throws {
+    nonisolated private static func ensureSchema(at url: URL) throws {
         var handle: OpaquePointer?
         let result = sqlite3_open_v2(
             url.path, &handle,
@@ -68,6 +68,19 @@ enum HistoryStore {
             device_id TEXT,
             metadata_hash TEXT
         );
+
+        CREATE TABLE IF NOT EXISTS web_history_visits (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            browser TEXT NOT NULL,
+            url TEXT NOT NULL,
+            title TEXT NOT NULL DEFAULT '',
+            domain TEXT NOT NULL DEFAULT '',
+            visit_time REAL NOT NULL,
+            duration_seconds REAL,
+            first_seen_at REAL NOT NULL,
+            last_seen_at REAL NOT NULL,
+            UNIQUE(browser, visit_time, url)
+        );
         """
         guard sqlite3_exec(db, createSQL, nil, nil, nil) == SQLITE_OK else {
             throw ScreenTimeDataError.sqlite(path: url.path, message: String(cString: sqlite3_errmsg(db)))
@@ -87,6 +100,9 @@ enum HistoryStore {
         CREATE INDEX IF NOT EXISTS idx_usage_app_name ON usage(app_name);
         CREATE INDEX IF NOT EXISTS idx_usage_stream_type ON usage(stream_type);
         CREATE INDEX IF NOT EXISTS idx_usage_device_id ON usage(device_id);
+        CREATE INDEX IF NOT EXISTS idx_web_history_visit_time ON web_history_visits(visit_time);
+        CREATE INDEX IF NOT EXISTS idx_web_history_browser_time ON web_history_visits(browser, visit_time);
+        CREATE INDEX IF NOT EXISTS idx_web_history_domain_time ON web_history_visits(domain, visit_time);
         """
         guard sqlite3_exec(db, indexSQL, nil, nil, nil) == SQLITE_OK else {
             throw ScreenTimeDataError.sqlite(path: url.path, message: String(cString: sqlite3_errmsg(db)))

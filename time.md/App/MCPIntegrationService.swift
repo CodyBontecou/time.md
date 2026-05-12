@@ -63,14 +63,21 @@ final class MCPIntegrationService {
         var id: String { name }
     }
 
+    /// UserDefaults key for the global MCP server on/off switch.
+    nonisolated static let serverEnabledDefaultsKey = "MCPServerEnabled"
+
     /// The MCP server name written into each agent's config.
     private let serverKey = "timemd"
     private let disabledDefaultsKey = "MCPDisabledTools"
-    private let envVarKey = "TIMEMD_DISABLED_TOOLS"
+    private let enabledEnvVarKey = "TIMEMD_MCP_ENABLED"
+    private let disabledEnvVarKey = "TIMEMD_DISABLED_TOOLS"
+    private let runtimeSettingsFileName = "mcp-settings.json"
 
     private var cachedTools: [ToolInfo]?
 
-    private init() {}
+    private init() {
+        syncRuntimeSettings()
+    }
 
     // MARK: - Binary
 
@@ -118,7 +125,25 @@ final class MCPIntegrationService {
         return tools
     }
 
-    // MARK: - Disabled tools
+    // MARK: - Server toggle / disabled tools
+
+    /// Whether MCP access is globally enabled. Defaults to `true` for backward
+    /// compatibility; turning it off makes the bundled server return no tools.
+    func isServerEnabled() -> Bool {
+        if UserDefaults.standard.object(forKey: Self.serverEnabledDefaultsKey) == nil {
+            return true
+        }
+        return UserDefaults.standard.bool(forKey: Self.serverEnabledDefaultsKey)
+    }
+
+    /// Updates the global MCP switch and refreshes any registered agent configs
+    /// so copied env vars match the current preference.
+    @discardableResult
+    func setServerEnabled(_ enabled: Bool) -> [Agent: Status] {
+        UserDefaults.standard.set(enabled, forKey: Self.serverEnabledDefaultsKey)
+        syncRuntimeSettings()
+        return refreshRegisteredAgents()
+    }
 
     /// Names of tools the user has toggled off, persisted to `UserDefaults`.
     func disabledTools() -> Set<String> {
@@ -132,6 +157,16 @@ final class MCPIntegrationService {
     @discardableResult
     func setDisabledTools(_ disabled: Set<String>) -> [Agent: Status] {
         UserDefaults.standard.set(Array(disabled).sorted(), forKey: disabledDefaultsKey)
+        syncRuntimeSettings()
+        return refreshRegisteredAgents()
+    }
+
+    /// Comma-separated env var value (sorted for deterministic JSON output).
+    private var disabledEnvValue: String {
+        disabledTools().sorted().joined(separator: ",")
+    }
+
+    private func refreshRegisteredAgents() -> [Agent: Status] {
         var updated: [Agent: Status] = [:]
         for agent in Agent.allCases {
             if case .registered = status(for: agent) {
@@ -141,9 +176,44 @@ final class MCPIntegrationService {
         return updated
     }
 
-    /// Comma-separated env var value (sorted for deterministic JSON output).
-    private var disabledEnvValue: String {
-        disabledTools().sorted().joined(separator: ",")
+    /// Writes the runtime settings file consumed by `timemd-mcp`. This lets the
+    /// app-level on/off switch take effect even for agents that were configured
+    /// manually and don't have freshly generated env vars.
+    func syncRuntimeSettings() {
+        do {
+            let directory = applicationSupportDirectory()
+            if !FileManager.default.fileExists(atPath: directory.path) {
+                try FileManager.default.createDirectory(
+                    at: directory,
+                    withIntermediateDirectories: true
+                )
+            }
+
+            let payload: [String: Any] = [
+                "enabled": isServerEnabled(),
+                "disabledTools": disabledTools().sorted()
+            ]
+            let data = try JSONSerialization.data(
+                withJSONObject: payload,
+                options: [.prettyPrinted, .sortedKeys]
+            )
+            try data.write(
+                to: directory.appendingPathComponent(runtimeSettingsFileName),
+                options: .atomic
+            )
+        } catch {
+            // Non-fatal: registered configs still carry env vars as a fallback.
+        }
+    }
+
+    private func applicationSupportDirectory() -> URL {
+        let base = FileManager.default.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        ).first ?? URL(fileURLWithPath: NSHomeDirectory())
+            .appendingPathComponent("Library")
+            .appendingPathComponent("Application Support")
+        return base.appendingPathComponent("time.md", isDirectory: true)
     }
 
     // MARK: - Snippet
@@ -166,9 +236,12 @@ final class MCPIntegrationService {
 
     private func serverEntry(binaryPath: String) -> [String: Any] {
         var env: [String: String] = [:]
+        if !isServerEnabled() {
+            env[enabledEnvVarKey] = "0"
+        }
         let disabled = disabledEnvValue
         if !disabled.isEmpty {
-            env[envVarKey] = disabled
+            env[disabledEnvVarKey] = disabled
         }
         return [
             "command": binaryPath,

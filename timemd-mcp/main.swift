@@ -36,41 +36,111 @@ if CommandLine.arguments.dropFirst().contains("--list-tools") {
     exit(0)
 }
 
-/// Tools the operator has disabled, sourced from the `TIMEMD_DISABLED_TOOLS`
-/// environment variable (comma-separated tool names). `tools/list` filters
-/// these out and `tools/call` rejects them.
-let disabledTools: Set<String> = {
-    guard let raw = ProcessInfo.processInfo.environment["TIMEMD_DISABLED_TOOLS"] else {
-        return []
+let enabledEnvVarKey = "TIMEMD_MCP_ENABLED"
+let disabledToolsEnvVarKey = "TIMEMD_DISABLED_TOOLS"
+let settingsPathEnvVarKey = "TIMEMD_MCP_SETTINGS_PATH"
+let runtimeSettingsFileName = "mcp-settings.json"
+
+struct RuntimeSettings {
+    let enabled: Bool?
+    let disabledTools: Set<String>?
+}
+
+struct EffectiveSettings {
+    let enabled: Bool
+    let disabledTools: Set<String>
+}
+
+/// Runtime settings are written by the app to Application Support so the
+/// global on/off switch works even for manually configured MCP clients whose
+/// JSON config does not include freshly generated environment variables.
+let startupSettings = effectiveSettings()
+
+var database: Database?
+if startupSettings.enabled {
+    log("Starting — will read \(Database.screentimeDBPath) on demand")
+    if !startupSettings.disabledTools.isEmpty {
+        log("Disabled tools: \(startupSettings.disabledTools.sorted().joined(separator: ", "))")
     }
+} else {
+    log("Server disabled in time.md settings — returning no tools")
+}
+
+while let line = readLine(strippingNewline: true) {
+    if line.isEmpty { continue }
+    handle(line: line)
+}
+
+// MARK: - Runtime settings
+
+func loadRuntimeSettings() -> RuntimeSettings {
+    let url: URL
+    if let overridePath = ProcessInfo.processInfo.environment[settingsPathEnvVarKey], !overridePath.isEmpty {
+        url = URL(fileURLWithPath: overridePath)
+    } else {
+        url = runtimeSettingsURL().appendingPathComponent(runtimeSettingsFileName)
+    }
+    guard let data = try? Data(contentsOf: url),
+          let object = try? JSONSerialization.jsonObject(with: data),
+          let json = object as? [String: Any] else {
+        return RuntimeSettings(enabled: nil, disabledTools: nil)
+    }
+
+    let enabled = json["enabled"] as? Bool
+    let disabled = (json["disabledTools"] as? [String]).map { Set($0) }
+    return RuntimeSettings(enabled: enabled, disabledTools: disabled)
+}
+
+func runtimeSettingsURL() -> URL {
+    let base = FileManager.default.urls(
+        for: .applicationSupportDirectory,
+        in: .userDomainMask
+    ).first ?? URL(fileURLWithPath: NSHomeDirectory())
+        .appendingPathComponent("Library")
+        .appendingPathComponent("Application Support")
+    return base.appendingPathComponent("time.md", isDirectory: true)
+}
+
+func effectiveSettings() -> EffectiveSettings {
+    let runtimeSettings = loadRuntimeSettings()
+    let enabled = runtimeSettings.enabled
+        ?? parseBoolean(ProcessInfo.processInfo.environment[enabledEnvVarKey])
+        ?? true
+    let disabledTools = runtimeSettings.disabledTools ?? parseToolList(
+        ProcessInfo.processInfo.environment[disabledToolsEnvVarKey]
+    )
+    return EffectiveSettings(enabled: enabled, disabledTools: disabledTools)
+}
+
+func ensureDatabase() throws -> Database {
+    if let database { return database }
+    let opened = try Database()
+    database = opened
+    log("Starting — reading \(Database.screentimeDBPath)")
+    return opened
+}
+
+func parseBoolean(_ raw: String?) -> Bool? {
+    guard let raw else { return nil }
+    switch raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+    case "1", "true", "yes", "on": return true
+    case "0", "false", "no", "off": return false
+    default: return nil
+    }
+}
+
+func parseToolList(_ raw: String?) -> Set<String> {
+    guard let raw else { return [] }
     let names = raw
         .split(separator: ",")
         .map { $0.trimmingCharacters(in: .whitespaces) }
         .filter { !$0.isEmpty }
     return Set(names)
-}()
-
-let database: Database
-do {
-    database = try Database()
-} catch {
-    log("Failed to open database: \(error)")
-    exit(1)
-}
-
-log("Starting — reading \(Database.screentimeDBPath)")
-if !disabledTools.isEmpty {
-    log("Disabled tools: \(disabledTools.sorted().joined(separator: ", "))")
-}
-
-while let line = readLine(strippingNewline: true) {
-    if line.isEmpty { continue }
-    handle(line: line, db: database)
 }
 
 // MARK: - Message handling
 
-func handle(line: String, db: Database) {
+func handle(line: String) {
     guard let data = line.data(using: .utf8),
           let object = try? JSONSerialization.jsonObject(with: data),
           let message = object as? [String: Any] else {
@@ -87,6 +157,10 @@ func handle(line: String, db: Database) {
     }
 
     let params = message["params"] as? [String: Any] ?? [:]
+    let settings = effectiveSettings()
+    if !settings.enabled {
+        database = nil
+    }
 
     switch method {
     case "initialize":
@@ -101,16 +175,27 @@ func handle(line: String, db: Database) {
         ])
 
     case "tools/list":
+        guard settings.enabled else {
+            respond(id: id!, result: ["tools": [Any]()])
+            return
+        }
         let visible = Tools.all().filter { entry in
             guard let name = entry["name"] as? String else { return true }
-            return !disabledTools.contains(name)
+            return !settings.disabledTools.contains(name)
         }
         respond(id: id!, result: ["tools": visible])
 
     case "tools/call":
         let name = params["name"] as? String ?? ""
         let arguments = params["arguments"] as? [String: Any]
-        if disabledTools.contains(name) {
+        guard settings.enabled else {
+            respond(id: id!, result: [
+                "content": [["type": "text", "text": "Error: timemd-mcp is turned off in time.md settings."]],
+                "isError": true
+            ])
+            return
+        }
+        if settings.disabledTools.contains(name) {
             respond(id: id!, result: [
                 "content": [["type": "text", "text": "Error: tool '\(name)' is disabled in time.md settings."]],
                 "isError": true
@@ -118,6 +203,7 @@ func handle(line: String, db: Database) {
             return
         }
         do {
+            let db = try ensureDatabase()
             let text = try Handlers.dispatch(name: name, arguments: arguments, db: db)
             respond(id: id!, result: [
                 "content": [["type": "text", "text": text]],

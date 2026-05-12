@@ -97,6 +97,7 @@ private struct SettingsScaffoldView: View {
     @AppStorage("insightTickerAutoScroll") private var insightTickerAutoScroll: Bool = true
     @AppStorage(AppVisibilityMode.storageKey) private var visibilityModeRaw: String = AppVisibilityMode.dockAndMenuBar.rawValue
     @AppStorage(MenuBarStyle.storageKey) private var menuBarStyleRaw: String = MenuBarStyle.clockAndTime.rawValue
+    @AppStorage(MCPIntegrationService.serverEnabledDefaultsKey) private var mcpServerEnabled: Bool = true
 
     private var visibilityMode: AppVisibilityMode {
         AppVisibilityMode(rawValue: visibilityModeRaw) ?? .dockAndMenuBar
@@ -620,6 +621,7 @@ private struct SettingsScaffoldView: View {
                 if MCPIntegrationService.shared.bundledBinaryPath == nil {
                     mcpMissingBinaryRow
                 } else {
+                    mcpServerToggleRow
                     mcpQuickInstallRows
                     mcpToolPickerSection
                     mcpBinaryPathRow
@@ -630,9 +632,57 @@ private struct SettingsScaffoldView: View {
         }
         .onAppear {
             refreshMCPStatuses()
+            mcpServerEnabled = MCPIntegrationService.shared.isServerEnabled()
+            MCPIntegrationService.shared.syncRuntimeSettings()
             mcpAvailableTools = MCPIntegrationService.shared.availableTools()
             mcpDisabledTools = MCPIntegrationService.shared.disabledTools()
         }
+    }
+
+    private var mcpServerToggleRow: some View {
+        HStack(spacing: 12) {
+            Image(systemName: mcpServerEnabled ? "power.circle.fill" : "power.circle")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(mcpServerEnabled ? .green : .orange)
+                .frame(width: 22)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("MCP server")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(BrutalTheme.textPrimary)
+
+                Text(mcpServerEnabled ? "On · registered agents can query local time.md data" : "Off · new MCP requests return no tools and skip data access")
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundColor(mcpServerEnabled ? .green : .orange)
+                    .lineLimit(2)
+            }
+
+            Spacer()
+
+            Toggle("", isOn: Binding(
+                get: { mcpServerEnabled },
+                set: { newValue in
+                    mcpServerEnabled = newValue
+                    let updates = MCPIntegrationService.shared.setServerEnabled(newValue)
+                    for (agent, status) in updates {
+                        mcpStatuses[agent] = status
+                    }
+                }
+            ))
+            .toggleStyle(.switch)
+            .tint(.green)
+            .labelsHidden()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(BrutalTheme.surface.opacity(0.5))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(mcpServerEnabled ? BrutalTheme.accent.opacity(0.3) : Color.orange.opacity(0.35), lineWidth: 1)
+                )
+        )
     }
 
     // MARK: - MCP tool picker
@@ -796,10 +846,12 @@ private struct SettingsScaffoldView: View {
             return false
         }()
 
+        let registeredColor: Color = mcpServerEnabled ? .green : .orange
+
         return HStack(spacing: 12) {
             Image(systemName: isRegistered ? "terminal.fill" : "terminal")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(isRegistered ? .green : BrutalTheme.textTertiary)
+                .foregroundColor(isRegistered ? registeredColor : BrutalTheme.textTertiary)
                 .frame(width: 20)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -833,7 +885,7 @@ private struct SettingsScaffoldView: View {
                 .fill(BrutalTheme.surface.opacity(0.5))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(isRegistered ? BrutalTheme.accent.opacity(0.3) : BrutalTheme.border.opacity(0.3), lineWidth: 1)
+                        .stroke(isRegistered ? registeredColor.opacity(0.35) : BrutalTheme.border.opacity(0.3), lineWidth: 1)
                 )
         )
     }
@@ -845,9 +897,9 @@ private struct SettingsScaffoldView: View {
     ) -> some View {
         switch status {
         case .registered:
-            Text("Registered · \(agent.displayConfigPath)")
+            Text(mcpServerEnabled ? "Registered · \(agent.displayConfigPath)" : "Registered · server off")
                 .font(.system(size: 10, weight: .medium, design: .monospaced))
-                .foregroundColor(.green)
+                .foregroundColor(mcpServerEnabled ? .green : .orange)
                 .lineLimit(1)
                 .truncationMode(.middle)
         case .inactive:

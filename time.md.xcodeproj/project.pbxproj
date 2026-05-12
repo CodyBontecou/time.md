@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		AA0000000000000000000002 /* ExportAutomationFormStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000001 /* ExportAutomationFormStateTests.swift */; };
+		AA00000000000000000000E1 /* MCPServerToggleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA00000000000000000000E0 /* MCPServerToggleTests.swift */; };
 		0038709BBBA5FB4BF84D53EF /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD65EC6D1AD4EE69F36DF681 /* Database.swift */; };
 		1A9EFD058A65ADD1944F9DAB /* Range.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0854AAA1CC65A614DA8F48C4 /* Range.swift */; };
 		5A80000000000000000000B1 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 5A80000000000000000000B2 /* Sparkle */; };
@@ -50,6 +51,7 @@
 
 /* Begin PBXFileReference section */
 		AA0000000000000000000001 /* ExportAutomationFormStateTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExportAutomationFormStateTests.swift; sourceTree = "<group>"; };
+		AA00000000000000000000E0 /* MCPServerToggleTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MCPServerToggleTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000003 /* time.mdRegressionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "time.mdRegressionTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0854AAA1CC65A614DA8F48C4 /* Range.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Range.swift; sourceTree = "<group>"; };
 		62B65C142F4C534F00A5B243 /* time.md.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = time.md.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -130,6 +132,7 @@
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000001 /* ExportAutomationFormStateTests.swift */,
+				AA00000000000000000000E0 /* MCPServerToggleTests.swift */,
 			);
 			path = time.mdRegressionTests;
 			sourceTree = "<group>";
@@ -282,6 +285,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA0000000000000000000002 /* ExportAutomationFormStateTests.swift in Sources */,
+				AA00000000000000000000E1 /* MCPServerToggleTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

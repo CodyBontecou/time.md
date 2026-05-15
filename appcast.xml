@@ -7,6 +7,34 @@
         <language>en</language>
 
         <item>
+            <title>Version 2.5.0</title>
+            <pubDate>Fri, 15 May 2026 18:01:06 +0000</pubDate>
+            <sparkle:version>21</sparkle:version>
+            <sparkle:shortVersionString>2.5.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description>
+                <![CDATA[
+                    <h2>What's New in 2.5.0</h2>
+                    <h3>Browser history and automation improvements</h3>
+                    <ul>
+                        <li>Firefox web history support, including standard local Firefox profile databases</li>
+                        <li>Automatic local screen-time snapshots refreshed without running an export</li>
+                        <li>Live formatted auto-export that follows your last selected export format, sections, and relative date range</li>
+                        <li>Global MCP server on/off switch in Settings</li>
+                    </ul>
+                    <h3>More direct web-history access</h3>
+                    <p>Web History now reads browser history databases directly again for direct-distribution builds, removing per-browser Apple Events prompts when Safari, Chrome, Firefox, Arc, Brave, or Edge becomes active.</p>
+                ]]>
+            </description>
+            <enclosure
+                url="https://github.com/codybontecou/time.md/releases/download/v2.5.0/time.md-v2.5.0-macOS.zip"
+                length="10902110"
+                type="application/octet-stream"
+                sparkle:edSignature="8/Z/5r8fKEd6Pq06x5SWfdFjS/0Ow+Rg8ushH/j6e4W2xO0d0odfMm1BIiU6Ya+Wqy9cdMVPhfkoAUJY7/11Cg=="
+            />
+        </item>
+
+        <item>
             <title>Version 2.4.0</title>
             <pubDate>Wed, 06 May 2026 12:44:22 +0000</pubDate>
             <sparkle:version>20</sparkle:version>

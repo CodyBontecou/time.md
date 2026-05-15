@@ -225,6 +225,11 @@ final class ActiveAppTracker: @unchecked Sendable {
                 sourceTimestamp: sourceTimestamp,
                 deviceId: deviceId
             )
+            AppBlockingEventDispatcher.shared.recordCompletedSession(
+                appIdentifier: appName,
+                startedAt: start,
+                durationSeconds: duration
+            )
         }
     }
 

@@ -98,10 +98,31 @@ time.md stores observed usage locally on your Mac:
 | File | Details |
 |------|---------|
 | `~/Library/Application Support/time.md/screentime.db` | Canonical SQLite history used by the app |
-| `~/Library/Application Support/time.md/screen-time-snapshot.json` | Automatically refreshed, human-readable JSON mirror for scripts and MCP tools |
+| `~/Library/Application Support/time.md/screen-time-snapshot.json` | Automatically refreshed, human-readable JSON mirror for scripts and automation |
 | `screen-time-auto.<ext>` in your export destination | Automatically refreshed export using the last selected export format, sections, and relative date range |
 
 The auto-saved files refresh on launch, after recorded sessions, at day changes, and periodically while the app is running. The Export screen controls whether the formatted file is CSV, JSON, YAML, Markdown, or Obsidian-flavored Markdown.
+
+### Command-Line Access
+
+The bundled helper also works as a normal CLI, so scripts and agents can query local data without using MCP. In the app, open **Settings → CLI Access → Install** to add `timemd` to `~/.local/bin`.
+
+From source, you can install the same symlink with:
+
+```bash
+make install-cli
+```
+
+Then run:
+
+```bash
+timemd today --limit 5
+timemd top-apps --since 7d --limit 20
+timemd sessions --since today --app-name Slack --limit 50
+timemd sql 'SELECT app_name, SUM(duration_seconds) AS seconds FROM usage GROUP BY app_name ORDER BY seconds DESC LIMIT 10'
+```
+
+Run `timemd help` or `timemd list-tools` for the full catalog. The bundled binary is still named `timemd-mcp` internally and still starts the stdio MCP server when launched with no arguments for backwards compatibility.
 
 ### Key Components
 

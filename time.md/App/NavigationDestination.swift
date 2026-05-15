@@ -6,6 +6,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
     case details
     case projects
     case rules
+    case blocking
     case webHistory
     case input
     case reports
@@ -21,6 +22,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         case .details: String(localized: "Details")
         case .projects: String(localized: "Projects")
         case .rules: String(localized: "Rules")
+        case .blocking: String(localized: "Blocking")
         case .webHistory: String(localized: "Web History")
         case .input: String(localized: "Input")
         case .reports: String(localized: "Reports")
@@ -36,6 +38,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         case .details: "list.bullet.rectangle.fill"
         case .projects: "folder.fill"
         case .rules: "gearshape.2.fill"
+        case .blocking: "shield.lefthalf.filled.badge.checkmark"
         case .webHistory: "globe"
         case .input: "keyboard"
         case .reports: "doc.text.fill"
@@ -52,6 +55,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         case .details: .tracking
         case .projects: .organize
         case .rules: .organize
+        case .blocking: .organize
         case .webHistory: .data
         case .input: .data
         case .reports: .data
@@ -65,7 +69,7 @@ enum NavigationDestination: String, CaseIterable, Identifiable {
         switch self {
         case .overview, .review, .details, .projects, .webHistory, .input, .reports, .export:
             return true
-        case .rules, .settings:
+        case .rules, .blocking, .settings:
             return false
         }
     }

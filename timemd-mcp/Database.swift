@@ -1,3 +1,4 @@
+import Darwin
 import Foundation
 import SQLite3
 
@@ -44,11 +45,75 @@ final class Database {
     private let handle: OpaquePointer
     private let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
+    private static func realHomeDirectory() -> URL {
+        if let pw = getpwuid(getuid()), let home = pw.pointee.pw_dir {
+            return URL(fileURLWithPath: String(cString: home), isDirectory: true)
+        }
+        return URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+    }
+
+    private static func expandedPath(_ raw: String) -> String {
+        (raw as NSString).expandingTildeInPath
+    }
+
+    /// Directory containing the time.md databases.
+    ///
+    /// The app's canonical store is `~/Library/Application Support/time.md`,
+    /// but older sandboxed builds used
+    /// `~/Library/Containers/com.bontecou.time.md/Data/Library/Application Support/time.md`.
+    /// MCP runs as a standalone helper, so `NSHomeDirectory()` may not match the
+    /// app sandbox. Mirror the app's discovery order and keep env overrides for
+    /// development/diagnostics.
     private static let appDataDir: String = {
-        NSHomeDirectory() + "/Library/Containers/com.bontecou.time.md/Data/Library/Application Support/time.md"
+        let env = ProcessInfo.processInfo.environment
+
+        if let override = env["TIMEMD_DATA_DIR"]?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !override.isEmpty {
+            return expandedPath(override)
+        }
+
+        if let dbOverride = env["SCREENTIME_DB_PATH"]?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !dbOverride.isEmpty {
+            return URL(fileURLWithPath: expandedPath(dbOverride)).deletingLastPathComponent().path
+        }
+
+        let userHome = realHomeDirectory()
+        let nsHome = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+        let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true)
+
+        var candidates: [URL] = [
+            userHome.appendingPathComponent("Library/Application Support/time.md", isDirectory: true),
+            cwd,
+            URL(fileURLWithPath: "/data", isDirectory: true),
+            nsHome,
+            nsHome.appendingPathComponent("Library/Application Support/time.md", isDirectory: true),
+            userHome.appendingPathComponent("Library/Containers/com.bontecou.time.md/Data/Library/Application Support/time.md", isDirectory: true)
+        ]
+
+        // Preserve order while removing duplicate paths.
+        var seen = Set<String>()
+        candidates = candidates.filter { seen.insert($0.path).inserted }
+
+        for candidate in candidates {
+            let dbPath = candidate.appendingPathComponent("screentime.db").path
+            if FileManager.default.fileExists(atPath: dbPath) {
+                return candidate.path
+            }
+        }
+
+        // Default to the current canonical location so error messages point to
+        // where the app writes new data.
+        return userHome.appendingPathComponent("Library/Application Support/time.md", isDirectory: true).path
     }()
 
-    static let screentimeDBPath: String = appDataDir + "/screentime.db"
+    static let screentimeDBPath: String = {
+        if let override = ProcessInfo.processInfo.environment["SCREENTIME_DB_PATH"]?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !override.isEmpty {
+            return expandedPath(override)
+        }
+        return appDataDir + "/screentime.db"
+    }()
+
     static let categoryMappingsDBPath: String = appDataDir + "/category-mappings.db"
     static let inputTrackingDBPath: String = appDataDir + "/input-tracking.db"
     static let currentSessionPath: String = appDataDir + "/current_session.json"

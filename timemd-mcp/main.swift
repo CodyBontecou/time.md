@@ -19,21 +19,11 @@ func log(_ message: String) {
     stderrHandle.write(Data("[timemd-mcp] \(message)\n".utf8))
 }
 
-// Tool catalog introspection: `timemd-mcp --list-tools` prints the catalog as
-// a JSON array of `{name, description}` objects to stdout and exits. The
-// containing app uses this to populate its tool picker UI without duplicating
-// the catalog.
-if CommandLine.arguments.dropFirst().contains("--list-tools") {
-    let catalog: [[String: String]] = Tools.all().compactMap { entry in
-        guard let name = entry["name"] as? String,
-              let description = entry["description"] as? String else { return nil }
-        return ["name": name, "description": description]
-    }
-    if let data = try? JSONSerialization.data(withJSONObject: catalog, options: [.prettyPrinted]) {
-        stdoutHandle.write(data)
-        stdoutHandle.write(Data([0x0A]))
-    }
-    exit(0)
+// With no arguments this executable remains the stdio MCP server. With a CLI
+// subcommand it acts as a normal command-line reader for the same local data.
+let launchArguments = Array(CommandLine.arguments.dropFirst())
+if shouldHandleCLIMode(launchArguments) {
+    exit(Int32(handleCLIMode(launchArguments)))
 }
 
 let enabledEnvVarKey = "TIMEMD_MCP_ENABLED"
@@ -136,6 +126,223 @@ func parseToolList(_ raw: String?) -> Set<String> {
         .map { $0.trimmingCharacters(in: .whitespaces) }
         .filter { !$0.isEmpty }
     return Set(names)
+}
+
+// MARK: - CLI mode
+
+func shouldHandleCLIMode(_ args: [String]) -> Bool {
+    guard let first = args.first else { return false }
+    let command = first.lowercased()
+    if command == "mcp" || command == "serve" || command == "--mcp" {
+        return false
+    }
+    return true
+}
+
+func handleCLIMode(_ args: [String]) -> Int {
+    do {
+        guard let first = args.first else {
+            printCLIHelp()
+            return 0
+        }
+
+        switch first.lowercased() {
+        case "help", "--help", "-h":
+            printCLIHelp()
+            return 0
+
+        case "list-tools", "tools", "--list-tools":
+            let catalog = toolCatalog()
+            printJSON(catalog)
+            return 0
+
+        case "call":
+            guard args.count >= 2, let toolName = resolveToolName(args[1]) else {
+                throw CLIError.message("Usage: call <tool-name> [--key value ...]")
+            }
+            let toolArgs = try parseCLIArguments(Array(args.dropFirst(2)))
+            return try runCLITool(name: toolName, arguments: toolArgs)
+
+        case "sql", "query":
+            let rest = Array(args.dropFirst())
+            let toolArgs: [String: Any]
+            if let firstRest = rest.first, !firstRest.hasPrefix("--") {
+                toolArgs = ["sql": rest.joined(separator: " ")]
+            } else {
+                toolArgs = try parseCLIArguments(rest)
+            }
+            return try runCLITool(name: "raw_query", arguments: toolArgs)
+
+        default:
+            guard let toolName = resolveToolName(first) else {
+                throw CLIError.message("Unknown command or tool: \(first)")
+            }
+            let toolArgs = try parseCLIArguments(Array(args.dropFirst()))
+            return try runCLITool(name: toolName, arguments: toolArgs)
+        }
+    } catch {
+        writeStderr("Error: \(error)\n")
+        writeStderr("Run `timemd-mcp help` for usage.\n")
+        return 1
+    }
+}
+
+func runCLITool(name: String, arguments: [String: Any]) throws -> Int {
+    let db = try Database()
+    let output = try Handlers.dispatch(name: name, arguments: arguments, db: db)
+    stdoutHandle.write(Data(output.utf8))
+    if !output.hasSuffix("\n") {
+        stdoutHandle.write(Data([0x0A]))
+    }
+    return 0
+}
+
+func toolCatalog() -> [[String: String]] {
+    Tools.all().compactMap { entry in
+        guard let name = entry["name"] as? String,
+              let description = entry["description"] as? String else { return nil }
+        return ["name": name, "description": description]
+    }
+}
+
+func resolveToolName(_ raw: String) -> String? {
+    let normalized = raw
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+        .replacingOccurrences(of: "-", with: "_")
+    guard !normalized.isEmpty else { return nil }
+
+    let toolNames = Set(Tools.all().compactMap { $0["name"] as? String })
+    if toolNames.contains(normalized) { return normalized }
+    let prefixed = "get_\(normalized)"
+    if toolNames.contains(prefixed) { return prefixed }
+    if normalized == "raw" || normalized == "raw_query" { return "raw_query" }
+    return nil
+}
+
+func parseCLIArguments(_ tokens: [String]) throws -> [String: Any] {
+    var parsed: [String: Any] = [:]
+    var index = 0
+
+    while index < tokens.count {
+        let token = tokens[index]
+
+        if token == "--json" || token == "--args" {
+            guard index + 1 < tokens.count else {
+                throw CLIError.message("\(token) requires a JSON object argument")
+            }
+            let object = try parseJSONObject(tokens[index + 1])
+            parsed.merge(object) { _, new in new }
+            index += 2
+            continue
+        }
+
+        guard token.hasPrefix("--") else {
+            throw CLIError.message("Unexpected positional argument: \(token)")
+        }
+
+        let rawKeyValue = String(token.dropFirst(2))
+        guard !rawKeyValue.isEmpty else {
+            throw CLIError.message("Empty option name")
+        }
+
+        let key: String
+        let value: Any
+        if let equals = rawKeyValue.firstIndex(of: "=") {
+            key = String(rawKeyValue[..<equals])
+            let rawValue = String(rawKeyValue[rawKeyValue.index(after: equals)...])
+            value = coerceCLIValue(rawValue)
+            index += 1
+        } else {
+            key = rawKeyValue
+            if index + 1 < tokens.count, !tokens[index + 1].hasPrefix("--") {
+                value = coerceCLIValue(tokens[index + 1])
+                index += 2
+            } else {
+                value = true
+                index += 1
+            }
+        }
+
+        parsed[normalizeCLIKey(key)] = value
+    }
+
+    return parsed
+}
+
+func normalizeCLIKey(_ key: String) -> String {
+    key.replacingOccurrences(of: "-", with: "_")
+}
+
+func coerceCLIValue(_ raw: String) -> Any {
+    let lower = raw.lowercased()
+    if lower == "true" { return true }
+    if lower == "false" { return false }
+    if let intValue = Int64(raw) { return intValue }
+    if let doubleValue = Double(raw) { return doubleValue }
+    return raw
+}
+
+func parseJSONObject(_ raw: String) throws -> [String: Any] {
+    guard let data = raw.data(using: .utf8),
+          let object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+        throw CLIError.message("Expected a JSON object, got: \(raw)")
+    }
+    return object
+}
+
+func printJSON(_ value: Any) {
+    if let data = try? JSONSerialization.data(
+        withJSONObject: value,
+        options: [.prettyPrinted, .sortedKeys, .fragmentsAllowed]
+    ) {
+        stdoutHandle.write(data)
+        stdoutHandle.write(Data([0x0A]))
+    }
+}
+
+func printCLIHelp() {
+    let help = """
+    timemd-mcp can run as either the bundled MCP server or a normal CLI.
+
+    Usage:
+      timemd-mcp                         Start the stdio MCP server (default)
+      timemd-mcp mcp                     Start the stdio MCP server explicitly
+      timemd-mcp list-tools              Print available tools as JSON
+      timemd-mcp <tool-or-alias> [opts]  Run a data query and print JSON
+      timemd-mcp call <tool> [opts]      Run an exact tool name
+      timemd-mcp sql '<select ...>'      Run a read-only SQL query
+
+    Examples:
+      timemd-mcp today --limit 5
+      timemd-mcp top-apps --since 7d --limit 20
+      timemd-mcp sessions --since today --app-name Slack --limit 50
+      timemd-mcp call get_heatmap --since 30d --stream-type app_usage
+      timemd-mcp sql 'SELECT app_name, SUM(duration_seconds) AS seconds FROM usage GROUP BY app_name ORDER BY seconds DESC LIMIT 10'
+
+    Options:
+      --key value                         Adds an argument, with hyphens converted to underscores
+      --key=value                         Same as above
+      --json '{"since":"7d"}'             Merge a JSON object into arguments
+
+    Data defaults to ~/Library/Application Support/time.md/*.db.
+    Set TIMEMD_DATA_DIR or SCREENTIME_DB_PATH to point at another database.
+    """
+    stdoutHandle.write(Data(help.utf8))
+    stdoutHandle.write(Data([0x0A]))
+}
+
+func writeStderr(_ message: String) {
+    stderrHandle.write(Data(message.utf8))
+}
+
+enum CLIError: Error, CustomStringConvertible {
+    case message(String)
+
+    var description: String {
+        switch self {
+        case .message(let message): return message
+        }
+    }
 }
 
 // MARK: - Message handling

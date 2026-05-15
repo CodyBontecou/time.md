@@ -51,6 +51,15 @@ enum CategoryMappingStore {
         }
     }
 
+    static func category(for appName: String) throws -> String? {
+        let normalizedApp = appName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalizedApp.isEmpty else { return nil }
+
+        return try fetchAll().first { mapping in
+            mapping.appName == normalizedApp || mapping.appName.localizedCaseInsensitiveCompare(normalizedApp) == .orderedSame
+        }?.category
+    }
+
     static func delete(appName: String) throws {
         let normalizedApp = appName.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalizedApp.isEmpty else {

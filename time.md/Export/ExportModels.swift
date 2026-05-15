@@ -1022,7 +1022,7 @@ struct ExportSettings: Codable {
                 + ExportField.inputIntensityFields
                 + ExportField.inputRawKeystrokeFields
                 + ExportField.inputRawMouseFields
-        case .webHistory, .rules, .settings, .export:
+        case .webHistory, .rules, .blocking, .settings, .export:
             return []
         }
     }

@@ -49,6 +49,8 @@ struct RootSplitView: View {
                             TimingProjectsView(filters: filters)
                         case .rules:
                             TimingRulesView(filters: filters)
+                        case .blocking:
+                            BlockingView()
                         case .webHistory:
                             WebHistoryView(filters: filters)
                         case .input:
@@ -116,6 +118,9 @@ private struct SettingsScaffoldView: View {
     @State private var mcpAvailableTools: [MCPIntegrationService.ToolInfo] = []
     @State private var mcpDisabledTools: Set<String> = []
     @State private var mcpToolsExpanded: Bool = false
+    @State private var cliInstallStatus: CLIIntegrationService.InstallStatus = .notInstalled
+    @State private var cliStatusMessage: String?
+    @State private var cliPathSnippetCopied: Bool = false
 
     private var displayMode: AppNameDisplayMode {
         AppNameDisplayMode(rawValue: appNameDisplayModeRaw) ?? .short
@@ -403,6 +408,9 @@ private struct SettingsScaffoldView: View {
                 // ─── Input Tracking (opt-in keystrokes + cursor) ───
                 InputTrackingSettingsSection()
 
+                // ─── CLI Access ───
+                cliIntegrationSection
+
                 // ─── MCP Integration ───
                 mcpIntegrationSection
 
@@ -603,12 +611,241 @@ private struct SettingsScaffoldView: View {
         }
     }
     
+    // MARK: - CLI Integration Section
+
+    private var cliIntegrationSection: some View {
+        GlassCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text(BrutalTheme.sectionLabel(9, "CLI ACCESS"))
+                    .font(BrutalTheme.headingFont)
+                    .foregroundColor(BrutalTheme.textSecondary)
+                    .tracking(1.5)
+
+                Text("Install the bundled time.md command line tool so Terminal, scripts, and non-MCP agents can query your local screen-time database directly.")
+                    .font(BrutalTheme.bodyMono)
+                    .foregroundColor(BrutalTheme.textPrimary)
+                    .lineSpacing(3)
+
+                cliInstallRow
+
+                if !CLIIntegrationService.shared.isInstallDirectoryOnPATH {
+                    cliPathWarningRow
+                }
+
+                cliExampleBlock
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .onAppear {
+            refreshCLIStatus()
+        }
+    }
+
+    private var cliInstallRow: some View {
+        HStack(spacing: 12) {
+            Image(systemName: cliStatusIcon)
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(cliStatusColor)
+                .frame(width: 22)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Command line tool")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(BrutalTheme.textPrimary)
+
+                Text(cliStatusText)
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundColor(cliStatusColor)
+                    .lineLimit(2)
+                    .truncationMode(.middle)
+
+                if let cliStatusMessage {
+                    Text(cliStatusMessage)
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundColor(BrutalTheme.textTertiary)
+                        .lineLimit(2)
+                        .truncationMode(.middle)
+                }
+            }
+
+            Spacer()
+
+            HStack(spacing: 8) {
+                if cliIsInstalled {
+                    Button("Uninstall") {
+                        uninstallCLI()
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                Button(cliIsInstalled ? "Repair" : "Install") {
+                    installCLI()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(cliInstallStatus == .missingBinary)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(BrutalTheme.surface.opacity(0.5))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(cliStatusColor.opacity(0.35), lineWidth: 1)
+                )
+        )
+    }
+
+    private var cliPathWarningRow: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.orange)
+                .frame(width: 20)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("~/.local/bin may not be on your PATH")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(BrutalTheme.textPrimary)
+
+                Text("If `timemd` is not found in Terminal, add the install directory to your shell profile:")
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textTertiary)
+
+                Text(verbatim: CLIIntegrationService.shared.pathSnippet)
+                    .font(.system(size: 10, weight: .regular, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textSecondary)
+                    .textSelection(.enabled)
+            }
+
+            Spacer()
+
+            Button {
+                copyCLIPathSnippet()
+            } label: {
+                Label(cliPathSnippetCopied ? "Copied" : "Copy", systemImage: cliPathSnippetCopied ? "checkmark" : "doc.on.doc")
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.orange.opacity(0.08))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.orange.opacity(0.25), lineWidth: 1)
+                )
+        )
+    }
+
+    private var cliExampleBlock: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("TRY IT")
+                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                .tracking(1.5)
+                .foregroundColor(BrutalTheme.textTertiary)
+
+            Text(verbatim: "timemd today --limit 5\ntimemd top-apps --since 7d --limit 20\ntimemd sql 'SELECT COUNT(*) AS rows FROM usage'")
+                .font(.system(size: 11, weight: .regular, design: .monospaced))
+                .foregroundColor(BrutalTheme.textPrimary)
+                .textSelection(.enabled)
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.black.opacity(0.25))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(BrutalTheme.border.opacity(0.3), lineWidth: 1)
+                )
+        }
+        .padding(.top, 4)
+    }
+
+    private var cliIsInstalled: Bool {
+        switch cliInstallStatus {
+        case .installed, .partial:
+            return true
+        case .missingBinary, .notInstalled, .conflict:
+            return false
+        }
+    }
+
+    private var cliStatusIcon: String {
+        switch cliInstallStatus {
+        case .installed: return "checkmark.circle.fill"
+        case .partial: return "exclamationmark.circle.fill"
+        case .conflict, .missingBinary: return "exclamationmark.triangle.fill"
+        case .notInstalled: return "terminal"
+        }
+    }
+
+    private var cliStatusColor: Color {
+        switch cliInstallStatus {
+        case .installed: return .green
+        case .partial, .notInstalled: return .orange
+        case .conflict, .missingBinary: return .red
+        }
+    }
+
+    private var cliStatusText: String {
+        switch cliInstallStatus {
+        case .installed:
+            return "Installed · `timemd` and `timemd-mcp` point to ~/.local/bin"
+        case .partial(let installedCommands):
+            return "Partially installed · found \(installedCommands.joined(separator: ", "))"
+        case .notInstalled:
+            return "Not installed · will create ~/.local/bin/timemd"
+        case .missingBinary:
+            return "Bundled timemd-mcp binary missing"
+        case .conflict(let path):
+            return "Conflict at \(path)"
+        }
+    }
+
+    private func refreshCLIStatus() {
+        cliInstallStatus = CLIIntegrationService.shared.status()
+    }
+
+    private func installCLI() {
+        do {
+            try CLIIntegrationService.shared.install()
+            cliStatusMessage = "Installed at \(CLIIntegrationService.shared.primaryCommandPath.path)"
+        } catch {
+            cliStatusMessage = error.localizedDescription
+        }
+        refreshCLIStatus()
+    }
+
+    private func uninstallCLI() {
+        do {
+            try CLIIntegrationService.shared.uninstall()
+            cliStatusMessage = "Removed timemd and timemd-mcp from ~/.local/bin."
+        } catch {
+            cliStatusMessage = error.localizedDescription
+        }
+        refreshCLIStatus()
+    }
+
+    private func copyCLIPathSnippet() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(CLIIntegrationService.shared.pathSnippet, forType: .string)
+        cliPathSnippetCopied = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            cliPathSnippetCopied = false
+        }
+    }
+
     // MARK: - MCP Integration Section
 
     private var mcpIntegrationSection: some View {
         GlassCard {
             VStack(alignment: .leading, spacing: 12) {
-                Text(BrutalTheme.sectionLabel(8, "MCP INTEGRATION"))
+                Text(BrutalTheme.sectionLabel(10, "MCP INTEGRATION"))
                     .font(BrutalTheme.headingFont)
                     .foregroundColor(BrutalTheme.textSecondary)
                     .tracking(1.5)
@@ -1024,7 +1261,7 @@ private struct SettingsScaffoldView: View {
         
         return GlassCard {
             VStack(alignment: .leading, spacing: 10) {
-                Text(BrutalTheme.sectionLabel(9, "THIS DEVICE"))
+                Text(BrutalTheme.sectionLabel(11, "THIS DEVICE"))
                     .font(BrutalTheme.headingFont)
                     .foregroundColor(BrutalTheme.textSecondary)
                     .tracking(1.5)

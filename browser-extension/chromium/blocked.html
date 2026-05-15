@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blocked by time.md</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font: 16px/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: Canvas;
+      color: CanvasText;
+    }
+    main {
+      width: min(560px, calc(100vw - 48px));
+      border: 2px solid currentColor;
+      border-radius: 18px;
+      padding: 32px;
+      box-shadow: 8px 8px 0 currentColor;
+    }
+    p { margin: 0 0 12px; color: color-mix(in srgb, CanvasText 72%, transparent); }
+    h1 { margin: 0 0 12px; font-size: clamp(28px, 5vw, 44px); line-height: 1; letter-spacing: -0.05em; }
+    strong { color: CanvasText; }
+    .timer { font-size: 28px; font-weight: 800; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p>time.md cooldown active</p>
+    <h1><span id="domain">This site</span> is blocked.</h1>
+    <p>Take the break you asked for. The site will unlock automatically when the cooldown ends.</p>
+    <div class="timer" id="timer">--</div>
+  </main>
+  <script src="blocked.js"></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 # time.md Build Commands
 # Usage: make <target>
 
-.PHONY: help build-mac clean release-mac sign-update appcast-template bump-build lint format check version stats open logs-mac
+.PHONY: help build-mac install-cli uninstall-cli clean release-mac sign-update appcast-template bump-build lint format check version stats open logs-mac
 
 # Default target
 help:
@@ -9,6 +9,8 @@ help:
 	@echo ""
 	@echo "Development:"
 	@echo "  make build-mac     Build macOS app"
+	@echo "  make install-cli   Build and install timemd-mcp into ~/.local/bin"
+	@echo "  make uninstall-cli Remove timemd-mcp from ~/.local/bin"
 	@echo "  make clean         Clean build artifacts"
 	@echo ""
 	@echo "Release (Sparkle / GitHub Releases):"
@@ -32,6 +34,26 @@ build-mac:
 	xcodebuild -scheme time.md \
 		-destination 'platform=macOS' \
 		build
+
+CLI_BIN_DIR ?= $(HOME)/.local/bin
+CLI_BUILD_DIR := build/CLIInstall
+CLI_BINARY := $(CLI_BUILD_DIR)/Build/Products/Debug/timemd-mcp
+
+install-cli:
+	xcodebuild -project time.md.xcodeproj -scheme timemd-mcp \
+		-destination 'platform=macOS' \
+		-derivedDataPath $(CLI_BUILD_DIR) \
+		build
+	mkdir -p "$(CLI_BIN_DIR)"
+	ln -sf "$(abspath $(CLI_BINARY))" "$(CLI_BIN_DIR)/timemd"
+	ln -sf "$(abspath $(CLI_BINARY))" "$(CLI_BIN_DIR)/timemd-mcp"
+	@echo "Installed timemd -> $(CLI_BIN_DIR)/timemd"
+	@echo "Installed timemd-mcp -> $(CLI_BIN_DIR)/timemd-mcp"
+	@echo "Try: timemd today --limit 5"
+
+uninstall-cli:
+	rm -f "$(CLI_BIN_DIR)/timemd" "$(CLI_BIN_DIR)/timemd-mcp"
+	@echo "Removed $(CLI_BIN_DIR)/timemd and $(CLI_BIN_DIR)/timemd-mcp"
 
 # CI check (lint + build)
 check: lint build-mac

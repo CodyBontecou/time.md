@@ -27,10 +27,8 @@ If applicable, add screenshots showing the changes.
 ## Testing
 Describe how you tested these changes:
 - [ ] Tested on macOS
-- [ ] Tested on iOS Simulator
-- [ ] Tested on physical iOS device
-- [ ] Unit tests pass (`make test`)
-- [ ] Build succeeds (`make build-mac && make build-ios`)
+- [ ] Unit tests pass (`xcodebuild -scheme "time.md" -destination 'platform=macOS' test`)
+- [ ] Build succeeds (`make build-mac`)
 
 ## Checklist
 - [ ] My code follows the project's style guidelines

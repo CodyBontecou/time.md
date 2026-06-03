@@ -6,15 +6,27 @@ import Foundation
 /// every reconciliation so the helper can be idempotent and repair partial
 /// updates without knowing policy-engine details.
 struct DomainBlockDesiredState: Codable, Hashable, Sendable {
+    /// Normalized rule domains that are currently active. This is the canonical
+    /// policy state exposed in helper status/diagnostics.
     var domains: [String]
+    /// Extra concrete hostnames to add to `/etc/hosts` while preserving the
+    /// canonical `domains` above. This lets a `reddit.com` rule cover observed
+    /// subdomains such as `old.reddit.com`; hosts files do not support true
+    /// wildcards, so the compiler also expands common aliases and carries
+    /// observed variants alongside the rule domains instead of pretending they
+    /// are separate active rules.
+    var additionalHostnames: [String]
     var generatedAt: Date
 
-    nonisolated init(domains: [String], generatedAt: Date = Date()) throws {
+    nonisolated init(domains: [String], additionalHostnames: [String] = [], generatedAt: Date = Date()) throws {
         self.generatedAt = generatedAt
         self.domains = try Self.normalizedDomains(from: domains)
+        let domainSet = Set(self.domains)
+        self.additionalHostnames = try Self.normalizedDomains(from: additionalHostnames)
+            .filter { !domainSet.contains($0) }
     }
 
-    nonisolated init(activeBlocks: [ActiveBlock], generatedAt: Date = Date()) throws {
+    nonisolated init(activeBlocks: [ActiveBlock], generatedAt: Date = Date(), additionalHostnames: [String] = []) throws {
         let domains = activeBlocks.compactMap { block -> String? in
             guard block.state.target.type == .domain else { return nil }
             if let rule = block.rule, (!rule.enabled || rule.enforcementMode != .domainNetwork) {
@@ -22,7 +34,7 @@ struct DomainBlockDesiredState: Codable, Hashable, Sendable {
             }
             return block.state.target.value
         }
-        try self.init(domains: domains, generatedAt: generatedAt)
+        try self.init(domains: domains, additionalHostnames: additionalHostnames, generatedAt: generatedAt)
     }
 
     nonisolated private static func normalizedDomains(from values: [String]) throws -> [String] {
@@ -55,11 +67,14 @@ struct DomainBlockDesiredState: Codable, Hashable, Sendable {
             .trimmingCharacters(in: CharacterSet(charactersIn: "."))
             .lowercased()
 
+        if normalized.hasPrefix("*.") {
+            normalized.removeFirst(2)
+        }
         if normalized.hasPrefix("www.") {
             normalized.removeFirst(4)
         }
 
-        let invalidCharacters = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "/:@?#"))
+        let invalidCharacters = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "/:@?#*"))
         guard !normalized.isEmpty,
               normalized.rangeOfCharacter(from: invalidCharacters) == nil,
               normalized.contains("."),
@@ -94,25 +109,36 @@ struct DomainBlockRuleCompiler: Sendable {
     nonisolated static let hostsEndMarker = "# <<< time.md domain blocks <<<"
     nonisolated static let pfAnchorName = "com.bontecou.time-md"
 
+    nonisolated static let defaultCommonSubdomainPrefixes = ["amp", "i", "m", "mobile", "new", "np", "old"]
+
     var ipv4SinkAddress: String
     var ipv6SinkAddress: String
     var includeWWWVariants: Bool
+    /// `/etc/hosts` cannot express `*.example.com`, so default network
+    /// enforcement expands active domains to common browser-facing subdomains
+    /// while the policy/extension path handles arbitrary suffix matches.
+    var includeCommonSubdomainVariants: Bool
+    var commonSubdomainPrefixes: [String]
 
     nonisolated init(
         ipv4SinkAddress: String = "0.0.0.0",
         ipv6SinkAddress: String = "::1",
-        includeWWWVariants: Bool = true
+        includeWWWVariants: Bool = true,
+        includeCommonSubdomainVariants: Bool = true,
+        commonSubdomainPrefixes: [String] = DomainBlockRuleCompiler.defaultCommonSubdomainPrefixes
     ) {
         self.ipv4SinkAddress = ipv4SinkAddress
         self.ipv6SinkAddress = ipv6SinkAddress
         self.includeWWWVariants = includeWWWVariants
+        self.includeCommonSubdomainVariants = includeCommonSubdomainVariants
+        self.commonSubdomainPrefixes = Self.normalizedSubdomainPrefixes(from: commonSubdomainPrefixes)
     }
 
     nonisolated func compile(
         desiredState: DomainBlockDesiredState,
         resolvedAddresses: [String: [String]] = [:]
     ) -> DomainBlockCompiledRules {
-        let hostnames = hostnames(for: desiredState.domains)
+        let hostnames = hostnames(for: desiredState.domains, additionalHostnames: desiredState.additionalHostnames)
         let entries = hostnames.flatMap { hostname in
             [
                 DomainBlockHostEntry(address: ipv4SinkAddress, hostname: hostname),
@@ -139,7 +165,7 @@ struct DomainBlockRuleCompiler: Sendable {
         )
     }
 
-    nonisolated private func hostnames(for domains: [String]) -> [String] {
+    nonisolated private func hostnames(for domains: [String], additionalHostnames: [String]) -> [String] {
         var seen = Set<String>()
         var names: [String] = []
         for domain in domains {
@@ -148,8 +174,38 @@ struct DomainBlockRuleCompiler: Sendable {
             if includeWWWVariants, !domain.hasPrefix("www."), seen.insert(www).inserted {
                 names.append(www)
             }
+            if includeCommonSubdomainVariants {
+                for hostname in commonSubdomainHostnames(for: domain) where seen.insert(hostname).inserted {
+                    names.append(hostname)
+                }
+            }
+        }
+        for hostname in additionalHostnames where seen.insert(hostname).inserted {
+            names.append(hostname)
         }
         return names.sorted()
+    }
+
+    nonisolated private func commonSubdomainHostnames(for domain: String) -> [String] {
+        commonSubdomainPrefixes.map { "\($0).\(domain)" }
+    }
+
+    nonisolated private static func normalizedSubdomainPrefixes(from prefixes: [String]) -> [String] {
+        var seen = Set<String>()
+        var normalized: [String] = []
+        let invalidCharacters = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "/:@?#*"))
+        for prefix in prefixes {
+            let value = prefix
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .trimmingCharacters(in: CharacterSet(charactersIn: "."))
+                .lowercased()
+            guard !value.isEmpty,
+                  value.rangeOfCharacter(from: invalidCharacters) == nil,
+                  !value.contains("."),
+                  seen.insert(value).inserted else { continue }
+            normalized.append(value)
+        }
+        return normalized.sorted()
     }
 
     nonisolated private func makeHostsBlock(entries: [DomainBlockHostEntry], generatedAt: Date) -> String {
@@ -213,6 +269,26 @@ enum DomainBlockHostsReconciler {
         return Data((cleared.isEmpty ? "" : cleared + "\n").utf8)
     }
 
+    /// Returns whether the owned hosts block needs a write while ignoring
+    /// comment-only changes such as a newer "Generated at" timestamp. Without
+    /// this, periodic reconciles would prompt for administrator privileges even
+    /// when the effective host entries are unchanged.
+    nonisolated static func ownedHostsBlockNeedsUpdate(
+        existingData: Data?,
+        desiredEntries: [DomainBlockHostEntry],
+        clearing: Bool
+    ) throws -> Bool {
+        switch try ownedBlockSnapshot(from: existingData) {
+        case .missing:
+            return !clearing && !desiredEntries.isEmpty
+        case .partial:
+            return true
+        case let .complete(existingEntries):
+            if clearing { return true }
+            return existingEntries != Set(desiredEntries)
+        }
+    }
+
     nonisolated private static func decodeHosts(_ data: Data?) throws -> String {
         guard let data else { return "" }
         guard data.count <= maximumHostsBytes else { throw DomainBlockHelperError.hostsFileTooLarge(data.count) }
@@ -235,6 +311,47 @@ enum DomainBlockHostsReconciler {
         return remainder
             .replacingOccurrences(of: "\n\n\n+", with: "\n\n", options: .regularExpression)
             .trimmingTrailingWhitespaceAndNewlines
+    }
+
+    private enum OwnedBlockSnapshot: Equatable {
+        case missing
+        case partial
+        case complete(Set<DomainBlockHostEntry>)
+    }
+
+    nonisolated private static func ownedBlockSnapshot(from existingData: Data?) throws -> OwnedBlockSnapshot {
+        let text = try decodeHosts(existingData)
+        var searchStart = text.startIndex
+        var snapshots: [Set<DomainBlockHostEntry>] = []
+
+        while let beginRange = text.range(of: DomainBlockRuleCompiler.hostsBeginMarker, range: searchStart..<text.endIndex) {
+            guard let endRange = text.range(
+                of: DomainBlockRuleCompiler.hostsEndMarker,
+                range: beginRange.upperBound..<text.endIndex
+            ) else {
+                return .partial
+            }
+
+            let blockBody = String(text[beginRange.upperBound..<endRange.lowerBound])
+            snapshots.append(parseHostEntries(from: blockBody))
+            searchStart = endRange.upperBound
+        }
+
+        guard !snapshots.isEmpty else { return .missing }
+        guard snapshots.count == 1, let entries = snapshots.first else { return .partial }
+        return .complete(entries)
+    }
+
+    nonisolated private static func parseHostEntries(from blockBody: String) -> Set<DomainBlockHostEntry> {
+        var entries = Set<DomainBlockHostEntry>()
+        for rawLine in blockBody.split(separator: "\n", omittingEmptySubsequences: false) {
+            let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !line.isEmpty, !line.hasPrefix("#") else { continue }
+            let parts = line.split(whereSeparator: { $0.isWhitespace }).map(String.init)
+            guard parts.count >= 2 else { continue }
+            entries.insert(DomainBlockHostEntry(address: parts[0], hostname: parts[1]))
+        }
+        return entries
     }
 }
 

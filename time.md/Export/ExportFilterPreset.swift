@@ -257,9 +257,9 @@ final class ExportFilterPresetStore {
     
     init() {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let timeprintDir = appSupport.appendingPathComponent("time.md", isDirectory: true)
-        try? FileManager.default.createDirectory(at: timeprintDir, withIntermediateDirectories: true)
-        storageURL = timeprintDir.appendingPathComponent("export-filter-presets.json")
+        let timeMdDir = appSupport.appendingPathComponent("time.md", isDirectory: true)
+        try? FileManager.default.createDirectory(at: timeMdDir, withIntermediateDirectories: true)
+        storageURL = timeMdDir.appendingPathComponent("export-filter-presets.json")
         loadPresets()
     }
     

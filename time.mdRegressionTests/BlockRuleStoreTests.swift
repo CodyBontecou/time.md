@@ -26,6 +26,10 @@ final class BlockRuleStoreTests: XCTestCase {
         XCTAssertEqual(reddit.type, .domain)
         XCTAssertEqual(reddit.value, "reddit.com")
 
+        let wildcardReddit = try BlockTarget.domain("*.Reddit.com")
+        XCTAssertEqual(wildcardReddit.type, .domain)
+        XCTAssertEqual(wildcardReddit.value, "reddit.com")
+
         let app = try BlockTarget.app("  COM.APPLE.SAFARI  ")
         XCTAssertEqual(app.value, "com.apple.safari")
         XCTAssertEqual(app.displayName, "COM.APPLE.SAFARI")

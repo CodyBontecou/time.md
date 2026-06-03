@@ -7,6 +7,8 @@ struct MacOnboardingView: View {
     @Binding var isPresented: Bool
     @State private var currentPage = 0
     @State private var animateIn = false
+    @State private var isInstallingDomainHelper = false
+    @State private var domainHelperStatus: String?
 
     private var totalSlides: Int { pages.count }
     private var isOnLastInfoSlide: Bool { currentPage == pages.count - 1 }
@@ -106,9 +108,22 @@ struct MacOnboardingView: View {
             ]
         ),
         MacOnboardingPage(
+            icon: "shield.lefthalf.filled.badge.checkmark",
+            iconColor: .blue,
+            tag: "11 / WEBSITE BLOCKING",
+            title: "Optional one-time blocking setup",
+            subtitle: "Install a tiny macOS helper once so website cooldowns can update /etc/hosts and pf without asking for your password every time a domain changes.",
+            features: [
+                MacOnboardingFeature(icon: "lock.open.fill", text: "macOS asks for your password only during setup or helper upgrades"),
+                MacOnboardingFeature(icon: "list.bullet.rectangle", text: "time.md only manages its marked hosts block and pf anchor"),
+                MacOnboardingFeature(icon: "arrow.triangle.2.circlepath", text: "Future rule changes are applied automatically by the helper"),
+            ],
+            showsDomainHelperSetup: true
+        ),
+        MacOnboardingPage(
             icon: "keyboard.badge.eye",
             iconColor: .blue,
-            tag: "11 / OPTIONAL",
+            tag: "12 / OPTIONAL",
             title: "Track typing & cursor (optional)",
             subtitle: "Records every key press and mouse movement to power a cursor heatmap, top-typed-words view, and typing-intensity timeline. Stored only on your Mac. Off by default — you can enable it later in Settings → Input Tracking.",
             features: [
@@ -141,6 +156,12 @@ struct MacOnboardingView: View {
                     removal: .opacity.combined(with: .offset(x: -20))
                 ))
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            if pages[currentPage].showsDomainHelperSetup {
+                domainHelperSetupControls
+                    .padding(.horizontal, 56)
+                    .padding(.bottom, 18)
+            }
 
             HStack(spacing: 16) {
                 // Back button
@@ -208,6 +229,43 @@ struct MacOnboardingView: View {
     }
 
     private var continueLabel: String { isOnLastInfoSlide ? "Get Started" : "Continue" }
+
+    private var domainHelperSetupControls: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 10) {
+                Button("Set up website blocking helper") {
+                    installDomainHelper()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(isInstallingDomainHelper)
+
+                if isInstallingDomainHelper {
+                    ProgressView()
+                        .controlSize(.small)
+                }
+            }
+
+            Text(domainHelperStatus ?? "You can skip this and set it up later from Blocking → Domain blocking helper.")
+                .font(BrutalTheme.captionMono)
+                .foregroundColor(BrutalTheme.textTertiary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func installDomainHelper() {
+        isInstallingDomainHelper = true
+        domainHelperStatus = "macOS will ask once to install the helper."
+        Task {
+            do {
+                _ = try await PrivilegedDomainBlockHelperClient.shared.installOrUpgrade(withConsent: .approvedForDomainBlocking)
+                domainHelperStatus = "Helper installed. Website block-list updates will be prompt-free."
+            } catch {
+                domainHelperStatus = error.localizedDescription
+            }
+            isInstallingDomainHelper = false
+        }
+    }
 
     private func completeOnboarding() {
         UserDefaults.standard.set(true, forKey: "hasCompletedMacOnboarding")
@@ -343,6 +401,7 @@ struct MacOnboardingPage {
     let features: [MacOnboardingFeature]
     /// Optional asset-catalog image rendered as a window-styled mockup.
     var screenshot: String? = nil
+    var showsDomainHelperSetup: Bool = false
 }
 
 struct MacOnboardingFeature: Identifiable {

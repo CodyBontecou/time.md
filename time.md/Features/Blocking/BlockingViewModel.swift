@@ -287,11 +287,14 @@ struct BlockingViewModel {
     var helperUIState: BlockingHelperUIState {
         let hasDomainRule = rules.contains { $0.target.type == .domain && $0.enforcementMode == .domainNetwork }
         guard hasDomainRule else { return .notNeeded }
-        if let error = helperStatus.lastErrorDescription, !error.isEmpty { return .unhealthy(error) }
         switch helperStatus.installState {
-        case .installed: return .healthy
-        case .needsUpgrade: return .needsUpgrade
-        case .notInstalled, .unavailable: return .notInstalled
+        case .installed:
+            if let error = helperStatus.lastErrorDescription, !error.isEmpty { return .unhealthy(error) }
+            return .healthy
+        case .needsUpgrade:
+            return .needsUpgrade
+        case .notInstalled, .unavailable:
+            return .notInstalled
         }
     }
 
@@ -309,7 +312,7 @@ struct BlockingViewModel {
         isLoading = true
         defer { isLoading = false }
         do {
-            try clearExpiredBlocksInStore(now: nowProvider())
+            _ = try clearExpiredBlocksInStore(now: nowProvider())
             rules = try store.fetchRules(includeDisabled: true)
             states = try store.fetchStates()
             activeBlocks = makeActiveBlocks(rules: rules, states: states, now: nowProvider())
@@ -387,9 +390,14 @@ struct BlockingViewModel {
         try reloadSynchronous()
     }
 
-    mutating func clearExpiredBlocks() throws {
-        try clearExpiredBlocksInStore(now: nowProvider())
-        try reloadSynchronous()
+    @discardableResult
+    mutating func clearExpiredBlocks() throws -> [BlockState] {
+        let cleared = try clearExpiredBlocksInStore(now: nowProvider())
+        rules = try store.fetchRules(includeDisabled: true)
+        states = try store.fetchStates()
+        activeBlocks = makeActiveBlocks(rules: rules, states: states, now: nowProvider())
+        errorMessage = nil
+        return cleared
     }
 
     func countdownText(until date: Date, now: Date? = nil) -> String {
@@ -413,15 +421,16 @@ struct BlockingViewModel {
     }
 
     private mutating func reloadSynchronous() throws {
-        try clearExpiredBlocksInStore(now: nowProvider())
+        _ = try clearExpiredBlocksInStore(now: nowProvider())
         rules = try store.fetchRules(includeDisabled: true)
         states = try store.fetchStates()
         activeBlocks = makeActiveBlocks(rules: rules, states: states, now: nowProvider())
         errorMessage = nil
     }
 
-    private func clearExpiredBlocksInStore(now: Date) throws {
+    private func clearExpiredBlocksInStore(now: Date) throws -> [BlockState] {
         let rulesByTarget = Dictionary(grouping: try store.fetchRules(includeDisabled: true)) { TargetKey($0.target) }
+        var cleared: [BlockState] = []
         for var state in try store.fetchStates() where state.blockedUntil != nil {
             let rule = rulesByTarget[TargetKey(state.target)]?.first
             let policy = rule?.policy ?? .defaultExponential
@@ -429,7 +438,9 @@ struct BlockingViewModel {
             state.blockedUntil = nil
             state.updatedAt = now
             try store.upsert(state: state)
+            cleared.append(state)
         }
+        return cleared
     }
 
     private func makeActiveBlocks(rules: [BlockRule], states: [BlockState], now: Date) -> [ActiveBlock] {

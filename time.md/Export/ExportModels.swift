@@ -905,6 +905,7 @@ struct ExportSettings: Codable {
     var autoSaveRelativeDateRange: RelativeDateRange?
     var autoSaveFilenameTemplate: String?
 
+    // Legacy UserDefaults key retained so existing users keep their export preferences.
     private static let key = "com.timeprint.exportSettings"
     static let defaultAutoSaveFilenameTemplate = "screen-time-auto"
     static let defaultAutoSaveSections = ExportSectionSelection(sections: [.summary, .apps, .categories, .trends])
@@ -1274,12 +1275,12 @@ final class ExportPresetStore {
     init() {
         // Get Application Support directory
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let timeprintDir = appSupport.appendingPathComponent("time.md", isDirectory: true)
+        let timeMdDir = appSupport.appendingPathComponent("time.md", isDirectory: true)
         
         // Create directory if needed
-        try? FileManager.default.createDirectory(at: timeprintDir, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: timeMdDir, withIntermediateDirectories: true)
         
-        storageURL = timeprintDir.appendingPathComponent("export-presets.json")
+        storageURL = timeMdDir.appendingPathComponent("export-presets.json")
         
         loadPresets()
     }
@@ -1529,9 +1530,9 @@ final class ExportScheduleStore {
 
     init() {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let timeprintDir = appSupport.appendingPathComponent("time.md", isDirectory: true)
-        try? FileManager.default.createDirectory(at: timeprintDir, withIntermediateDirectories: true)
-        storageURL = timeprintDir.appendingPathComponent("export-schedule.json")
+        let timeMdDir = appSupport.appendingPathComponent("time.md", isDirectory: true)
+        try? FileManager.default.createDirectory(at: timeMdDir, withIntermediateDirectories: true)
+        storageURL = timeMdDir.appendingPathComponent("export-schedule.json")
         loadSchedule()
     }
 

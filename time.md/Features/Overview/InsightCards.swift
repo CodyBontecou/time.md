@@ -795,7 +795,7 @@ private struct RotateEffectModifier: ViewModifier {
     let isActive: Bool
     
     func body(content: Content) -> some View {
-        if #available(macOS 15.0, iOS 17.0, *) {
+        if #available(macOS 15.0, *) {
             content.symbolEffect(.rotate, isActive: isActive)
         } else {
             content

@@ -23,7 +23,8 @@ Blocking interventions are guarded by `FeatureFlags.blockingInterventionsEnabled
 
 ## Privileged helper / domain enforcement
 
-- Install/upgrade helper with the consent copy visible to the user.
+- Install/upgrade the LaunchDaemon helper from onboarding or the Blocking helper card with the consent copy visible to the user.
+- Verify macOS asks for administrator approval during install/upgrade only; subsequent domain-rule changes should stage through `~/Library/Application Support/time.md/DomainBlockHelper` and apply without another password prompt.
 - Verify `/etc/hosts` preserves user content and contains at most one `time.md` marker block.
 - Verify `/etc/pf.anchors/com.bontecou.time-md` is owned by time.md and unrelated pf/VPN/firewall rules remain untouched.
 - Run Repair helper with active domain blocks and verify helper active domains match policy state.

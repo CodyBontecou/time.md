@@ -34,9 +34,10 @@ struct BlockingRecoveryService: Sendable {
 
     @discardableResult
     func clearExpiredBlocks() throws -> BlockingRecoveryResult {
-        let cleared = try engine.clearExpiredBlocks(now: now())
+        let currentTime = now()
+        let cleared = try engine.clearExpiredBlocks(now: currentTime)
         try store.appendAuditEvent(BlockAuditEvent(
-            timestamp: now(),
+            timestamp: currentTime,
             kind: .stateUpdated,
             message: "Recovery cleared expired blocking cooldowns",
             metadata: ["clearedExpiredStates": String(cleared.count)]
@@ -47,6 +48,32 @@ struct BlockingRecoveryService: Sendable {
             helperResult: nil,
             uninstalledHelper: false,
             messages: ["Cleared \(cleared.count) expired cooldown(s)."]
+        )
+    }
+
+    @discardableResult
+    func clearExpiredBlocksAndReconcileDomainBlocks() async throws -> BlockingRecoveryResult {
+        let currentTime = now()
+        let cleared = try engine.clearExpiredBlocks(now: currentTime)
+        let helperResult = try await domainEnforcer.reconcileActiveDomainBlocks(now: currentTime)
+        try store.appendAuditEvent(BlockAuditEvent(
+            timestamp: currentTime,
+            kind: .stateUpdated,
+            message: "Recovery cleared expired cooldowns and reconciled domain helper",
+            metadata: [
+                "clearedExpiredStates": String(cleared.count),
+                "activeDomains": helperResult.status.activeDomains.joined(separator: ",")
+            ]
+        ))
+        return BlockingRecoveryResult(
+            clearedExpiredStates: cleared.count,
+            clearedActiveStates: 0,
+            helperResult: helperResult,
+            uninstalledHelper: false,
+            messages: [
+                "Cleared \(cleared.count) expired cooldown(s).",
+                "Reconciled \(helperResult.status.activeDomains.count) active domain block(s)."
+            ]
         )
     }
 

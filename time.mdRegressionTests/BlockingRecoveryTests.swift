@@ -77,6 +77,31 @@ final class BlockingRecoveryTests: XCTestCase {
         XCTAssertEqual(brokenReport.checks.first { $0.id == "hosts-owned-block" }?.severity, .broken)
     }
 
+    func testClearExpiredReconcilesDomainHelperState() async throws {
+        let now = Date().addingTimeInterval(3_600)
+        let target = try BlockTarget.domain("linkedin.com")
+        let rule = BlockRule(target: target, enforcementMode: .domainNetwork)
+        try BlockRuleStore.upsert(rule: rule)
+        try BlockRuleStore.upsert(state: try BlockState(
+            target: target,
+            ruleID: rule.id,
+            strikeCount: 1,
+            blockedUntil: now.addingTimeInterval(-10),
+            lastBlockedAt: now.addingTimeInterval(-70),
+            updatedAt: now.addingTimeInterval(-70)
+        ))
+
+        let helper = FakeDomainBlockHelperClient(installed: true)
+        _ = try await helper.apply(try DomainBlockDesiredState(domains: ["linkedin.com"], generatedAt: now.addingTimeInterval(-60)))
+
+        let result = try await BlockingRecoveryService(helper: helper, now: { now }).clearExpiredBlocksAndReconcileDomainBlocks()
+
+        XCTAssertEqual(result.clearedExpiredStates, 1)
+        XCTAssertEqual(result.helperResult?.status.activeDomains, [])
+        XCTAssertNil(try BlockRuleStore.fetchState(for: target)?.blockedUntil)
+        XCTAssertEqual(try BlockRuleStore.fetchState(for: target)?.strikeCount, 1)
+    }
+
     func testRemoveAllManagedBlocksClearsCooldownsAndHelperStateWithoutDeletingRules() async throws {
         let now = Date(timeIntervalSince1970: 100)
         let target = try BlockTarget.domain("reddit.com")

@@ -1,7 +1,7 @@
-# SwiftFormat Configuration for Timeprint
+# SwiftFormat Configuration for time.md
 
 # File options
---exclude DerivedData,.build,Pods
+--exclude build,DerivedData,.build,Pods,node_modules,.pi
 
 # Format options
 --allman false

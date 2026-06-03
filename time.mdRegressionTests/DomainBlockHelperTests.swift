@@ -36,10 +36,38 @@ final class DomainBlockHelperTests: XCTestCase {
         XCTAssertTrue(plan.hostsBlock.contains("0.0.0.0\treddit.com"))
         XCTAssertTrue(plan.hostsBlock.contains("::1\treddit.com"))
         XCTAssertTrue(plan.hostsBlock.contains("0.0.0.0\twww.reddit.com"))
+        XCTAssertTrue(plan.hostsBlock.contains("0.0.0.0\told.reddit.com"))
+        XCTAssertTrue(plan.hostsBlock.contains("0.0.0.0\tnp.reddit.com"))
         XCTAssertTrue(plan.hostsBlock.contains("0.0.0.0\tnews.ycombinator.com"))
         XCTAssertTrue(plan.pfAnchorRules.contains("151.101.1.140"))
         XCTAssertTrue(plan.pfAnchorRules.contains("2a04:4e42::223"))
         XCTAssertFalse(plan.pfAnchorRules.contains("not-an-ip"))
+    }
+
+    func testCompilerIncludesObservedSubdomainHostnamesWithoutChangingActiveDomains() throws {
+        let state = try DomainBlockDesiredState(
+            domains: ["reddit.com"],
+            additionalHostnames: ["https://old.reddit.com/r/macapps", "www.reddit.com"],
+            generatedAt: Date(timeIntervalSince1970: 0)
+        )
+
+        let plan = DomainBlockRuleCompiler().compile(desiredState: state)
+
+        XCTAssertEqual(plan.desiredState.domains, ["reddit.com"])
+        XCTAssertEqual(plan.desiredState.additionalHostnames, ["old.reddit.com"])
+        XCTAssertTrue(plan.hostsBlock.contains("0.0.0.0\treddit.com"))
+        XCTAssertTrue(plan.hostsBlock.contains("0.0.0.0\twww.reddit.com"))
+        XCTAssertTrue(plan.hostsBlock.contains("0.0.0.0\told.reddit.com"))
+    }
+
+    func testHostsChangeDetectionIgnoresGeneratedTimestampOnlyChanges() throws {
+        let oldPlan = try DomainBlockRuleCompiler().compile(desiredState: DomainBlockDesiredState(domains: ["reddit.com"], generatedAt: Date(timeIntervalSince1970: 1)))
+        let newPlan = try DomainBlockRuleCompiler().compile(desiredState: DomainBlockDesiredState(domains: ["reddit.com"], generatedAt: Date(timeIntervalSince1970: 2)))
+        let stalePlan = try DomainBlockRuleCompiler().compile(desiredState: DomainBlockDesiredState(domains: ["linkedin.com"], generatedAt: Date(timeIntervalSince1970: 1)))
+
+        XCTAssertFalse(try DomainBlockHostsReconciler.ownedHostsBlockNeedsUpdate(existingData: Data(oldPlan.hostsBlock.utf8), desiredEntries: newPlan.hostEntries, clearing: false))
+        XCTAssertTrue(try DomainBlockHostsReconciler.ownedHostsBlockNeedsUpdate(existingData: Data(stalePlan.hostsBlock.utf8), desiredEntries: newPlan.hostEntries, clearing: false))
+        XCTAssertTrue(try DomainBlockHostsReconciler.ownedHostsBlockNeedsUpdate(existingData: Data(oldPlan.hostsBlock.utf8), desiredEntries: [], clearing: true))
     }
 
     func testHostsReconcilerPreservesUserContentAndReplacesOldOwnedBlock() throws {
@@ -94,7 +122,7 @@ final class DomainBlockHelperTests: XCTestCase {
         }
 
         _ = try await helper.installOrUpgrade(withConsent: .approvedForDomainBlocking)
-        let desired = try DomainBlockDesiredState(domains: ["reddit.com"], generatedAt: Date(timeIntervalSince1970: 100))
+        let desired = try DomainBlockDesiredState(domains: ["*.reddit.com"], generatedAt: Date(timeIntervalSince1970: 100))
         let applied = try await helper.apply(desired)
         XCTAssertEqual(applied.status.activeDomains, ["reddit.com"])
         XCTAssertTrue(applied.changedHosts)
@@ -108,6 +136,39 @@ final class DomainBlockHelperTests: XCTestCase {
 
         let cleared = try await helper.clearAll()
         XCTAssertEqual(cleared.status.activeDomains, [])
+    }
+
+    func testEnforcerAddsRecentlyObservedSubdomainsToHostsPlan() async throws {
+        let target = try BlockTarget.domain("reddit.com")
+        let rule = BlockRule(target: target, enforcementMode: .domainNetwork)
+        let now = Date(timeIntervalSince1970: 100)
+        try BlockRuleStore.upsert(rule: rule)
+        try BlockRuleStore.upsert(state: try BlockState(
+            target: target,
+            ruleID: rule.id,
+            strikeCount: 1,
+            blockedUntil: Date(timeIntervalSince1970: 300),
+            lastBlockedAt: now,
+            updatedAt: now
+        ))
+        try BlockRuleStore.appendAuditEvent(BlockAuditEvent(
+            timestamp: now.addingTimeInterval(-600),
+            kind: .accessObserved,
+            target: try .domain("https://old.reddit.com/r/macapps"),
+            message: "Access observed"
+        ))
+
+        let helper = FakeDomainBlockHelperClient(installed: true)
+        let enforcer = DomainBlockEnforcer(
+            engine: BlockPolicyEngine(),
+            helper: helper,
+            compilerClock: { now }
+        )
+
+        let result = try await enforcer.reconcileActiveDomainBlocks(now: now)
+        let plan = await helper.currentPlan
+        XCTAssertEqual(result.status.activeDomains, ["reddit.com"])
+        XCTAssertTrue(plan?.hostsBlock.contains("0.0.0.0\told.reddit.com") ?? false)
     }
 
     func testEnforcerPublishesOnlyActiveDomainNetworkBlocks() async throws {
@@ -134,6 +195,77 @@ final class DomainBlockHelperTests: XCTestCase {
 
         let result = try await enforcer.reconcileActiveDomainBlocks(now: Date(timeIntervalSince1970: 150))
         XCTAssertEqual(result.status.activeDomains, ["reddit.com"])
+    }
+
+    func testLaunchDaemonHelperStatusUsesInjectedInstallArtifacts() async throws {
+        let stateDirectory = tempDirectory.appendingPathComponent("daemon-state", isDirectory: true)
+        let helperScript = tempDirectory.appendingPathComponent("helper")
+        let plist = tempDirectory.appendingPathComponent("helper.plist")
+        let config = DomainBlockLaunchDaemonConfiguration(
+            stateDirectoryURL: stateDirectory,
+            helperScriptURL: helperScript,
+            launchDaemonPlistURL: plist
+        )
+        let helper = PrivilegedDomainBlockHelperClient(
+            paths: DomainBlockSystemPaths(
+                hostsURL: tempDirectory.appendingPathComponent("hosts"),
+                pfAnchorURL: tempDirectory.appendingPathComponent("pf-anchor")
+            ),
+            configuration: config
+        )
+
+        var status = await helper.status()
+        XCTAssertEqual(status.installState, .notInstalled)
+
+        try FileManager.default.createDirectory(at: stateDirectory, withIntermediateDirectories: true)
+        try "HELPER_VERSION=old\n".write(to: helperScript, atomically: true, encoding: .utf8)
+        try "plist\n".write(to: plist, atomically: true, encoding: .utf8)
+        status = await helper.status()
+        XCTAssertEqual(status.installState, .needsUpgrade)
+        XCTAssertEqual(status.helperVersion, "old")
+
+        try "HELPER_VERSION=2\n".write(to: helperScript, atomically: true, encoding: .utf8)
+        try """
+        requestID=test-request
+        result=ok
+        helperVersion=2
+        appVersion=2.4.0
+        generatedAt=1970-01-01T00:00:00.000Z
+        activeDomains=reddit.com,old.reddit.com
+        changedHosts=true
+        changedPFAnchor=false
+        lastErrorDescription=
+        """.write(to: config.statusURL, atomically: true, encoding: .utf8)
+
+        status = await helper.status()
+        XCTAssertEqual(status.installState, .installed)
+        XCTAssertEqual(status.activeDomains, ["reddit.com", "old.reddit.com"])
+        XCTAssertNil(status.lastErrorDescription)
+    }
+
+    func testLaunchDaemonHelperApplyDoesNotPromptWhenHelperIsMissing() async throws {
+        let config = DomainBlockLaunchDaemonConfiguration(
+            stateDirectoryURL: tempDirectory.appendingPathComponent("missing-state", isDirectory: true),
+            helperScriptURL: tempDirectory.appendingPathComponent("missing-helper"),
+            launchDaemonPlistURL: tempDirectory.appendingPathComponent("missing-helper.plist")
+        )
+        let helper = PrivilegedDomainBlockHelperClient(
+            paths: DomainBlockSystemPaths(
+                hostsURL: tempDirectory.appendingPathComponent("missing-hosts"),
+                pfAnchorURL: tempDirectory.appendingPathComponent("missing-pf-anchor")
+            ),
+            configuration: config
+        )
+        let desired = try DomainBlockDesiredState(domains: ["reddit.com"], generatedAt: Date(timeIntervalSince1970: 123))
+
+        do {
+            _ = try await helper.apply(desired)
+            XCTFail("Expected missing helper to throw")
+        } catch let error as DomainBlockHelperError {
+            guard case .helperUnavailable = error else {
+                return XCTFail("Expected helperUnavailable, got \(error)")
+            }
+        }
     }
 
     func testLocalHelperUsesInjectedFilesAndIsIdempotent() async throws {

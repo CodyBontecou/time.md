@@ -23,7 +23,7 @@ final class BrowserExtensionBridgeTests: XCTestCase {
         let rule = BlockRule(target: try .domain("reddit.com"), enforcementMode: .domainNetwork)
         try BlockRuleStore.upsert(rule: rule)
 
-        let bridge = BrowserExtensionBridge(deduplicator: WebsiteAccessDeduplicator(), now: { now })
+        let bridge = BrowserExtensionBridge(domainReconcilerFactory: nil, deduplicator: WebsiteAccessDeduplicator(), now: { now })
         let payload = jsonData([
             "type": "urlAccess",
             "url": "https://www.reddit.com/r/swift",
@@ -47,7 +47,12 @@ final class BrowserExtensionBridgeTests: XCTestCase {
     }
 
     func testInvalidAndMaliciousMessagesAreIgnoredSafely() throws {
-        let bridge = BrowserExtensionBridge(deduplicator: WebsiteAccessDeduplicator(), now: { Date(timeIntervalSince1970: 100) }, maximumMessageBytes: 64)
+        let bridge = BrowserExtensionBridge(
+            domainReconcilerFactory: nil,
+            deduplicator: WebsiteAccessDeduplicator(),
+            now: { Date(timeIntervalSince1970: 100) },
+            maximumMessageBytes: 64
+        )
 
         XCTAssertEqual(bridge.handleJSONMessage(Data("not-json".utf8)).action, .invalid)
         XCTAssertEqual(bridge.handleJSONMessage(jsonData(["type": "ping", "url": "https://reddit.com"])).action, .invalid)
@@ -71,10 +76,10 @@ final class BrowserExtensionBridgeTests: XCTestCase {
             updatedAt: now
         ))
 
-        let bridge = BrowserExtensionBridge(deduplicator: WebsiteAccessDeduplicator(), now: { now })
+        let bridge = BrowserExtensionBridge(domainReconcilerFactory: nil, deduplicator: WebsiteAccessDeduplicator(), now: { now })
         let response = bridge.handleJSONMessage(jsonData([
             "type": "urlAccess",
-            "url": "https://reddit.com/",
+            "url": "https://old.reddit.com/r/swift",
             "occurredAt": 110
         ]))
 
@@ -85,6 +90,35 @@ final class BrowserExtensionBridgeTests: XCTestCase {
         XCTAssertTrue(response.reason?.contains("blocked") ?? false)
     }
 
+    func testDomainDecisionStartsHelperReconcileTask() async throws {
+        let now = Date(timeIntervalSince1970: 100)
+        let target = try BlockTarget.domain("reddit.com")
+        let rule = BlockRule(target: target, enforcementMode: .domainNetwork)
+        try BlockRuleStore.upsert(rule: rule)
+
+        let reconciler = RecordingBridgeDomainReconciler()
+        let bridge = BrowserExtensionBridge(
+            domainReconcilerFactory: { reconciler },
+            deduplicator: WebsiteAccessDeduplicator(),
+            now: { now }
+        )
+
+        let response = bridge.handleJSONMessage(jsonData([
+            "type": "urlAccess",
+            "url": "https://old.reddit.com/r/swift",
+            "occurredAt": 100
+        ]))
+        XCTAssertEqual(response.action, .allow)
+
+        for _ in 0..<20 {
+            if await reconciler.snapshot().count == 1 { break }
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+        let snapshot = await reconciler.snapshot()
+        XCTAssertEqual(snapshot.count, 1)
+        XCTAssertEqual(snapshot.lastNow, now)
+    }
+
     func testExtensionAndHistoryEventsShareDeduplicationWindow() async throws {
         let now = Date(timeIntervalSince1970: 100)
         let target = try BlockTarget.domain("reddit.com")
@@ -92,7 +126,7 @@ final class BrowserExtensionBridgeTests: XCTestCase {
         try BlockRuleStore.upsert(rule: rule)
 
         let deduplicator = WebsiteAccessDeduplicator(windowSeconds: 10)
-        let bridge = BrowserExtensionBridge(deduplicator: deduplicator, now: { now })
+        let bridge = BrowserExtensionBridge(domainReconcilerFactory: nil, deduplicator: deduplicator, now: { now })
         let extensionResponse = bridge.handleJSONMessage(jsonData([
             "type": "urlAccess",
             "url": "https://reddit.com/r/swift",
@@ -147,6 +181,33 @@ final class BrowserExtensionBridgeTests: XCTestCase {
 
     private func jsonData(_ object: [String: Any]) -> Data {
         try! JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+    }
+}
+
+private actor RecordingBridgeDomainReconciler: WebsiteDomainBlockReconciling {
+    private(set) var reconcileCount = 0
+    private(set) var lastNow: Date?
+
+    func snapshot() -> (count: Int, lastNow: Date?) {
+        (reconcileCount, lastNow)
+    }
+
+    func reconcileActiveDomainBlocks(now: Date) async throws -> DomainBlockHelperApplyResult {
+        reconcileCount += 1
+        lastNow = now
+        return DomainBlockHelperApplyResult(
+            status: DomainBlockHelperStatus(
+                installState: .installed,
+                helperVersion: nil,
+                appVersion: nil,
+                activeDomains: ["reddit.com"],
+                lastAppliedAt: now,
+                lastErrorDescription: nil
+            ),
+            changedHosts: true,
+            changedPFAnchor: false,
+            commandOutput: []
+        )
     }
 }
 

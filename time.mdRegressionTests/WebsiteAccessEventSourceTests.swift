@@ -153,7 +153,7 @@ final class WebsiteAccessEventSourceTests: XCTestCase {
         let source = makeSource(service: service, now: 200)
         _ = await source.pollOnce()
 
-        service.visitsByBrowser[.safari] = [visit(url: "https://reddit.com/again", domain: "reddit.com", time: 120, browser: .safari)]
+        service.visitsByBrowser[.safari] = [visit(url: "https://old.reddit.com/again", domain: "old.reddit.com", time: 120, browser: .safari)]
         let denied = await source.pollOnce()
 
         XCTAssertEqual(denied.first?.kind, .deniedActiveBlock)

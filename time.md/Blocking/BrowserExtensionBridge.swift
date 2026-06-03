@@ -77,17 +77,22 @@ enum BrowserExtensionBridgeError: LocalizedError, Equatable, Sendable {
 
 struct BrowserExtensionBridge: Sendable {
     var engineFactory: @Sendable () -> BlockPolicyEngine
+    var domainReconcilerFactory: (@Sendable () -> (any WebsiteDomainBlockReconciling)?)?
     var deduplicator: WebsiteAccessDeduplicator
     var now: @Sendable () -> Date
     var maximumMessageBytes: Int
 
     init(
         engineFactory: @escaping @Sendable () -> BlockPolicyEngine = { BlockPolicyEngine() },
+        domainReconcilerFactory: (@Sendable () -> (any WebsiteDomainBlockReconciling)?)? = {
+            DomainBlockEnforcer(helper: PrivilegedDomainBlockHelperClient.shared)
+        },
         deduplicator: WebsiteAccessDeduplicator = .shared,
         now: @escaping @Sendable () -> Date = { Date() },
         maximumMessageBytes: Int = 64 * 1024
     ) {
         self.engineFactory = engineFactory
+        self.domainReconcilerFactory = domainReconcilerFactory
         self.deduplicator = deduplicator
         self.now = now
         self.maximumMessageBytes = maximumMessageBytes
@@ -150,10 +155,29 @@ struct BrowserExtensionBridge: Sendable {
             observedDurationSeconds: nil
         )
         let decision = try engineFactory().handleAccess(event)
+        reconcileDomainBlocksIfNeeded(for: decision, now: occurredAt)
         return response(for: decision, targetDomain: target.value, now: occurredAt)
     }
 
+    private func reconcileDomainBlocksIfNeeded(for decision: BlockPolicyDecision, now: Date) {
+        guard let rule = decision.rule,
+              rule.enabled,
+              rule.target.type == .domain,
+              rule.enforcementMode == .domainNetwork,
+              decision.kind == .allowedAndStartedCooldown || decision.kind == .deniedActiveBlock,
+              let reconciler = domainReconcilerFactory?() else { return }
+
+        Task {
+            do {
+                _ = try await reconciler.reconcileActiveDomainBlocks(now: now)
+            } catch {
+                NSLog("[BrowserExtensionBridge] Failed to reconcile domain blocks: \(error.localizedDescription)")
+            }
+        }
+    }
+
     private func response(for decision: BlockPolicyDecision, targetDomain: String, now: Date) -> BrowserExtensionBridgeResponse {
+        let matchedDomain = decision.rule?.target.value ?? targetDomain
         switch decision.kind {
         case .ignored:
             return .ignored(decision.reason ?? "No matching rule.", targetDomain: targetDomain)
@@ -161,7 +185,7 @@ struct BrowserExtensionBridge: Sendable {
             return BrowserExtensionBridgeResponse(
                 version: 1,
                 action: .allow,
-                targetDomain: targetDomain,
+                targetDomain: matchedDomain,
                 blockedUntil: decision.blockedUntil,
                 remainingSeconds: decision.blockedUntil.map { max(0, $0.timeIntervalSince(now)) },
                 reason: "Access allowed; cooldown scheduled."
@@ -170,7 +194,7 @@ struct BrowserExtensionBridge: Sendable {
             return BrowserExtensionBridgeResponse(
                 version: 1,
                 action: .block,
-                targetDomain: targetDomain,
+                targetDomain: matchedDomain,
                 blockedUntil: decision.blockedUntil,
                 remainingSeconds: decision.blockedUntil.map { max(0, $0.timeIntervalSince(now)) },
                 reason: decision.reason ?? "Domain is currently blocked."

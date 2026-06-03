@@ -10,10 +10,10 @@ assignees: ''
 A clear and concise description of the bug.
 
 ## Environment
-- **Platform**: macOS / iOS (delete one)
-- **OS Version**: e.g., macOS 26.1, iOS 18.0
-- **time.md Version**: e.g., 1.0.0
-- **Device**: e.g., MacBook Pro M3, iPhone 16
+- **Platform**: macOS
+- **OS Version**: e.g., macOS 26.1
+- **time.md Version**: e.g., 2.4.0
+- **Device**: e.g., MacBook Pro M3
 
 ## Steps to Reproduce
 1. Go to '...'

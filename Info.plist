@@ -15,5 +15,9 @@
 	<string>2XiB94uURfV+rZ4RdbaoAxkPYgvEcj8T8x8HsdCZxSk=</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
+	<key>NSAccessibilityUsageDescription</key>
+	<string>time.md uses Accessibility services to listen for keyboard and mouse events when you opt in to input tracking. All captured data stays on your Mac.</string>
+	<key>NSInputMonitoringUsageDescription</key>
+	<string>time.md monitors keyboard and mouse input to power the optional cursor heatmap, top-typed-words view, and typing-intensity charts. Off by default — only enabled when you turn on Input Tracking in Settings.</string>
 </dict>
 </plist>

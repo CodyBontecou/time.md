@@ -6,7 +6,9 @@ struct BlockingView: View {
     @State private var selectedType: BlockTargetType = .domain
     @State private var diagnosticsReport: BlockingDiagnosticsReport?
     @State private var recoveryStatus: String?
+    @State private var helperSetupStatus: String?
     @State private var isRunningRecovery = false
+    @State private var isInstallingHelper = false
     private let diagnosticsService = BlockingDiagnosticsService()
     private let recoveryService = BlockingRecoveryService()
     private let refreshTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -28,11 +30,10 @@ struct BlockingView: View {
         }
         .scrollIndicators(.never)
         .task {
-            viewModel = await viewModel.loaded()
-            await loadDiagnostics()
+            await reloadBlockingState(reconcileDomains: true)
         }
         .onReceive(refreshTimer) { _ in
-            try? viewModel.clearExpiredBlocks()
+            clearExpiredBlocksFromViewModel()
         }
     }
 
@@ -86,7 +87,37 @@ struct BlockingView: View {
                         .fixedSize(horizontal: false, vertical: true)
 
                     if case .notInstalled = viewModel.helperUIState {
-                        Text("Domain rules can be created now, but website enforcement requires explicit admin approval before time.md writes its owned /etc/hosts block and pf anchor.")
+                        Text("Domain rules can be created now, but website enforcement requires one-time setup of a small LaunchDaemon helper. After setup, changing the domain list will not ask for your password again.")
+                            .font(BrutalTheme.captionMono)
+                            .foregroundColor(BrutalTheme.textTertiary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    if case .needsUpgrade = viewModel.helperUIState {
+                        Text("Upgrade takes the same one-time administrator approval and keeps future rule changes prompt-free.")
+                            .font(BrutalTheme.captionMono)
+                            .foregroundColor(BrutalTheme.textTertiary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    if helperShowsSetupButton {
+                        HStack(spacing: 10) {
+                            Button(helperSetupButtonTitle) {
+                                installOrUpgradeDomainHelper()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(isInstallingHelper)
+
+                            if isInstallingHelper {
+                                ProgressView()
+                                    .controlSize(.small)
+                            }
+                        }
+                        .padding(.top, 4)
+                    }
+
+                    if let helperSetupStatus {
+                        Text(helperSetupStatus)
                             .font(BrutalTheme.captionMono)
                             .foregroundColor(BrutalTheme.textTertiary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -120,13 +151,44 @@ struct BlockingView: View {
         case .notNeeded:
             return "No active domain-network rules. App and category enforcement runs locally through frontmost-app observation."
         case .healthy:
-            return "Helper looks healthy. time.md will only reconcile its owned hosts marker block and pf anchor."
+            return "Helper looks healthy. Future website block-list changes are applied by the installed helper without another password prompt."
         case .notInstalled:
-            return "Helper is not installed or not reachable. Website rules are saved but may not be enforced yet."
+            return "Helper is not installed or not reachable. Website rules are saved but will not be enforced until setup is complete."
         case .needsUpgrade:
             return "Helper version differs from the app and should be upgraded before enforcing website blocks."
         case let .unhealthy(message):
             return "Helper reported a problem: \(message)"
+        }
+    }
+
+    private var helperShowsSetupButton: Bool {
+        switch viewModel.helperUIState {
+        case .notInstalled, .needsUpgrade:
+            return true
+        case .notNeeded, .healthy, .unhealthy:
+            return false
+        }
+    }
+
+    private var helperSetupButtonTitle: String {
+        if case .needsUpgrade = viewModel.helperUIState { return "Upgrade helper" }
+        return "Set up helper once"
+    }
+
+    private func installOrUpgradeDomainHelper() {
+        isInstallingHelper = true
+        helperSetupStatus = "macOS will ask once so time.md can install its domain blocking helper."
+        Task {
+            do {
+                _ = try await PrivilegedDomainBlockHelperClient.shared.installOrUpgrade(withConsent: .approvedForDomainBlocking)
+                helperSetupStatus = "Helper installed. Future domain rule changes will not ask for your password."
+                await reconcileDomainBlocks()
+            } catch {
+                helperSetupStatus = error.localizedDescription
+            }
+            isInstallingHelper = false
+            viewModel = await viewModel.loaded()
+            await loadDiagnostics()
         }
     }
 
@@ -177,7 +239,7 @@ struct BlockingView: View {
 
                 HStack {
                     Button("Clear expired") {
-                        runRecovery { try recoveryService.clearExpiredBlocks() }
+                        runAsyncRecovery { try await recoveryService.clearExpiredBlocksAndReconcileDomainBlocks() }
                     }
                     .disabled(isRunningRecovery)
 
@@ -235,6 +297,34 @@ struct BlockingView: View {
         diagnosticsReport = await diagnosticsService.report()
     }
 
+    private func reloadBlockingState(reconcileDomains: Bool = false, reconcileWhenNoActiveDomains: Bool = false) async {
+        viewModel = await viewModel.loaded()
+        let hasActiveDomainBlock = viewModel.activeRows.contains { $0.target.type == .domain }
+        if reconcileDomains, reconcileWhenNoActiveDomains || hasActiveDomainBlock {
+            await reconcileDomainBlocks()
+            viewModel = await viewModel.loaded()
+        }
+        await loadDiagnostics()
+    }
+
+    private func reconcileDomainBlocks() async {
+        do {
+            _ = try await DomainBlockEnforcer(helper: PrivilegedDomainBlockHelperClient.shared).reconcileActiveDomainBlocks(now: Date())
+        } catch {
+            viewModel.errorMessage = error.localizedDescription
+        }
+    }
+
+    private func clearExpiredBlocksFromViewModel() {
+        do {
+            let cleared = try viewModel.clearExpiredBlocks()
+            guard cleared.contains(where: { $0.target.type == .domain }) else { return }
+            Task { await reloadBlockingState(reconcileDomains: true, reconcileWhenNoActiveDomains: true) }
+        } catch {
+            viewModel.errorMessage = error.localizedDescription
+        }
+    }
+
     private func runRecovery(_ operation: @escaping () throws -> BlockingRecoveryResult) {
         isRunningRecovery = true
         do {
@@ -275,7 +365,7 @@ struct BlockingView: View {
                         .tracking(1.5)
                     Spacer()
                     Button("Clear expired") {
-                        try? viewModel.clearExpiredBlocks()
+                        clearExpiredBlocksFromViewModel()
                     }
                     .font(BrutalTheme.captionMono)
                 }
@@ -477,8 +567,7 @@ struct BlockingView: View {
                                savedRule.enforcementMode == .domainNetwork {
                                 Task {
                                     _ = await WebsiteAccessEventSource.shared.pollOnce()
-                                    viewModel = await viewModel.loaded()
-                                    await loadDiagnostics()
+                                    await reloadBlockingState(reconcileDomains: true)
                                 }
                             }
                         } catch {

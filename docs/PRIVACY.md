@@ -1,41 +1,28 @@
 # Privacy Policy
 
 **time.md**  
-*Last updated: February 2026*
+*Last updated: May 2026*
 
 ## Overview
 
-time.md is a privacy-first screen time analytics app. We believe your data belongs to you, and we've designed our app to keep it that way.
+time.md is a privacy-first macOS screen time analytics app. It is distributed directly and runs locally on your Mac. We do not operate a backend for your screen time data.
 
 ## Data We Collect
 
 **We do not collect any personal data.**
 
-time.md operates entirely on your device. We have no servers, no analytics, and no way to see your screen time data.
+time.md has no analytics service, no advertising SDK, and no account system. Your usage data stays on your Mac unless you explicitly export it yourself.
 
-## How time.md Works
+## How time.md Works on macOS
 
-### On macOS
-- time.md reads Apple's Screen Time database (`knowledgeC.db`) that's already stored locally on your Mac
-- This data was collected by Apple's Screen Time feature, not by time.md
-- time.md can read local browser history files to show the Web History view
-- If you explicitly enable “Persist web history locally,” time.md stores a local copy of browser visit rows in its own database so they remain visible after a browser clears its history
-- time.md automatically keeps its local screen-time database at `~/Library/Application Support/time.md/screentime.db`, a readable JSON mirror at `~/Library/Application Support/time.md/screen-time-snapshot.json`, and a formatted `screen-time-auto.<ext>` file in your chosen export destination
-- time.md processes this data locally to show you analytics and visualizations
-- No data is sent to us
+- Reads Apple's local Screen Time database (`knowledgeC.db`) after you grant Full Disk Access.
+- Reads local browser history databases for the Web History view.
+- Can optionally persist browser visit rows in its own local database so they remain visible after a browser clears history.
+- Can optionally track keyboard/mouse activity for input analytics after you enable Input Tracking and grant Accessibility/Input Monitoring permissions.
+- Stores local app data under `~/Library/Application Support/time.md/`.
+- Can write formatted exports to a directory you choose.
 
-### On iOS
-- time.md displays screen time data synced from your Mac via iCloud
-- This sync happens between your own devices through your personal iCloud account
-- We have no access to your iCloud data
-
-## iCloud Sync
-
-If you enable iCloud sync:
-- Only **aggregated daily summaries** are synced (total time per day, top apps)
-- **Individual sessions are NOT synced** — timestamps and detailed usage patterns stay local
-- Sync occurs through Apple's iCloud Documents, which is encrypted end-to-end
-- We cannot access your iCloud data
+No screen time, browser history, or input tracking data is sent to us.
 
 ## Data Storage
 
@@ -43,32 +30,29 @@ If you enable iCloud sync:
 |-----------|--------------|----------------|
 | Raw screen time sessions (`screentime.db`) | Your Mac only | Only you |
 | Readable screen time snapshot (`screen-time-snapshot.json`) | Your Mac only | Only you |
-| Formatted auto-export (`screen-time-auto.<ext>`) | Your Mac only | Only you |
+| Formatted auto-export (`screen-time-auto.<ext>`) | Your chosen export directory | Only you |
 | Opt-in web history archive | Your Mac only | Only you |
-| Daily aggregates | iCloud (if enabled) | Only you (and your Apple ID) |
-| Category mappings | Your Mac only | Only you |
-| App preferences | Your device only | Only you |
+| Opt-in input tracking data | Your Mac only | Only you |
+| Category mappings and app preferences | Your Mac only | Only you |
 
 ## Third-Party Services
 
-time.md uses the following Apple services:
-- **iCloud Documents** — For optional cross-device sync
-- **Screen Time (macOS)** — Source of usage data
+time.md uses Apple's local macOS services and databases, including Screen Time and privacy permissions. It does not use third-party analytics, advertising, or tracking services.
 
-We do not use any third-party analytics, advertising, or tracking services.
+Sparkle may contact the configured appcast URL to check for app updates. This check does not include your screen time data.
 
 ## Data Deletion
 
 You can delete your time.md data at any time:
 
-1. **Delete app data**: Remove time.md from your device
-2. **Delete persisted web history**: Use Settings → Web Browsers → Delete persisted web history
-3. **Delete sync data**: Go to Settings → Apple ID → iCloud → Manage Storage → time.md
-4. **Delete local screen-time files**: Remove `~/Library/Application Support/time.md/` and any `screen-time-auto.*` file in your chosen export destination on macOS
+1. **Delete app data**: Remove `~/Library/Application Support/time.md/`.
+2. **Delete persisted web history**: Use Settings → Web Browsers → Delete persisted web history.
+3. **Delete input tracking data**: Disable Input Tracking and remove the local input-tracking database in the app support folder if desired.
+4. **Delete exports**: Remove any `screen-time-auto.*` or manual export files in your chosen export destination.
 
 ## Children's Privacy
 
-time.md does not knowingly collect data from children under 13. The app displays data that Apple's Screen Time has already collected through iOS/macOS parental controls.
+time.md does not knowingly collect data from children under 13. The app displays data that Apple's Screen Time has already collected locally on macOS.
 
 ## Changes to This Policy
 
@@ -80,18 +64,3 @@ If you have questions about this privacy policy, please contact:
 
 **Email**: privacy@codybontecou.com  
 **Website**: https://codybontecou.com
-
----
-
-## App Store Privacy Details
-
-For the App Store privacy "nutrition label":
-
-### Data Not Collected
-time.md does not collect any data from users.
-
-### Data Not Linked to You
-N/A — No data is collected.
-
-### Tracking
-time.md does not track users across apps or websites owned by other companies.

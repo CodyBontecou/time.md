@@ -98,11 +98,14 @@ struct BlockTarget: Codable, Hashable, Sendable {
             .trimmingCharacters(in: CharacterSet(charactersIn: "."))
             .lowercased()
 
+        if normalized.hasPrefix("*.") {
+            normalized.removeFirst(2)
+        }
         if normalized.hasPrefix("www.") {
             normalized.removeFirst(4)
         }
 
-        let invalidCharacters = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "/:@?#"))
+        let invalidCharacters = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "/:@?#*"))
         guard !normalized.isEmpty,
               normalized.rangeOfCharacter(from: invalidCharacters) == nil,
               normalized.contains("."),

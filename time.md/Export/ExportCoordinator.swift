@@ -1766,7 +1766,7 @@ private extension ExportCoordinator {
         // Footer
         let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
         lines.append("")
-        lines.append("*\(footerEmoji)Exported by [time.md](https://timeprint.app)*")
+        lines.append("*\(footerEmoji)Exported by [time.md](https://timemd.isolated.tech)*")
         
         let content = lines.joined(separator: "\n")
         
@@ -1901,7 +1901,7 @@ private extension ExportCoordinator {
         
         // Footer
         let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
-        lines.append("*\(footerEmoji)Exported by [time.md](https://timeprint.app)*")
+        lines.append("*\(footerEmoji)Exported by [time.md](https://timemd.isolated.tech)*")
         
         let content = lines.joined(separator: "\n")
         
@@ -1984,7 +1984,7 @@ private extension ExportCoordinator {
         
         // Footer
         let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
-        lines.append("*\(footerEmoji)Exported by [time.md](https://timeprint.app)*")
+        lines.append("*\(footerEmoji)Exported by [time.md](https://timemd.isolated.tech)*")
         
         let content = lines.joined(separator: "\n")
         
@@ -2126,7 +2126,7 @@ private extension ExportCoordinator {
         
         // Footer
         let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
-        lines.append("*\(footerEmoji)Exported by [time.md](https://timeprint.app)*")
+        lines.append("*\(footerEmoji)Exported by [time.md](https://timemd.isolated.tech)*")
         
         let content = lines.joined(separator: "\n")
         
@@ -2592,7 +2592,7 @@ private extension ExportCoordinator {
         
         // Footer
         let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
-        lines.append("*\(footerEmoji)Exported by [time.md](https://timeprint.app)*")
+        lines.append("*\(footerEmoji)Exported by [time.md](https://timemd.isolated.tech)*")
         
         let content = lines.joined(separator: "\n")
         
@@ -2698,7 +2698,7 @@ private extension ExportCoordinator {
         
         // Footer
         let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
-        lines.append("*\(footerEmoji)Exported by [time.md](https://timeprint.app)*")
+        lines.append("*\(footerEmoji)Exported by [time.md](https://timemd.isolated.tech)*")
         
         let content = lines.joined(separator: "\n")
         

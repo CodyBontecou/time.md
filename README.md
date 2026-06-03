@@ -15,7 +15,7 @@ time.md is a screen time analytics app for macOS. It reads Apple's `knowledgeC.d
 
 | Track your digital day | Own your data | Export to Obsidian |
 |---|---|---|
-| ![Overview dashboard with daily totals and top apps](screenshots/aso-mac/en/01-track.png) | ![Settings showing on-device iCloud sync](screenshots/aso-mac/en/02-own.png) | ![Export view with JSON, CSV, and Markdown options](screenshots/aso-mac/en/03-export.png) |
+| ![Overview dashboard with daily totals and top apps](screenshots/aso-mac/en/01-track.png) | ![Settings showing local-only privacy controls](screenshots/aso-mac/en/02-own.png) | ![Export view with JSON, CSV, and Markdown options](screenshots/aso-mac/en/03-export.png) |
 
 ## Features
 

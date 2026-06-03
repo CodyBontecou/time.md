@@ -8,6 +8,7 @@ struct TimeMdMenuBarExtra: View {
     @Environment(\.openWindow) private var openWindow
     @State private var todayTotal: TimeInterval = 0
     @State private var topApps: [AppUsageSummary] = []
+    @State private var activeBlocks: [ActiveBlock] = []
     @State private var isLoading = true
 
     private let refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
@@ -33,6 +34,29 @@ struct TimeMdMenuBarExtra: View {
             .padding(.bottom, 4)
             
             Divider()
+
+            if !activeBlocks.isEmpty {
+                Text("Active Blocks")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                ForEach(activeBlocks.prefix(3), id: \.state.target) { block in
+                    HStack(spacing: 8) {
+                        Image(systemName: block.state.target.type == .domain ? "globe" : "shield.fill")
+                            .foregroundStyle(.orange)
+                        Text(block.state.target.displayName ?? block.state.target.value)
+                            .lineLimit(1)
+                        Spacer()
+                        Text(formatDuration(block.remainingSeconds))
+                            .font(.caption)
+                            .monospacedDigit()
+                            .foregroundStyle(.orange)
+                    }
+                    .font(.callout)
+                }
+
+                Divider()
+            }
             
             // Top apps
             if topApps.isEmpty && !isLoading {
@@ -119,6 +143,7 @@ struct TimeMdMenuBarExtra: View {
             )
             
             topApps = try await appEnvironment.dataService.fetchTopApps(filters: filters, limit: 5)
+            activeBlocks = (try? BlockPolicyEngine().activeBlocks()) ?? []
         } catch {
             print("[MenuBar] Failed to load data: \(error)")
         }

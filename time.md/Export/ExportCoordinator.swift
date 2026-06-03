@@ -188,7 +188,7 @@ struct ExportCoordinator: ExportCoordinating {
             let mCount = (try? await mouseCount) ?? 0
             // Aggregate row caps: words 500, keys 200, heatmap 5000, intensity 1440.
             rowCount = 500 + 200 + 5000 + 1440 + min(kCount, 100_000) + min(mCount, 500_000)
-        case .rules, .settings, .export:
+        case .rules, .blocking, .settings, .export:
             rowCount = 0
         }
 
@@ -1208,7 +1208,7 @@ private extension ExportCoordinator {
                 filterSummary: filterSummary
             )
 
-        case .rules, .settings, .export:
+        case .rules, .blocking, .settings, .export:
             throw ExportError.unsupportedDestination
         }
     }
@@ -1766,7 +1766,7 @@ private extension ExportCoordinator {
         // Footer
         let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
         lines.append("")
-        lines.append("*\(footerEmoji)Exported by [time.md](https://timeprint.app)*")
+        lines.append("*\(footerEmoji)Exported by [time.md](https://timemd.isolated.tech)*")
         
         let content = lines.joined(separator: "\n")
         
@@ -1901,7 +1901,7 @@ private extension ExportCoordinator {
         
         // Footer
         let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
-        lines.append("*\(footerEmoji)Exported by [time.md](https://timeprint.app)*")
+        lines.append("*\(footerEmoji)Exported by [time.md](https://timemd.isolated.tech)*")
         
         let content = lines.joined(separator: "\n")
         
@@ -1984,7 +1984,7 @@ private extension ExportCoordinator {
         
         // Footer
         let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
-        lines.append("*\(footerEmoji)Exported by [time.md](https://timeprint.app)*")
+        lines.append("*\(footerEmoji)Exported by [time.md](https://timemd.isolated.tech)*")
         
         let content = lines.joined(separator: "\n")
         
@@ -2126,7 +2126,7 @@ private extension ExportCoordinator {
         
         // Footer
         let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
-        lines.append("*\(footerEmoji)Exported by [time.md](https://timeprint.app)*")
+        lines.append("*\(footerEmoji)Exported by [time.md](https://timemd.isolated.tech)*")
         
         let content = lines.joined(separator: "\n")
         
@@ -2592,7 +2592,7 @@ private extension ExportCoordinator {
         
         // Footer
         let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
-        lines.append("*\(footerEmoji)Exported by [time.md](https://timeprint.app)*")
+        lines.append("*\(footerEmoji)Exported by [time.md](https://timemd.isolated.tech)*")
         
         let content = lines.joined(separator: "\n")
         
@@ -2698,7 +2698,7 @@ private extension ExportCoordinator {
         
         // Footer
         let footerEmoji = mdOpts.includeEmoji ? "⏱️ " : ""
-        lines.append("*\(footerEmoji)Exported by [time.md](https://timeprint.app)*")
+        lines.append("*\(footerEmoji)Exported by [time.md](https://timemd.isolated.tech)*")
         
         let content = lines.joined(separator: "\n")
         

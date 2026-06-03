@@ -377,22 +377,6 @@
         }
       }
     },
-    "%lld device%@ synced": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld device%2$@ synced"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld dispositivo%2$@ sincronizado%2$@"
-          }
-        }
-      }
-    },
     "%lld devices": {
       "localizations": {
         "es": {
@@ -493,22 +477,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld sesiones"
-          }
-        }
-      }
-    },
-    "%lld synced device%@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld synced device%2$@"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%1$lld dispositivo%2$@ sincronizado%2$@"
           }
         }
       }
@@ -699,16 +667,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "<5m"
-          }
-        }
-      }
-    },
-    "A system dialog will appear asking for Screen Time access.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aparecerá un cuadro de diálogo del sistema solicitando acceso al Tiempo de pantalla."
           }
         }
       }
@@ -3159,16 +3117,6 @@
         }
       }
     },
-    "Cloud Sync Only": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Solo sincronización en la nube"
-          }
-        }
-      }
-    },
     "Collapse All": {
       "localizations": {
         "es": {
@@ -3455,16 +3403,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Controla cómo se desplaza la barra de información en la pantalla Resumen."
-          }
-        }
-      }
-    },
-    "Cross-Device": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Entre dispositivos"
           }
         }
       }
@@ -4349,16 +4287,6 @@
         }
       }
     },
-    "Displayed separately due to iOS privacy restrictions": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se muestra por separado debido a las restricciones de privacidad de iOS"
-          }
-        }
-      }
-    },
     "Distribution": {
       "localizations": {
         "es": {
@@ -4749,26 +4677,6 @@
         }
       }
     },
-    "Enable Screen Time access to track iPhone usage": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Permite el acceso al Tiempo de pantalla para rastrear el uso del iPhone"
-          }
-        }
-      }
-    },
-    "Enable Screen Time access to track your iPhone usage alongside your Mac data.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Permite el acceso al Tiempo de pantalla para rastrear el uso de tu iPhone junto con los datos de tu Mac."
-          }
-        }
-      }
-    },
     "Enable Tracking": {
       "localizations": {
         "es": {
@@ -4835,86 +4743,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "啟用追蹤"
-          }
-        }
-      }
-    },
-    "Enable iPhone Screen Time tracking": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Habilitar rastreo del tiempo de pantalla del iPhone"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ativar rastreamento de Tempo de Tela do iPhone"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Включить отслеживание Screen Time iPhone"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "تفعيل تتبع وقت الشاشة لـ iPhone"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activer le suivi du temps d'écran iPhone"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone-Bildschirmzeit-Verfolgung aktivieren"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Attiva tracciamento tempo di utilizzo iPhone"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone スクリーン タイム トラッキングを有効にする"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone 화면 시간 추적 활성화"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "启用 iPhone 屏幕时间跟踪"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "啟用 iPhone 螢幕時間追蹤"
-          }
-        }
-      }
-    },
-    "Enable iPhone Tracking": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Habilitar rastreo del iPhone"
           }
         }
       }
@@ -5489,16 +5317,6 @@
         }
       }
     },
-    "Export your synced screen time data or share summaries.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Exporta tus datos de tiempo de pantalla sincronizados o comparte resúmenes."
-          }
-        }
-      }
-    },
     "Exporting...": {
       "localizations": {
         "es": {
@@ -5789,16 +5607,6 @@
         }
       }
     },
-    "Force Local Sync": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Forzar sincronización local"
-          }
-        }
-      }
-    },
     "Format": {
       "localizations": {
         "es": {
@@ -5815,16 +5623,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Desde"
-          }
-        }
-      }
-    },
-    "From synced devices": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desde dispositivos sincronizados"
           }
         }
       }
@@ -6725,16 +6523,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "上週"
-          }
-        }
-      }
-    },
-    "Last sync: %@": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Última sincronización: %@"
           }
         }
       }
@@ -7729,16 +7517,6 @@
         }
       }
     },
-    "No Devices Selected": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No hay dispositivos seleccionados"
-          }
-        }
-      }
-    },
     "No Web History": {
       "localizations": {
         "es": {
@@ -7959,26 +7737,6 @@
         }
       }
     },
-    "No device data": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sin datos del dispositivo"
-          }
-        }
-      }
-    },
-    "No devices synced yet": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aún no hay dispositivos sincronizados"
-          }
-        }
-      }
-    },
     "No page details available": {
       "localizations": {
         "es": {
@@ -8089,16 +7847,6 @@
         }
       }
     },
-    "No subscriptions, ever": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sin suscripciones, nunca"
-          }
-        }
-      }
-    },
     "No time filters – all hours included": {
       "localizations": {
         "es": {
@@ -8179,16 +7927,6 @@
         }
       }
     },
-    "Not synced": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No sincronizado"
-          }
-        }
-      }
-    },
     "Notes & docs": {
       "localizations": {
         "es": {
@@ -8255,16 +7993,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Solo tiempos de uso agregados"
-          }
-        }
-      }
-    },
-    "Only aggregated daily summaries are synced. Raw session data stays local.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Solo se sincronizan resúmenes diarios agregados. Los datos de sesiones sin procesar permanecen locales."
           }
         }
       }
@@ -8405,26 +8133,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "打開 time.md"
-          }
-        }
-      }
-    },
-    "Open time.md on your Mac to sync data": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abre time.md en tu Mac para sincronizar los datos"
-          }
-        }
-      }
-    },
-    "Opens the Devices tab to toggle which devices are included": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abre la pestaña Dispositivos para alternar qué dispositivos se incluyen"
           }
         }
       }
@@ -9065,16 +8773,6 @@
         }
       }
     },
-    "Rate on App Store": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Valorar en el App Store"
-          }
-        }
-      }
-    },
     "Raw Sessions": {
       "localizations": {
         "es": {
@@ -9355,16 +9053,6 @@
         }
       }
     },
-    "Requests permission to track your iPhone usage": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Solicita permiso para rastrear el uso de tu iPhone"
-          }
-        }
-      }
-    },
     "Reset": {
       "localizations": {
         "es": {
@@ -9451,16 +9139,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Restablecer al predeterminado (~/Downloads/time.md Exports)"
-          }
-        }
-      }
-    },
-    "Restore Purchase": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Restaurar compra"
           }
         }
       }
@@ -9671,16 +9349,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "RESUMEN"
-          }
-        }
-      }
-    },
-    "SYNC STATUS": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ESTADO DE SINCRONIZACIÓN"
           }
         }
       }
@@ -9905,16 +9573,6 @@
         }
       }
     },
-    "Screen Time tracking is active. Your iPhone usage data will be captured and synced.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El rastreo del Tiempo de pantalla está activo. Los datos de uso de tu iPhone se capturarán y sincronizarán."
-          }
-        }
-      }
-    },
     "Search URLs, titles, domains…": {
       "localizations": {
         "es": {
@@ -10095,26 +9753,6 @@
         }
       }
     },
-    "See all devices in one view": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ver todos los dispositivos en una sola vista"
-          }
-        }
-      }
-    },
-    "See your data on all devices": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ve tus datos en todos los dispositivos"
-          }
-        }
-      }
-    },
     "Select All": {
       "localizations": {
         "es": {
@@ -10151,36 +9789,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Seleccionar apps para filtrar"
-          }
-        }
-      }
-    },
-    "Select devices in the Devices tab to see app usage": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Selecciona dispositivos en la pestaña Dispositivos para ver el uso de apps"
-          }
-        }
-      }
-    },
-    "Select devices to see trends": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Selecciona dispositivos para ver tendencias"
-          }
-        }
-      }
-    },
-    "Select synced devices to see trends": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Selecciona dispositivos sincronizados para ver tendencias"
           }
         }
       }
@@ -10945,482 +10553,6 @@
         }
       }
     },
-    "Sync": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizar"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizar"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Синхронизировать"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مزامنة"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Synchroniser"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Synchronisieren"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizza"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "同期"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "동기화"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "同步"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "同步"
-          }
-        }
-      }
-    },
-    "Sync Error": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Error de sincronización"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Erro de Sincronização"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ошибка синхронизации"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "خطأ المزامنة"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Erreur de synchronisation"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Synchronisierungsfehler"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Errore sincronizzazione"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "同期エラー"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "동기화 오류"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "同步错误"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "同步錯誤"
-          }
-        }
-      }
-    },
-    "Sync Everywhere": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizar en todos"
-          }
-        }
-      }
-    },
-    "Sync Failed": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronización fallida"
-          }
-        }
-      }
-    },
-    "Sync Now": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizar ahora"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizar Agora"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Синхронизировать сейчас"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مزامنة الآن"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Synchroniser maintenant"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jetzt synchronisieren"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizza ora"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "今すぐ同期"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "지금 동기화"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "立即同步"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "立即同步"
-          }
-        }
-      }
-    },
-    "Sync allows you to see combined screen time from all your devices in one place.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La sincronización te permite ver el tiempo de pantalla combinado de todos tus dispositivos en un solo lugar."
-          }
-        }
-      }
-    },
-    "Sync complete!": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "¡Sincronización completa!"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronização completa!"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Синхронизация завершена!"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "اكتملت المزامنة!"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Synchronisation terminée!"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Synchronisierung abgeschlossen!"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizzazione completata!"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "同期完了!"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "동기화 완료!"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "同步完成!"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "同步完成!"
-          }
-        }
-      }
-    },
-    "Sync from your Mac to see app usage here": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincroniza desde tu Mac para ver el uso de apps aquí"
-          }
-        }
-      }
-    },
-    "Sync is end-to-end encrypted": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La sincronización está cifrada de extremo a extremo"
-          }
-        }
-      }
-    },
-    "Sync status: %lld devices, last synced %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sync status: %1$lld devices, last synced %2$@"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Estado de sincronización: %1$lld dispositivos, última sincronización %2$@"
-          }
-        }
-      }
-    },
-    "Sync your screen time data across devices. View combined usage from your Mac, iPhone, and iPad in one place.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincroniza tus datos de tiempo de pantalla entre dispositivos. Visualiza el uso combinado de tu Mac, iPhone e iPad en un solo lugar."
-          }
-        }
-      }
-    },
-    "Synced": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizado"
-          }
-        }
-      }
-    },
-    "Synced %@ ago": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizado hace %@"
-          }
-        }
-      }
-    },
-    "Synced Devices: %lld": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dispositivos sincronizados: %lld"
-          }
-        }
-      }
-    },
-    "Synced from %@": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizado desde %@"
-          }
-        }
-      }
-    },
-    "Synced successfully": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizado correctamente"
-          }
-        }
-      }
-    },
-    "Syncing...": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizando..."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizando..."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Синхронизация..."
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "جاري المزامنة..."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Synchronisation..."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wird synchronisiert..."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizzazione..."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "同期中..."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "동기화 중..."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在同步..."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在同步..."
-          }
-        }
-      }
-    },
     "THIS WEEK": {
       "localizations": {
         "es": {
@@ -11641,26 +10773,6 @@
         }
       }
     },
-    "The menu bar item displays your daily screen time and allows quick sync.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El ítem de la barra de menús muestra tu tiempo de pantalla diario y permite sincronización rápida."
-          }
-        }
-      }
-    },
-    "This Device": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Este dispositivo"
-          }
-        }
-      }
-    },
     "This Month": {
       "localizations": {
         "es": {
@@ -11811,16 +10923,6 @@
         }
       }
     },
-    "This device": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Este dispositivo"
-          }
-        }
-      }
-    },
     "Time": {
       "localizations": {
         "es": {
@@ -11887,16 +10989,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hasta"
-          }
-        }
-      }
-    },
-    "To track your iPhone usage, time.md needs Screen Time permission. Here's what that means:": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Para rastrear el uso de tu iPhone, time.md necesita permiso de Tiempo de pantalla. Esto significa:"
           }
         }
       }
@@ -12687,76 +11779,6 @@
         }
       }
     },
-    "Unlock time.md": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desbloquea time.md"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desbloquear time.md"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Разблокировать time.md"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "فتح قفل time.md"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Déverrouiller time.md"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "time.md entsperren"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sblocca time.md"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "time.md をロック解除"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "time.md 잠금 해제"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "解锁 time.md"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "解鎖 time.md"
-          }
-        }
-      }
-    },
     "Unmapped only (%lld)": {
       "localizations": {
         "es": {
@@ -12983,16 +12005,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "網頁歷史"
-          }
-        }
-      }
-    },
-    "Web browsing history is collected from your Mac and synced via iCloud. Open time.md on your Mac to start tracking.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El historial de navegación web se recopila en tu Mac y se sincroniza vía iCloud. Abre time.md en tu Mac para empezar a rastrear."
           }
         }
       }
@@ -13357,16 +12369,6 @@
         }
       }
     },
-    "You can still view your Mac's screen time data synced via iCloud. Enable iPhone tracking anytime in Settings.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aún puedes ver los datos del tiempo de pantalla de tu Mac sincronizados mediante iCloud. Habilita el rastreo del iPhone en cualquier momento en Ajustes."
-          }
-        }
-      }
-    },
     "You're All Set!": {
       "localizations": {
         "es": {
@@ -13437,302 +12439,12 @@
         }
       }
     },
-    "You've used time.md for over 12 hours.\nUnlock lifetime access with a one-time purchase.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Has usado time.md por más de 12 horas.\nDesbloquea el acceso de por vida con una compra única."
-          }
-        }
-      }
-    },
-    "Your free trial has ended": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tu período de prueba ha terminado"
-          }
-        }
-      }
-    },
     "e.g. %@": {
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
             "value": "p. ej. %@"
-          }
-        }
-      }
-    },
-    "iCloud Available": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iCloud disponible"
-          }
-        }
-      }
-    },
-    "iCloud Sync": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronización con iCloud"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronização iCloud"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Синхронизация iCloud"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "مزامنة iCloud"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Synchronisation iCloud"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iCloud-Synchronisierung"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronizzazione iCloud"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iCloud 同期"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iCloud 동기화"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iCloud 同步"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iCloud 同步"
-          }
-        }
-      }
-    },
-    "iCloud Sync Active": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronización con iCloud activa"
-          }
-        }
-      }
-    },
-    "iCloud Sync Disabled": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronización con iCloud deshabilitada"
-          }
-        }
-      }
-    },
-    "iCloud Unavailable": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iCloud no disponible"
-          }
-        }
-      }
-    },
-    "iCloud sync across devices": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sincronización con iCloud entre dispositivos"
-          }
-        }
-      }
-    },
-    "iPhone": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone"
-          }
-        },
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone"
-          }
-        }
-      }
-    },
-    "iPhone Apps": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apps del iPhone"
-          }
-        }
-      }
-    },
-    "iPhone Screen Time": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tiempo de pantalla del iPhone"
-          }
-        }
-      }
-    },
-    "iPhone Screen Time for today": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tiempo de pantalla del iPhone para hoy"
-          }
-        }
-      }
-    },
-    "iPhone Tracking Unavailable": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rastreo del iPhone no disponible"
-          }
-        }
-      }
-    },
-    "iPhone Usage": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uso del iPhone"
-          }
-        }
-      }
-    },
-    "iPhone tracking is not enabled": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El rastreo del iPhone no está habilitado"
-          }
-        }
-      }
-    },
-    "iPhone • Live Screen Time": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iPhone • Tiempo de pantalla en vivo"
-          }
-        }
-      }
-    },
-    "one-time purchase, forever yours": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "compra única, tuyo para siempre"
           }
         }
       }
@@ -13753,36 +12465,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "time.md ahora puede rastrear tu tiempo de pantalla."
-          }
-        }
-      }
-    },
-    "time.md can track your iPhone screen time directly, giving you detailed insights into your digital habits.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "time.md puede rastrear directamente el tiempo de pantalla de tu iPhone, dándote información detallada sobre tus hábitos digitales."
-          }
-        }
-      }
-    },
-    "time.md is local-first. Your raw data stays on this machine. iCloud sync only shares aggregated daily summaries.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "time.md es local primero. Tus datos sin procesar permanecen en esta máquina. La sincronización con iCloud solo comparte resúmenes diarios agregados."
-          }
-        }
-      }
-    },
-    "time.md will now track your screen time and sync it across your devices.": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "time.md ahora rastreará tu tiempo de pantalla y lo sincronizará entre tus dispositivos."
           }
         }
       }

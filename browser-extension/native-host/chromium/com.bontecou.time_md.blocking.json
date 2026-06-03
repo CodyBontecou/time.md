@@ -1,0 +1,9 @@
+{
+  "name": "com.bontecou.time_md.blocking",
+  "description": "time.md optional browser extension bridge for real-time blocking URL events",
+  "path": "/Applications/time.md.app/Contents/MacOS/time.md-native-messaging-host",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://REPLACE_WITH_EXTENSION_ID/"
+  ]
+}

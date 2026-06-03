@@ -23,9 +23,8 @@ Describe how you would use this feature in your workflow.
 If applicable, add mockups, sketches, or examples from other apps.
 
 ## Platform
-- [ ] macOS
-- [ ] iOS
-- [ ] Both
+
+time.md is macOS-only. If this request depends on another platform, explain why here.
 
 ## Additional Context
 Any other context about the feature request.

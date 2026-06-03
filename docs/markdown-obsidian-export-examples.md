@@ -42,7 +42,7 @@ This document shows example outputs from the new Markdown and Obsidian export fo
 
 ---
 
-*⏱️ Exported by [time.md](https://timeprint.app)*
+*⏱️ Exported by [time.md](https://timemd.isolated.tech)*
 ```
 
 ## Obsidian Export (with Frontmatter)
@@ -63,7 +63,7 @@ top_apps:
   - "Slack"
   - "Figma"
 tags:
-  - timeprint
+  - timemd
   - screentime
 filters: "date_range=2026-02-18..2026-02-25; granularity=day"
 ---
@@ -76,7 +76,7 @@ filters: "date_range=2026-02-18..2026-02-25; granularity=day"
 | **Date Range** | [[2026-02-18]] → [[2026-02-25]] |
 | **Total Time** | 7.0 hours |
 
-#timeprint #screentime
+#timemd #screentime
 
 ---
 
@@ -115,7 +115,7 @@ filters: "date_range=2026-02-18..2026-02-25; granularity=day"
   - [[Apps/Slack|Slack]]
   - [[Apps/Figma|Figma]]
 
-*⏱️ Exported by [time.md](https://timeprint.app)*
+*⏱️ Exported by [time.md](https://timemd.isolated.tech)*
 ```
 
 ## Features

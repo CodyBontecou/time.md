@@ -155,7 +155,7 @@ Include:
 ### Bug Reports
 
 Include:
-- macOS/iOS version
+- macOS version
 - time.md version
 - Steps to reproduce
 - Expected behavior

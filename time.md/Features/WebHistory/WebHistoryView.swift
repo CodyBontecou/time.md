@@ -469,39 +469,47 @@ struct WebHistoryView: View {
                     .padding(.horizontal, 4)
             }
 
-            HStack(spacing: 0) {
-                Text(verbatim: timeFormatter.string(from: visit.visitTime))
-                    .font(BrutalTheme.tableBody)
-                    .foregroundColor(BrutalTheme.textTertiary)
-                    .frame(width: 70, alignment: .leading)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(verbatim: visit.title)
+            Button {
+                openURLString(visit.url)
+            } label: {
+                HStack(spacing: 0) {
+                    Text(verbatim: timeFormatter.string(from: visit.visitTime))
                         .font(BrutalTheme.tableBody)
-                        .foregroundColor(BrutalTheme.textPrimary)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-
-                    Text(verbatim: visit.url)
-                        .font(.system(size: 9, weight: .regular, design: .monospaced))
                         .foregroundColor(BrutalTheme.textTertiary)
+                        .frame(width: 70, alignment: .leading)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: visit.title)
+                            .font(BrutalTheme.tableBody)
+                            .foregroundColor(BrutalTheme.textPrimary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+
+                        Text(verbatim: visit.url)
+                            .font(.system(size: 9, weight: .regular, design: .monospaced))
+                            .foregroundColor(BrutalTheme.textTertiary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+
+                    Spacer(minLength: 8)
+
+                    Text(verbatim: visit.domain)
+                        .font(BrutalTheme.tableBody)
+                        .foregroundColor(BrutalTheme.textSecondary)
                         .lineLimit(1)
-                        .truncationMode(.middle)
+                        .frame(width: 160, alignment: .trailing)
+
+                    browserIcon(visit.browser)
+                        .frame(width: 36, alignment: .trailing)
                 }
-
-                Spacer(minLength: 8)
-
-                Text(verbatim: visit.domain)
-                    .font(BrutalTheme.tableBody)
-                    .foregroundColor(BrutalTheme.textSecondary)
-                    .lineLimit(1)
-                    .frame(width: 160, alignment: .trailing)
-
-                browserIcon(visit.browser)
-                    .frame(width: 36, alignment: .trailing)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 6)
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, 4)
-            .padding(.vertical, 6)
+            .buttonStyle(.plain)
+            .help("Open \(visit.url)")
+            .onHover(perform: updatePointingHand)
         }
     }
 
@@ -509,6 +517,43 @@ struct WebHistoryView: View {
         Image(systemName: browser.systemImage)
             .font(.system(size: 10, weight: .medium))
             .foregroundColor(BrutalTheme.textTertiary)
+    }
+
+    private func openDomain(_ domain: String) {
+        openURLString(domain)
+    }
+
+    private func openPage(_ page: PageSummary) {
+        guard let url = page.visits.first?.url else { return }
+        openURLString(url)
+    }
+
+    private func openURLString(_ rawURL: String) {
+        guard let url = Self.normalizedWebURL(from: rawURL) else { return }
+        NSWorkspace.shared.open(url)
+    }
+
+    private func updatePointingHand(_ hovering: Bool) {
+        if hovering {
+            NSCursor.pointingHand.push()
+        } else {
+            NSCursor.pop()
+        }
+    }
+
+    private static func normalizedWebURL(from rawURL: String) -> URL? {
+        let trimmed = rawURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        if let components = URLComponents(string: trimmed),
+           let scheme = components.scheme?.lowercased(),
+           ["http", "https"].contains(scheme),
+           components.host != nil {
+            return components.url
+        }
+
+        guard !trimmed.contains("://") else { return nil }
+        return URLComponents(string: "https://\(trimmed)")?.url
     }
 
     // MARK: - Top Domains
@@ -608,52 +653,66 @@ struct WebHistoryView: View {
                 let isLoadingPages = loadingDomains.contains(domain.domain)
 
                 VStack(spacing: 0) {
-                    // Main domain row (clickable)
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            toggleDomainExpansion(domain.domain)
-                        }
-                    } label: {
-                        HStack(spacing: 0) {
-                            // Expand/collapse indicator
+                    // Main domain row. The chevron expands; the domain name opens the site.
+                    HStack(spacing: 0) {
+                        // Expand/collapse indicator
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                toggleDomainExpansion(domain.domain)
+                            }
+                        } label: {
                             Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
                                 .font(.system(size: 10, weight: .semibold))
                                 .foregroundColor(BrutalTheme.textTertiary)
                                 .frame(width: 20, alignment: .leading)
-                            
-                            Text(String(format: "%02d", index + 1))
-                                .font(BrutalTheme.tableBody)
-                                .foregroundColor(BrutalTheme.textTertiary)
-                                .frame(width: 28, alignment: .leading)
-
-                            Text(verbatim: domain.domain)
-                                .font(BrutalTheme.tableBody)
-                                .foregroundColor(BrutalTheme.textPrimary)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-
-                            Spacer(minLength: 8)
-
-                            Text("\(domain.visitCount)")
-                                .font(BrutalTheme.tableBody)
-                                .foregroundColor(BrutalTheme.textPrimary)
-                                .frame(width: 64, alignment: .trailing)
-
-                            Text(String(format: "%.1f%%", pct))
-                                .font(BrutalTheme.tableBody)
-                                .foregroundColor(BrutalTheme.textTertiary)
-                                .frame(width: 52, alignment: .trailing)
-
-                            Text(Self.shortDateFormatter.string(from: domain.lastVisitTime))
-                                .font(BrutalTheme.tableBody)
-                                .foregroundColor(BrutalTheme.textTertiary)
-                                .frame(width: 90, alignment: .trailing)
+                                .contentShape(Rectangle())
                         }
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 8)
-                        .contentShape(Rectangle())
+                        .buttonStyle(.plain)
+                        .help(isExpanded ? "Hide pages" : "Show pages")
+                        .onHover(perform: updatePointingHand)
+                        
+                        Text(String(format: "%02d", index + 1))
+                            .font(BrutalTheme.tableBody)
+                            .foregroundColor(BrutalTheme.textTertiary)
+                            .frame(width: 28, alignment: .leading)
+
+                        Button {
+                            openDomain(domain.domain)
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(verbatim: domain.domain)
+                                    .font(BrutalTheme.tableBody)
+                                    .foregroundColor(BrutalTheme.textPrimary)
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                                Image(systemName: "arrow.up.forward.square")
+                                    .font(.system(size: 9, weight: .semibold))
+                                    .foregroundColor(BrutalTheme.textTertiary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .help("Open \(domain.domain)")
+                        .onHover(perform: updatePointingHand)
+
+                        Spacer(minLength: 8)
+
+                        Text("\(domain.visitCount)")
+                            .font(BrutalTheme.tableBody)
+                            .foregroundColor(BrutalTheme.textPrimary)
+                            .frame(width: 64, alignment: .trailing)
+
+                        Text(String(format: "%.1f%%", pct))
+                            .font(BrutalTheme.tableBody)
+                            .foregroundColor(BrutalTheme.textTertiary)
+                            .frame(width: 52, alignment: .trailing)
+
+                        Text(Self.shortDateFormatter.string(from: domain.lastVisitTime))
+                            .font(BrutalTheme.tableBody)
+                            .foregroundColor(BrutalTheme.textTertiary)
+                            .frame(width: 90, alignment: .trailing)
                     }
-                    .buttonStyle(.plain)
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 8)
 
                     // Percentage bar
                     GeometryReader { geo in
@@ -719,29 +778,41 @@ struct WebHistoryView: View {
             
             ForEach(pages) { page in
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack(alignment: .top, spacing: 8) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: page.title)
-                                .font(BrutalTheme.captionMono)
-                                .foregroundColor(BrutalTheme.textPrimary)
-                                .lineLimit(1)
+                    Button {
+                        openPage(page)
+                    } label: {
+                        HStack(alignment: .top, spacing: 8) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: page.title)
+                                    .font(BrutalTheme.captionMono)
+                                    .foregroundColor(BrutalTheme.textPrimary)
+                                    .lineLimit(1)
 
-                            Text(verbatim: page.path)
-                                .font(.system(size: 9, weight: .regular, design: .monospaced))
+                                Text(verbatim: page.path)
+                                    .font(.system(size: 9, weight: .regular, design: .monospaced))
+                                    .foregroundColor(BrutalTheme.textTertiary)
+                                    .lineLimit(1)
+                            }
+                            
+                            Spacer(minLength: 8)
+                            
+                            Image(systemName: "arrow.up.forward.square")
+                                .font(.system(size: 9, weight: .semibold))
                                 .foregroundColor(BrutalTheme.textTertiary)
-                                .lineLimit(1)
+                            
+                            Text("\(page.visitCount)")
+                                .font(BrutalTheme.captionMono)
+                                .foregroundColor(BrutalTheme.textSecondary)
+                                .frame(width: 50, alignment: .trailing)
                         }
-                        
-                        Spacer(minLength: 8)
-                        
-                        Text("\(page.visitCount)")
-                            .font(BrutalTheme.captionMono)
-                            .foregroundColor(BrutalTheme.textSecondary)
-                            .frame(width: 50, alignment: .trailing)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .padding(.leading, 36)
+                        .contentShape(Rectangle())
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .padding(.leading, 36)
+                    .buttonStyle(.plain)
+                    .help(page.visits.first.map { "Open \($0.url)" } ?? "Open page")
+                    .onHover(perform: updatePointingHand)
                     
                     // Visit times for this page
                     if !page.visits.isEmpty {
@@ -775,23 +846,30 @@ struct WebHistoryView: View {
     }
     
     private func visitTimeChip(_ visit: PageVisit) -> some View {
-        HStack(spacing: 4) {
-            Text(Self.chipDateFormatter.string(from: visit.visitTime))
-                .font(.system(size: 9, weight: .medium, design: .monospaced))
-                .foregroundColor(BrutalTheme.textSecondary)
-            
-            Text(Self.timeFormatter.string(from: visit.visitTime))
-                .font(.system(size: 9, weight: .semibold, design: .monospaced))
-                .foregroundColor(BrutalTheme.textPrimary)
-            
-            browserIcon(visit.browser)
+        Button {
+            openURLString(visit.url)
+        } label: {
+            HStack(spacing: 4) {
+                Text(Self.chipDateFormatter.string(from: visit.visitTime))
+                    .font(.system(size: 9, weight: .medium, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textSecondary)
+                
+                Text(Self.timeFormatter.string(from: visit.visitTime))
+                    .font(.system(size: 9, weight: .semibold, design: .monospaced))
+                    .foregroundColor(BrutalTheme.textPrimary)
+                
+                browserIcon(visit.browser)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(BrutalTheme.surfaceAlt)
+            )
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(
-            RoundedRectangle(cornerRadius: 4)
-                .fill(BrutalTheme.surfaceAlt)
-        )
+        .buttonStyle(.plain)
+        .help("Open \(visit.url)")
+        .onHover(perform: updatePointingHand)
     }
     
     private func toggleDomainExpansion(_ domain: String) {

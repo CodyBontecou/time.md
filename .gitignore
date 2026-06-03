@@ -33,7 +33,7 @@ time.md-v*-macOS.zip
 TRANSLATION_SUMMARY.txt
 translations_*.json
 
-# Generated screenshots (Simulator captures, ASO assets, App Store exports)
+# Generated screenshots (Simulator captures and marketing assets)
 screenshots/
 
 # Playwright CLI session cache

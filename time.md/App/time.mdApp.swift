@@ -50,6 +50,9 @@ struct TimeMdApp: App {
                 ActiveAppTracker.shared.start()
                 ScreenTimeAutoSaveWriter.shared.start(dataService: AppEnvironment.live.dataService)
                 ScheduledExportEnvironment.runner.start()
+                WebsiteAccessEventSource.shared.start()
+                AppBlockActivationWatcher.shared.start()
+                reconcileDomainBlocksOnLaunch()
                 Task.detached(priority: .utility) {
                     AppCategorizer.autoPopulateCategories()
                 }
@@ -68,6 +71,8 @@ struct TimeMdApp: App {
                 InputEventTracker.shared.stop()
                 InputAggregator.shared.stop()
                 InputDataPruner.shared.stop()
+                WebsiteAccessEventSource.shared.stop()
+                AppBlockActivationWatcher.shared.stop()
             }
             .onReceive(NotificationCenter.default.publisher(for: ActiveAppTracker.didRecordSessionNotification)) { _ in
                 filters.triggerRefresh()
@@ -115,6 +120,21 @@ struct TimeMdApp: App {
         // Idempotent — gated by a UserDefaults flag inside HistoryStore.
         Task.detached(priority: .utility) {
             _ = try? HistoryStore.inputTrackingDatabaseURL()
+        }
+    }
+
+    /// Re-publish active domain blocks on launch so helper state is repaired
+    /// without requiring the user to open the Blocking screen first.
+    private func reconcileDomainBlocksOnLaunch() {
+        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
+
+        Task(priority: .utility) {
+            do {
+                _ = try await DomainBlockEnforcer(helper: PrivilegedDomainBlockHelperClient.shared)
+                    .reconcileActiveDomainBlocks(now: Date())
+            } catch {
+                NSLog("[TimeMdApp] Failed to reconcile domain blocks on launch: \(error.localizedDescription)")
+            }
         }
     }
 }

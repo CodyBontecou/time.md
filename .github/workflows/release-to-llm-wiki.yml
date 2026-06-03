@@ -27,6 +27,5 @@ jobs:
             -f event_type=generate-launch-checklist \
             -F client_payload[app]="$APP_SLUG" \
             -F client_payload[version]="${{ steps.ver.outputs.version }}" \
-            -F client_payload[asc_id]="" \
             -F client_payload[repo]="${{ github.repository }}" \
             -F client_payload[public_url]="$PUBLIC_URL"

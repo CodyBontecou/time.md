@@ -1,19 +1,20 @@
-# SwiftLint Configuration for Timeprint
+# SwiftLint Configuration for time.md
 
 # Paths to include
 included:
-  - Timeprint
-  - TimeprintIOS
-  - TimeprintWidget
-  - TimeprintDeviceActivityReport
-  - TimeprintDeviceActivityMonitor
-  - TimeprintTests
+  - time.md
+  - time.mdRegressionTests
+  - time.mdTests
+  - timemd-mcp
 
 # Paths to exclude
 excluded:
+  - build
   - DerivedData
   - .build
   - Pods
+  - node_modules
+  - .pi
 
 # Enabled rules
 opt_in_rules:
@@ -79,6 +80,9 @@ force_cast:
 force_try:
   severity: warning
 
+force_unwrapping:
+  severity: warning
+
 # Custom rules
 custom_rules:
   no_print_statements:
@@ -89,5 +93,5 @@ custom_rules:
     match_kinds:
       - identifier
 
-# Reporter type
+# Reporter
 reporter: "xcode"

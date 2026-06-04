@@ -1,7 +1,7 @@
 import Foundation
 import SQLite3
 
-enum CategoryMappingStore {
+nonisolated enum CategoryMappingStore {
     static let tableName = "app_category_map"
 
     static func fetchAll() throws -> [AppCategoryMapping] {
@@ -98,29 +98,39 @@ enum CategoryMappingStore {
         do {
             try exec(db: db, sql: "DELETE FROM \(tableName)", path: path)
 
-            let insertSQL = "INSERT INTO \(tableName) (app_name, category) VALUES (?, ?)"
-            var statementPointer: OpaquePointer?
-            let prepareResult = sqlite3_prepare_v2(db, insertSQL, -1, &statementPointer, nil)
-            guard prepareResult == SQLITE_OK, let statement = statementPointer else {
-                throw ScreenTimeDataError.sqlite(path: path, message: sqliteMessage(db: db))
-            }
+            try insertMappings(mappings, into: db, tableName: tableName, path: path)
 
-            defer { sqlite3_finalize(statement) }
+            try exec(db: db, sql: "COMMIT", path: path)
+        } catch {
+            try? exec(db: db, sql: "ROLLBACK", path: path)
+            throw error
+        }
+    }
 
-            for mapping in mappings {
-                sqlite3_clear_bindings(statement)
-                sqlite3_reset(statement)
+    /// Installs category mappings into a connection-local temporary table.
+    ///
+    /// Screen-time analytics now read directly from the live WAL database using
+    /// read-only connections. Those connections cannot mutate the main schema,
+    /// but SQLite still allows temporary tables on the connection. Keeping the
+    /// existing unqualified `app_category_map` name means all analytics queries
+    /// can continue to join against category mappings without copying the whole
+    /// database first.
+    static func installMappingsIntoTemporaryTable(into db: OpaquePointer, path: String) throws {
+        let sql = """
+        CREATE TEMP TABLE IF NOT EXISTS \(tableName) (
+            app_name TEXT PRIMARY KEY,
+            category TEXT NOT NULL
+        );
+        DELETE FROM temp.\(tableName);
+        """
+        try exec(db: db, sql: sql, path: path)
 
-                guard sqlite3_bind_text(statement, 1, mapping.appName, -1, sqliteTransient) == SQLITE_OK,
-                      sqlite3_bind_text(statement, 2, mapping.category, -1, sqliteTransient) == SQLITE_OK else {
-                    throw ScreenTimeDataError.sqlite(path: path, message: sqliteMessage(db: db))
-                }
+        let mappings = try fetchAll()
+        guard !mappings.isEmpty else { return }
 
-                guard sqlite3_step(statement) == SQLITE_DONE else {
-                    throw ScreenTimeDataError.sqlite(path: path, message: sqliteMessage(db: db))
-                }
-            }
-
+        try exec(db: db, sql: "BEGIN", path: path)
+        do {
+            try insertMappings(mappings, into: db, tableName: "temp.\(tableName)", path: path)
             try exec(db: db, sql: "COMMIT", path: path)
         } catch {
             try? exec(db: db, sql: "ROLLBACK", path: path)
@@ -129,7 +139,7 @@ enum CategoryMappingStore {
     }
 }
 
-private extension CategoryMappingStore {
+nonisolated private extension CategoryMappingStore {
     struct OpenedDatabase {
         let path: String
         let handle: OpaquePointer
@@ -192,6 +202,36 @@ private extension CategoryMappingStore {
         }
 
         return base.appendingPathComponent("category-mappings.db")
+    }
+
+    static func insertMappings(
+        _ mappings: [AppCategoryMapping],
+        into db: OpaquePointer,
+        tableName: String,
+        path: String
+    ) throws {
+        let insertSQL = "INSERT INTO \(tableName) (app_name, category) VALUES (?, ?)"
+        var statementPointer: OpaquePointer?
+        let prepareResult = sqlite3_prepare_v2(db, insertSQL, -1, &statementPointer, nil)
+        guard prepareResult == SQLITE_OK, let statement = statementPointer else {
+            throw ScreenTimeDataError.sqlite(path: path, message: sqliteMessage(db: db))
+        }
+
+        defer { sqlite3_finalize(statement) }
+
+        for mapping in mappings {
+            sqlite3_clear_bindings(statement)
+            sqlite3_reset(statement)
+
+            guard sqlite3_bind_text(statement, 1, mapping.appName, -1, sqliteTransient) == SQLITE_OK,
+                  sqlite3_bind_text(statement, 2, mapping.category, -1, sqliteTransient) == SQLITE_OK else {
+                throw ScreenTimeDataError.sqlite(path: path, message: sqliteMessage(db: db))
+            }
+
+            guard sqlite3_step(statement) == SQLITE_DONE else {
+                throw ScreenTimeDataError.sqlite(path: path, message: sqliteMessage(db: db))
+            }
+        }
     }
 
     static func ensureSchema(db: OpaquePointer, path: String) throws {

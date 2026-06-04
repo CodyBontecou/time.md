@@ -62,13 +62,13 @@ struct SessionBucket: Identifiable, Sendable {
 }
 
 /// Heatmap cell coordinate for filtering
-struct HeatmapCellCoordinate: Hashable, Sendable {
+nonisolated struct HeatmapCellCoordinate: Hashable, Sendable {
     let weekday: Int
     let hour: Int
 }
 
 /// Time granularity for aggregation
-enum TimeGranularity: String, CaseIterable, Identifiable, Sendable {
+nonisolated enum TimeGranularity: String, CaseIterable, Identifiable, Sendable {
     case day
     case week
     case month
@@ -87,7 +87,7 @@ enum TimeGranularity: String, CaseIterable, Identifiable, Sendable {
 }
 
 /// Filter snapshot for querying data
-struct FilterSnapshot: Sendable {
+nonisolated struct FilterSnapshot: Sendable {
     var startDate: Date
     var endDate: Date
     var granularity: TimeGranularity

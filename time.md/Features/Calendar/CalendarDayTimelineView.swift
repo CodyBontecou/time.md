@@ -573,7 +573,6 @@ struct CalendarDayTimelineView: View {
         do {
             loadError = nil
             let dayStart = cal.startOfDay(for: date)
-            guard let dayEnd = cal.date(byAdding: .day, value: 1, to: dayStart) else { return }
             
             // Fetch both hourly data (for stats/totals) and raw sessions (for exact times)
             let data = try await appEnvironment.dataService.fetchHourlyAppUsage(for: date)
@@ -582,7 +581,7 @@ struct CalendarDayTimelineView: View {
             // Fetch raw sessions to get actual timestamps
             let sessionFilters = FilterSnapshot(
                 startDate: dayStart,
-                endDate: dayEnd,
+                endDate: dayStart,
                 granularity: .day,
                 selectedApps: [],
                 selectedCategories: [],

@@ -96,7 +96,13 @@ enum WebHistoryArchiveStore {
             let db = try Self.openReadWrite()
             defer { sqlite3_close(db) }
 
-            guard sqlite3_exec(db, "DELETE FROM web_history_visits", nil, nil, nil) == SQLITE_OK else {
+            let sql = """
+            DELETE FROM web_history_visits;
+            DELETE FROM web_history_daily_counts;
+            DELETE FROM web_history_hourly_counts;
+            DELETE FROM web_history_domain_rollups;
+            """
+            guard sqlite3_exec(db, sql, nil, nil, nil) == SQLITE_OK else {
                 throw BrowsingHistoryError.sqlite(path: "web_history_visits", message: String(cString: sqlite3_errmsg(db)))
             }
         }.value
@@ -247,10 +253,16 @@ enum WebHistoryArchiveStore {
         let db = try openReadOnly()
         defer { sqlite3_close(db) }
 
+        let startDay = dayKey(startDate)
+        let endDay = dayKey(endDate)
+
         var sql = """
-        SELECT domain, COUNT(*) AS cnt, SUM(duration_seconds) AS total_duration, MAX(visit_time) AS last_visit
-        FROM web_history_visits
-        WHERE visit_time >= ? AND visit_time <= ? AND domain != ''
+        SELECT domain,
+               SUM(visit_count) AS cnt,
+               SUM(total_duration_seconds) AS total_duration,
+               MAX(last_visit_time) AS last_visit
+        FROM web_history_domain_rollups
+        WHERE day >= ? AND day <= ? AND domain != ''
         """
         if browser != .all {
             sql += " AND browser = ?"
@@ -264,8 +276,8 @@ enum WebHistoryArchiveStore {
         defer { sqlite3_finalize(statement) }
 
         var idx: Int32 = 1
-        sqlite3_bind_double(statement, idx, startDate.timeIntervalSince1970); idx += 1
-        sqlite3_bind_double(statement, idx, endDate.timeIntervalSince1970); idx += 1
+        bindText(statement, idx, startDay); idx += 1
+        bindText(statement, idx, endDay); idx += 1
         if browser != .all {
             bindText(statement, idx, browser.rawValue); idx += 1
         }
@@ -275,7 +287,8 @@ enum WebHistoryArchiveStore {
         while sqlite3_step(statement) == SQLITE_ROW {
             guard let domain = columnText(statement, 0) else { continue }
             let count = Int(sqlite3_column_int64(statement, 1))
-            let duration = sqlite3_column_type(statement, 2) == SQLITE_NULL ? nil : sqlite3_column_double(statement, 2)
+            let durationValue = sqlite3_column_double(statement, 2)
+            let duration = durationValue > 0 ? durationValue : nil
             let lastVisit = Date(timeIntervalSince1970: sqlite3_column_double(statement, 3))
             domains.append(DomainSummary(
                 domain: domain,
@@ -295,10 +308,13 @@ enum WebHistoryArchiveStore {
         let db = try openReadOnly()
         defer { sqlite3_close(db) }
 
+        let startDay = dayKey(startDate)
+        let endDay = dayKey(endDate)
+
         var sql = """
-        SELECT DATE(visit_time, 'unixepoch', 'localtime') AS day, COUNT(*) AS cnt
-        FROM web_history_visits
-        WHERE visit_time >= ? AND visit_time <= ?
+        SELECT day, SUM(visit_count) AS cnt
+        FROM web_history_daily_counts
+        WHERE day >= ? AND day <= ?
         """
         if browser != .all {
             sql += " AND browser = ?"
@@ -312,8 +328,8 @@ enum WebHistoryArchiveStore {
         defer { sqlite3_finalize(statement) }
 
         var idx: Int32 = 1
-        sqlite3_bind_double(statement, idx, startDate.timeIntervalSince1970); idx += 1
-        sqlite3_bind_double(statement, idx, endDate.timeIntervalSince1970); idx += 1
+        bindText(statement, idx, startDay); idx += 1
+        bindText(statement, idx, endDay); idx += 1
         if browser != .all {
             bindText(statement, idx, browser.rawValue)
         }
@@ -335,10 +351,13 @@ enum WebHistoryArchiveStore {
         let db = try openReadOnly()
         defer { sqlite3_close(db) }
 
+        let startDay = dayKey(startDate)
+        let endDay = dayKey(endDate)
+
         var sql = """
-        SELECT CAST(STRFTIME('%H', visit_time, 'unixepoch', 'localtime') AS INTEGER) AS hr, COUNT(*) AS cnt
-        FROM web_history_visits
-        WHERE visit_time >= ? AND visit_time <= ?
+        SELECT hour AS hr, SUM(visit_count) AS cnt
+        FROM web_history_hourly_counts
+        WHERE day >= ? AND day <= ?
         """
         if browser != .all {
             sql += " AND browser = ?"
@@ -352,8 +371,8 @@ enum WebHistoryArchiveStore {
         defer { sqlite3_finalize(statement) }
 
         var idx: Int32 = 1
-        sqlite3_bind_double(statement, idx, startDate.timeIntervalSince1970); idx += 1
-        sqlite3_bind_double(statement, idx, endDate.timeIntervalSince1970); idx += 1
+        bindText(statement, idx, startDay); idx += 1
+        bindText(statement, idx, endDay); idx += 1
         if browser != .all {
             bindText(statement, idx, browser.rawValue)
         }
@@ -435,7 +454,7 @@ enum WebHistoryArchiveStore {
     // MARK: - SQLite helpers
 
     nonisolated private static func openReadWrite() throws -> OpaquePointer {
-        let url = try HistoryStore.databaseURL()
+        let url = try HistoryStore.webHistoryDatabaseURL()
         var handle: OpaquePointer?
         let result = sqlite3_open_v2(url.path, &handle, SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX, nil)
         guard result == SQLITE_OK, let db = handle else {
@@ -448,7 +467,7 @@ enum WebHistoryArchiveStore {
     }
 
     nonisolated private static func openReadOnly() throws -> OpaquePointer {
-        let url = try HistoryStore.databaseURL()
+        let url = try HistoryStore.webHistoryDatabaseURL()
         var handle: OpaquePointer?
         let result = sqlite3_open_v2(url.path, &handle, SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX, nil)
         guard result == SQLITE_OK, let db = handle else {
@@ -520,6 +539,10 @@ enum WebHistoryArchiveStore {
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
+    }
+
+    nonisolated private static func dayKey(_ date: Date) -> String {
+        dayFormatter().string(from: date)
     }
 }
 

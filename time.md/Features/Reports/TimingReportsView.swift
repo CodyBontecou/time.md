@@ -113,6 +113,7 @@ struct TimingReportsView: View {
                 }
             }
             .pickerStyle(.segmented)
+            .labelsHidden()
             .frame(width: 280)
 
             Spacer()
@@ -123,6 +124,7 @@ struct TimingReportsView: View {
                 }
             }
             .pickerStyle(.segmented)
+            .labelsHidden()
             .frame(width: 220)
         }
     }
@@ -515,17 +517,21 @@ struct TimingReportsView: View {
             loadError = nil
             let snapshot = filters.snapshot
 
-            async let fetchedApps = appEnvironment.dataService.fetchTopApps(filters: snapshot, limit: 50)
-            async let fetchedCategories = appEnvironment.dataService.fetchTopCategories(filters: snapshot, limit: 20)
-            async let fetchedTrend = appEnvironment.dataService.fetchTrend(filters: snapshot)
-            async let fetchedPeriod = appEnvironment.dataService.fetchPeriodSummary(filters: snapshot)
-            async let fetchedWeekday = appEnvironment.dataService.fetchWeekdayAverages(filters: snapshot)
+            let reportData = try await appEnvironment.dataService.fetchReportData(
+                filters: snapshot,
+                topAppsLimit: 50,
+                topCategoriesLimit: 20
+            )
 
-            topApps = try await fetchedApps
-            topCategories = try await fetchedCategories
-            trendPoints = try await fetchedTrend
-            periodSummary = try await fetchedPeriod
-            weekdayAverages = try await fetchedWeekday
+            topApps = reportData.topApps
+            topCategories = reportData.topCategories
+            trendPoints = reportData.trendPoints
+            periodSummary = reportData.periodSummary
+            weekdayAverages = reportData.weekdayAverages
+
+            #if os(macOS)
+            AppIconProvider.shared.preload(bundleIDs: reportData.topApps.map(\.appName), size: 14, limit: 50)
+            #endif
         } catch {
             loadError = error
         }

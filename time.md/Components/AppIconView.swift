@@ -12,7 +12,7 @@ struct AppIconView: View {
     var body: some View {
         Group {
             if bundleID.contains("."),
-               let nsImage = AppIconProvider.shared.icon(for: bundleID, size: size) {
+               let nsImage = AppIconProvider.shared.cachedIcon(for: bundleID) {
                 Image(nsImage: nsImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)

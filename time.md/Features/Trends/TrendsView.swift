@@ -606,51 +606,18 @@ struct TrendsView: View {
             selectedDate = nil
             hoveredDate = nil
 
-            if isHourlyMode {
-                // Fetch hourly breakdown for Day view
-                let hourlyData = try await appEnvironment.dataService.fetchHourlyAppUsage(for: snapshot.startDate)
-                
-                // Store raw hourly data for detailed breakdown
-                hourlyAppData = hourlyData
-                
-                // Convert to TrendPoints (aggregated by hour)
-                let calendar = Calendar.current
-                let dayStart = calendar.startOfDay(for: snapshot.startDate)
-                
-                var hourlyTotals: [Int: Double] = [:]
-                var hourlyAppBreakdown: [DailyAppBreakdown] = []
-                
-                for entry in hourlyData {
-                    hourlyTotals[entry.hour, default: 0] += entry.totalSeconds
-                    
-                    // Create a date with the specific hour for the breakdown
-                    if let hourDate = calendar.date(bySettingHour: entry.hour, minute: 0, second: 0, of: dayStart) {
-                        hourlyAppBreakdown.append(DailyAppBreakdown(
-                            date: hourDate,
-                            appName: entry.appName,
-                            totalSeconds: entry.totalSeconds
-                        ))
-                    }
-                }
-                
-                // Create TrendPoints for all 24 hours (fill missing hours with 0)
-                trend = (0..<24).compactMap { hour in
-                    guard let hourDate = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: dayStart) else { return nil }
-                    return TrendPoint(date: hourDate, totalSeconds: hourlyTotals[hour, default: 0])
-                }
-                
-                dailyBreakdown = hourlyAppBreakdown
-            } else {
-                // Clear hourly data for non-hourly modes
-                hourlyAppData = []
-                
-                // Fetch daily data for Week/Month/Year views
-                async let trendFetch = appEnvironment.dataService.fetchTrend(filters: snapshot)
-                async let breakdownFetch = appEnvironment.dataService.fetchDailyAppBreakdown(filters: snapshot, topN: 5)
+            let trendData = try await appEnvironment.dataService.fetchTrendData(filters: snapshot, topN: 5)
+            trend = trendData.trend
+            dailyBreakdown = trendData.dailyBreakdown
+            hourlyAppData = trendData.hourlyAppData
 
-                trend = try await trendFetch
-                dailyBreakdown = try await breakdownFetch
-            }
+            #if os(macOS)
+            AppIconProvider.shared.preload(
+                bundleIDs: Array(Set(trendData.dailyBreakdown.map(\.appName) + trendData.hourlyAppData.map(\.appName))),
+                size: 24,
+                limit: 40
+            )
+            #endif
         } catch {
             loadError = error
             trend = []

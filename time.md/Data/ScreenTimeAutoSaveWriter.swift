@@ -9,9 +9,9 @@ import Foundation
 final class ScreenTimeAutoSaveWriter {
     static let shared = ScreenTimeAutoSaveWriter()
 
-    static let historyDays = 365
+    nonisolated static let historyDays = 365
 
-    static var fileURL: URL {
+    nonisolated static var fileURL: URL {
         realHomeDirectory()
             .appendingPathComponent("Library/Application Support/time.md/screen-time-snapshot.json")
     }
@@ -129,17 +129,23 @@ final class ScreenTimeAutoSaveWriter {
         }
 
         let now = Date()
+        let activeSession = ActiveAppTracker.shared.snapshot()
+        let device = DeviceInfo.current()
 
-        do {
-            let snapshot = try await Self.makeSnapshot(
-                dataService: dataService,
-                days: Self.historyDays,
-                now: now
-            )
-            try Self.write(snapshot: snapshot, to: Self.fileURL)
-        } catch {
-            NSLog("[ScreenTimeAutoSaveWriter] Failed to write snapshot: \(error.localizedDescription)")
-        }
+        await Task.detached(priority: .utility) {
+            do {
+                let snapshot = try await Self.makeSnapshot(
+                    dataService: dataService,
+                    days: Self.historyDays,
+                    now: now,
+                    activeSession: activeSession,
+                    device: device
+                )
+                try Self.write(snapshot: snapshot, to: Self.fileURL)
+            } catch {
+                NSLog("[ScreenTimeAutoSaveWriter] Failed to write snapshot: \(error.localizedDescription)")
+            }
+        }.value
 
         do {
             try await Self.writeFormattedAutoExport(dataService: dataService, now: now)
@@ -148,7 +154,7 @@ final class ScreenTimeAutoSaveWriter {
         }
     }
 
-    private static func write(snapshot: ScreenTimeSnapshot, to url: URL) throws {
+    nonisolated private static func write(snapshot: ScreenTimeSnapshot, to url: URL) throws {
         try FileManager.default.createDirectory(
             at: url.deletingLastPathComponent(),
             withIntermediateDirectories: true
@@ -205,10 +211,12 @@ final class ScreenTimeAutoSaveWriter {
         }
     }
 
-    private static func makeSnapshot(
+    nonisolated private static func makeSnapshot(
         dataService: any ScreenTimeDataServing,
         days: Int,
-        now: Date
+        now: Date,
+        activeSession: ActiveAppTracker.CurrentAppSnapshot,
+        device: DeviceInfo
     ) async throws -> ScreenTimeSnapshot {
         let calendar = Calendar.current
         let todayStart = calendar.startOfDay(for: now)
@@ -222,10 +230,9 @@ final class ScreenTimeAutoSaveWriter {
 
         var sessions = try await dataService.fetchRawSessions(filters: filters)
 
-        let active = ActiveAppTracker.shared.snapshot()
-        if active.isScreenActive,
-           let appName = active.bundleID,
-           let startedAt = active.switchTime,
+        if activeSession.isScreenActive,
+           let appName = activeSession.bundleID,
+           let startedAt = activeSession.switchTime,
            startedAt >= firstDay,
            startedAt <= now {
             let duration = now.timeIntervalSince(startedAt)
@@ -263,14 +270,14 @@ final class ScreenTimeAutoSaveWriter {
             fileURL: fileURL.path,
             canonicalDatabasePath: (try? HistoryStore.databaseURL().path) ?? HistoryStore.defaultDatabasePath,
             historyDays: days,
-            device: DeviceInfo.current(),
+            device: device,
             range: .init(startDate: firstDay, endDate: now),
             days: snapshotDays
         )
     }
 }
 
-private struct DayAccumulator {
+nonisolated private struct DayAccumulator {
     struct AppAccumulator {
         var totalSeconds: Double = 0
         var sessionCount: Int = 0
@@ -332,7 +339,7 @@ private struct DayAccumulator {
     }()
 }
 
-private struct ScreenTimeSnapshot: Codable, Sendable {
+nonisolated private struct ScreenTimeSnapshot: Codable, Sendable {
     let version = 1
     let generatedAt: Date
     let fileURL: String
@@ -403,7 +410,7 @@ private struct ScreenTimeSnapshot: Codable, Sendable {
 }
 
 private extension HistoryStore {
-    static var defaultDatabasePath: String {
+    nonisolated static var defaultDatabasePath: String {
         realHomeDirectory()
             .appendingPathComponent("Library/Application Support/time.md/screentime.db")
             .path

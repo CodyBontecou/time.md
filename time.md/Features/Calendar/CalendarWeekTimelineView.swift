@@ -382,38 +382,19 @@ struct CalendarWeekTimelineView: View {
             hasLoadedOnce = true
         }
         
-        var hourlyResult: [Date: [HourlyAppUsage]] = [:]
-        var sessionsResult: [Date: [RawSession]] = [:]
-
-        await withTaskGroup(of: (Date, [HourlyAppUsage], [RawSession]).self) { group in
-            for day in weekDays {
-                group.addTask {
-                    let dayStart = cal.startOfDay(for: day)
-                    guard let dayEnd = cal.date(byAdding: .day, value: 1, to: dayStart) else {
-                        return (dayStart, [], [])
-                    }
-                    
-                    let data = (try? await appEnvironment.dataService.fetchHourlyAppUsage(for: day)) ?? []
-                    
-                    // Fetch raw sessions for actual times
-                    let sessionFilters = FilterSnapshot(
-                        startDate: dayStart,
-                        endDate: dayEnd,
-                        granularity: .day,
-                        selectedApps: [],
-                        selectedCategories: [],
-                        selectedHeatmapCells: []
-                    )
-                    let sessions = (try? await appEnvironment.dataService.fetchRawSessions(filters: sessionFilters)) ?? []
-                    
-                    return (dayStart, data, sessions)
-                }
-            }
-            for await (dayStart, data, sessions) in group {
-                hourlyResult[dayStart] = data
-                sessionsResult[dayStart] = sessions
-            }
+        let weekData: CalendarWeekData
+        do {
+            weekData = try await appEnvironment.dataService.fetchCalendarWeekData(weekStart: weekStart)
+        } catch {
+            loadError = error
+            weeklyData = [:]
+            weekBlocks = [:]
+            weekAppColors = [:]
+            return
         }
+
+        let hourlyResult = weekData.hourlyByDay
+        let sessionsResult = weekData.rawSessionsByDay
 
         weeklyData = hourlyResult
 
@@ -428,5 +409,9 @@ struct CalendarWeekTimelineView: View {
             blocks[day] = CalendarBlockBuilder.buildBlocksWithActualTimes(hourlyData: hourlyData, sessions: sessions, colors: weekAppColors)
         }
         weekBlocks = blocks
+
+        #if os(macOS)
+        AppIconProvider.shared.preload(bundleIDs: Array(weekAppColors.keys), size: 20, limit: 40)
+        #endif
     }
 }

@@ -7,13 +7,13 @@ import Foundation
 
 // MARK: - macOS-specific analytics models
 
-struct AppCategoryMapping: Identifiable {
+struct AppCategoryMapping: Identifiable, Sendable {
     var id: String { appName }
     let appName: String
     let category: String
 }
 
-struct HourlyAppUsage: Identifiable {
+struct HourlyAppUsage: Identifiable, Sendable {
     var id: String { "\(hour)-\(appName)" }
     let hour: Int // 0–23
     let appName: String
@@ -21,7 +21,7 @@ struct HourlyAppUsage: Identifiable {
 }
 
 /// App usage aggregated by weekday + hour for heatmap cell selection.
-struct HeatmapCellAppUsage: Identifiable {
+struct HeatmapCellAppUsage: Identifiable, Sendable {
     var id: String { "\(weekday)-\(hour)-\(appName)" }
     let weekday: Int // 0 = Sun ... 6 = Sat
     let hour: Int // 0–23
@@ -29,7 +29,7 @@ struct HeatmapCellAppUsage: Identifiable {
     let totalSeconds: Double
 }
 
-struct DailyAppBreakdown: Identifiable {
+struct DailyAppBreakdown: Identifiable, Sendable {
     let id = UUID()
     let date: Date
     let appName: String
@@ -188,4 +188,67 @@ struct RawSession: Identifiable, Sendable {
     let startTime: Date
     let endTime: Date
     let durationSeconds: Double
+}
+
+// MARK: - Screen-level data transfer models
+
+/// All data needed to render the timing overview, fetched through one DB connection.
+struct OverviewScreenData: Sendable {
+    let topApps: [AppUsageSummary]
+    let hourlyUsage: [HourlyAppUsage]
+    let periodSummary: PeriodSummary
+    let periodDelta: PeriodDelta?
+}
+
+/// Full dashboard/legacy overview payload, fetched through one DB connection.
+struct DashboardCompositeData: Sendable {
+    let summary: DashboardSummary
+    let topApps: [AppUsageSummary]
+    let longestSession: LongestSession?
+    let periodSummary: PeriodSummary
+    let sparklinePoints: [SparklinePoint]
+    let hourlyTrendPoints: [SparklinePoint]
+    let heatmapCells: [HeatmapCell]
+    let heatmapMax: Double
+    let insights: [Insight]
+    let periodDelta: PeriodDelta?
+}
+
+/// Reports screen payload, fetched through one DB connection.
+struct ReportScreenData: Sendable {
+    let topApps: [AppUsageSummary]
+    let topCategories: [CategoryUsageSummary]
+    let trendPoints: [TrendPoint]
+    let periodSummary: PeriodSummary
+    let weekdayAverages: [WeekdayAverage]
+}
+
+/// Trends screen payload, fetched through one DB connection.
+struct TrendScreenData: Sendable {
+    let trend: [TrendPoint]
+    let dailyBreakdown: [DailyAppBreakdown]
+    let hourlyAppData: [HourlyAppUsage]
+}
+
+/// Month grid payload grouped by day, fetched through one DB connection.
+struct CalendarMonthData: Sendable {
+    let dailyTotals: [Date: Double]
+    let dailyApps: [Date: [DailyAppBreakdown]]
+}
+
+/// Week timeline payload grouped by day, fetched through one DB connection.
+struct CalendarWeekData: Sendable {
+    let hourlyByDay: [Date: [HourlyAppUsage]]
+    let rawSessionsByDay: [Date: [RawSession]]
+}
+
+/// Paginated details payload plus aggregate stats for the whole filtered range.
+struct DetailsScreenData: Sendable {
+    let sessions: [RawSession]
+    let totalSessionCount: Int
+    let totalSeconds: Double
+    let uniqueAppCount: Int
+    let appFilterOptions: [AppUsageSummary]
+    let contextSwitches: [ContextSwitchPoint]
+    let transitions: [AppTransition]
 }

@@ -143,6 +143,7 @@ struct TimeMdMenuBarExtra: View {
             )
             
             topApps = try await appEnvironment.dataService.fetchTopApps(filters: filters, limit: 5)
+            AppIconProvider.shared.preload(bundleIDs: topApps.map(\.appName), size: 18, limit: 5)
             activeBlocks = (try? BlockPolicyEngine().activeBlocks()) ?? []
         } catch {
             print("[MenuBar] Failed to load data: \(error)")

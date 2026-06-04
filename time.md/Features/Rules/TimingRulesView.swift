@@ -487,6 +487,10 @@ struct TimingRulesView: View {
 
             topApps = try await fetchedApps
             categoryMappings = try await fetchedMappings
+
+            #if os(macOS)
+            AppIconProvider.shared.preload(bundleIDs: topApps.map(\.appName), size: 16, limit: 60)
+            #endif
         } catch {
             loadError = error
         }

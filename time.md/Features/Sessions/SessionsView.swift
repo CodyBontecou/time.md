@@ -615,6 +615,11 @@ struct SessionsView: View {
             hourlyUsage = try await hourlyFetch
             contextSwitches = try await switchesFetch
             appTransitions = try await transitionsFetch
+
+            #if os(macOS)
+            let appIDs = Array(Set(hourlyUsage.map(\.appName) + appTransitions.flatMap { [$0.fromApp, $0.toApp] }))
+            AppIconProvider.shared.preload(bundleIDs: appIDs, size: 16, limit: 40)
+            #endif
         } catch {
             loadError = error
             buckets = []

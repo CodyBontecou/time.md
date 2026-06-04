@@ -336,6 +336,10 @@ struct CalendarDayDetailView: View {
         do {
             loadError = nil
             hourlyData = try await appEnvironment.dataService.fetchHourlyAppUsage(for: date)
+
+            #if os(macOS)
+            AppIconProvider.shared.preload(bundleIDs: hourlyData.map(\.appName), size: 16, limit: 40)
+            #endif
         } catch {
             loadError = error
             hourlyData = []

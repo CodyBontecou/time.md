@@ -633,6 +633,10 @@ struct AppsCategoriesView: View {
             categories = fetchedCategories
             categoryMappingByApp = Dictionary(uniqueKeysWithValues: fetchedMappings.map { ($0.appName, $0.category) })
 
+            #if os(macOS)
+            AppIconProvider.shared.preload(bundleIDs: fetchedApps.map(\.appName), size: 16, limit: 30)
+            #endif
+
             syncDraftsToLoadedApps()
         } catch {
             loadError = error

@@ -343,30 +343,16 @@ struct TimingOverviewView: View {
         do {
             loadError = nil
             let snapshot = filters.snapshot
+            let overview = try await appEnvironment.dataService.fetchOverviewData(filters: snapshot, topAppsLimit: 30)
 
-            async let fetchedApps = appEnvironment.dataService.fetchTopApps(filters: snapshot, limit: 30)
-            async let fetchedPeriod = appEnvironment.dataService.fetchPeriodSummary(filters: snapshot)
-            async let fetchedHourly = appEnvironment.dataService.fetchHourlyAppUsage(for: snapshot.startDate)
+            topApps = overview.topApps
+            periodSummary = overview.periodSummary
+            hourlyUsage = overview.hourlyUsage
+            periodDelta = overview.periodDelta
 
-            topApps = try await fetchedApps
-            periodSummary = try await fetchedPeriod
-            hourlyUsage = try await fetchedHourly
-
-            let calendar = Calendar.current
-            let rangeDays = calendar.dateComponents([.day], from: snapshot.startDate, to: snapshot.endDate).day ?? 7
-            if let prevEnd = calendar.date(byAdding: .day, value: -1, to: snapshot.startDate),
-               let prevStart = calendar.date(byAdding: .day, value: -rangeDays, to: prevEnd) {
-                let previousSnapshot = FilterSnapshot(
-                    startDate: prevStart, endDate: prevEnd,
-                    granularity: snapshot.granularity,
-                    selectedApps: snapshot.selectedApps,
-                    selectedCategories: snapshot.selectedCategories,
-                    selectedHeatmapCells: snapshot.selectedHeatmapCells
-                )
-                periodDelta = try await appEnvironment.dataService.fetchPeriodComparison(
-                    current: snapshot, previous: previousSnapshot
-                )
-            }
+            #if os(macOS)
+            AppIconProvider.shared.preload(bundleIDs: topApps.map(\.appName), size: 28, limit: topAppsLimit)
+            #endif
         } catch {
             loadError = error
         }

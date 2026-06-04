@@ -165,17 +165,7 @@ struct OverviewView: View {
         .scrollIndicators(.never)
         .scrollClipDisabled()
         .task(id: "\(filters.rangeLabel)\(filters.granularity.rawValue)\(filters.refreshToken)") {
-            // Phase 1: Load primary data first (essential for initial render)
-            await loadPrimary()
-
-            // Phase 2: Load secondary data after primary completes
-            await loadSecondary()
-        }
-        .task(id: "\(filters.rangeLabel)analytics\(filters.refreshToken)") {
-            // Phase 3: Load analytics in background (lowest priority)
-            // Small delay to let primary/secondary load first
-            try? await Task.sleep(for: .milliseconds(100))
-            await loadAnalytics()
+            await loadComposite()
         }
     }
 
@@ -589,90 +579,48 @@ struct OverviewView: View {
 
     // MARK: - Data loading (Progressive)
 
-    /// Phase 1: Load essential data for initial render (summary + top apps)
-    private func loadPrimary() async {
+    private func loadComposite() async {
         isLoadingPrimary = true
+        isLoadingSecondary = true
         defer {
             isLoadingPrimary = false
+            isLoadingSecondary = false
             hasLoadedPrimary = true
+            hasLoadedSecondary = true
         }
-        
+
         do {
             loadError = nil
             let snapshot = filters.snapshot
+            let data = try await appEnvironment.dataService.fetchDashboardComposite(filters: snapshot, topAppsLimit: 30)
 
-            // Load summary and top apps in parallel - these are essential for initial render
-            async let fetchedSummary = appEnvironment.dataService.fetchDashboardSummary(filters: snapshot)
-            async let fetchedApps = appEnvironment.dataService.fetchTopApps(filters: snapshot, limit: 30)
+            summary = data.summary
+            topApps = data.topApps
+            longestSession = data.longestSession
+            periodSummary = data.periodSummary
+            sparklinePoints = data.sparklinePoints
+            hourlyTrendPoints = data.hourlyTrendPoints
+            heatmapCells = data.heatmapCells
+            heatmapMax = data.heatmapMax
+            insights = data.insights
+            periodDelta = data.periodDelta
+            todaySummary = TodaySummary(
+                todayTotalSeconds: data.periodSummary.totalSeconds,
+                yesterdayTotalSeconds: data.periodSummary.previousTotalSeconds,
+                peakHour: data.periodSummary.peakHour,
+                peakHourSeconds: data.periodSummary.peakHourSeconds,
+                appsUsedCount: data.periodSummary.appsUsedCount,
+                topAppName: data.periodSummary.topAppName,
+                topAppSeconds: data.periodSummary.topAppSeconds
+            )
 
-            summary = try await fetchedSummary
-            topApps = try await fetchedApps
+            #if os(macOS)
+            AppIconProvider.shared.preload(bundleIDs: data.topApps.map(\.appName), size: 16, limit: 30)
+            #endif
         } catch {
             loadError = error
             summary = DashboardSummary(totalSeconds: 0, averageDailySeconds: 0, focusBlocks: 0)
             topApps = []
-        }
-    }
-    
-    /// Phase 2: Load secondary data (longest session, insights cards data)
-    private func loadSecondary() async {
-        isLoadingSecondary = true
-        defer {
-            isLoadingSecondary = false
-            hasLoadedSecondary = true
-        }
-        
-        do {
-            let snapshot = filters.snapshot
-
-            // Load longest session
-            longestSession = try await appEnvironment.dataService.fetchLongestSession(filters: snapshot)
-            
-            // Load insight card data
-            async let periodFetch = appEnvironment.dataService.fetchPeriodSummary(filters: snapshot)
-            async let sparklineFetch = appEnvironment.dataService.fetchSparkline(filters: snapshot)
-            async let heatmapFetch = appEnvironment.dataService.fetchHeatmap(filters: snapshot)
-
-            periodSummary = try await periodFetch
-            sparklinePoints = try await sparklineFetch
-            let fetchedCells = try await heatmapFetch
-            heatmapCells = fetchedCells
-            heatmapMax = fetchedCells.map(\.totalSeconds).max() ?? 0
-
-            // Fetch hourly data when in Day granularity
-            if isHourlyMode {
-                let hourlyData = try await appEnvironment.dataService.fetchHourlyAppUsage(for: snapshot.startDate)
-                
-                // Aggregate by hour and convert to SparklinePoints
-                let calendar = Calendar.current
-                let dayStart = calendar.startOfDay(for: snapshot.startDate)
-                
-                var hourlyTotals: [Int: Double] = [:]
-                for entry in hourlyData {
-                    hourlyTotals[entry.hour, default: 0] += entry.totalSeconds
-                }
-                
-                // Create points for all 24 hours (fill missing hours with 0)
-                hourlyTrendPoints = (0..<24).compactMap { hour in
-                    guard let hourDate = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: dayStart) else { return nil }
-                    return SparklinePoint(date: hourDate, totalSeconds: hourlyTotals[hour, default: 0])
-                }
-            } else {
-                hourlyTrendPoints = []
-            }
-
-            // Also update todaySummary for backwards compatibility (if needed elsewhere)
-            todaySummary = TodaySummary(
-                todayTotalSeconds: periodSummary?.totalSeconds ?? 0,
-                yesterdayTotalSeconds: periodSummary?.previousTotalSeconds ?? 0,
-                peakHour: periodSummary?.peakHour ?? 0,
-                peakHourSeconds: periodSummary?.peakHourSeconds ?? 0,
-                appsUsedCount: periodSummary?.appsUsedCount ?? 0,
-                topAppName: periodSummary?.topAppName ?? "None",
-                topAppSeconds: periodSummary?.topAppSeconds ?? 0
-            )
-        } catch {
-            // Non-critical — insight cards gracefully show empty state
             longestSession = nil
             periodSummary = nil
             todaySummary = nil
@@ -680,40 +628,9 @@ struct OverviewView: View {
             hourlyTrendPoints = []
             heatmapCells = []
             heatmapMax = 0
-        }
-    }
-
-    /// Phase 3: Load analytics data (insights, period comparison) - lowest priority
-    private func loadAnalytics() async {
-        // Wait for primary data to be available before generating insights
-        guard hasLoadedPrimary else { return }
-        
-        do {
-            let snapshot = filters.snapshot
-            
-            // Generate insights (this uses data from other queries)
-            insights = try await appEnvironment.dataService.generateInsights(filters: snapshot)
-
-            // Period comparison: compare current range to the same-length prior range
-            let calendar = Calendar.current
-            let rangeDays = calendar.dateComponents([.day], from: snapshot.startDate, to: snapshot.endDate).day ?? 7
-            if let prevEnd = calendar.date(byAdding: .day, value: -1, to: snapshot.startDate),
-               let prevStart = calendar.date(byAdding: .day, value: -rangeDays, to: prevEnd) {
-                let previousSnapshot = FilterSnapshot(
-                    startDate: prevStart, endDate: prevEnd,
-                    granularity: snapshot.granularity,
-                    selectedApps: snapshot.selectedApps,
-                    selectedCategories: snapshot.selectedCategories,
-                    selectedHeatmapCells: snapshot.selectedHeatmapCells
-                )
-                periodDelta = try await appEnvironment.dataService.fetchPeriodComparison(
-                    current: snapshot, previous: previousSnapshot
-                )
-            }
-        } catch {
             insights = []
             periodDelta = nil
         }
     }
-    
+
 }

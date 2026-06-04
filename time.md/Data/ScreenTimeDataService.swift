@@ -13,6 +13,16 @@ nonisolated func realHomeDirectory() -> URL {
 }
 
 protocol ScreenTimeDataServing: Sendable {
+    // Screen-level composite APIs keep high-traffic views from opening many
+    // SQLite connections and reinstalling temp category mappings per section.
+    func fetchOverviewData(filters: FilterSnapshot, topAppsLimit: Int) async throws -> OverviewScreenData
+    func fetchDashboardComposite(filters: FilterSnapshot, topAppsLimit: Int) async throws -> DashboardCompositeData
+    func fetchReportData(filters: FilterSnapshot, topAppsLimit: Int, topCategoriesLimit: Int) async throws -> ReportScreenData
+    func fetchTrendData(filters: FilterSnapshot, topN: Int) async throws -> TrendScreenData
+    func fetchCalendarMonthData(filters: FilterSnapshot, topN: Int) async throws -> CalendarMonthData
+    func fetchCalendarWeekData(weekStart: Date) async throws -> CalendarWeekData
+    func fetchDetailsData(filters: FilterSnapshot, selectedApp: String?, sessionLimit: Int) async throws -> DetailsScreenData
+
     func fetchDashboardSummary(filters: FilterSnapshot) async throws -> DashboardSummary
     func fetchTrend(filters: FilterSnapshot) async throws -> [TrendPoint]
     func fetchDailyAppBreakdown(filters: FilterSnapshot, topN: Int) async throws -> [DailyAppBreakdown]
@@ -185,6 +195,414 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
         return environment["SCREENTIME_DB_PATH"]
     }
 
+    func fetchOverviewData(filters: FilterSnapshot, topAppsLimit: Int) async throws -> OverviewScreenData {
+        let limit = max(topAppsLimit, 1)
+
+        return try await runQuery { context in
+            let calendar = Calendar.current
+            let currentApps = try Self.fetchTopAppsNormalized(
+                db: context.db,
+                filters: filters,
+                limit: max(limit, 200),
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let currentStats = try Self.fetchUsageStatsNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap,
+                includeWebUsage: false
+            )
+
+            let previousPeriodFilters = Self.previousPeriodFilters(for: filters, calendar: calendar)
+            let previousPeriodStats = try Self.fetchUsageStatsNormalized(
+                db: context.db,
+                filters: previousPeriodFilters,
+                hasCategoryMap: context.hasCategoryMap,
+                includeWebUsage: false
+            )
+
+            let heatmap = try Self.fetchHeatmapNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let hourTotals = Dictionary(grouping: heatmap, by: { $0.hour })
+                .mapValues { cells in cells.reduce(0.0) { $0 + $1.totalSeconds } }
+            let peak = hourTotals.max(by: { $0.value < $1.value })
+            let topApp = currentApps.first
+
+            let periodSummary = PeriodSummary(
+                granularity: filters.granularity,
+                totalSeconds: currentStats.totalSeconds,
+                previousTotalSeconds: previousPeriodStats.totalSeconds,
+                peakHour: peak?.key ?? 0,
+                peakHourSeconds: peak?.value ?? 0,
+                appsUsedCount: currentStats.uniqueAppCount,
+                topAppName: topApp?.appName ?? "None",
+                topAppSeconds: topApp?.totalSeconds ?? 0
+            )
+
+            let dayStart = calendar.startOfDay(for: filters.startDate)
+            let hourlyFilters = FilterSnapshot(
+                startDate: dayStart,
+                endDate: dayStart,
+                granularity: .day,
+                selectedApps: [],
+                selectedCategories: [],
+                selectedHeatmapCells: []
+            )
+            let hourlyUsage = try Self.fetchHourlyAppUsageNormalized(
+                db: context.db,
+                filters: hourlyFilters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+
+            let periodDelta: PeriodDelta?
+            if let previousComparisonFilters = Self.previousComparisonFilters(for: filters, calendar: calendar) {
+                let previousApps = try Self.fetchTopAppsNormalized(
+                    db: context.db,
+                    filters: previousComparisonFilters,
+                    limit: 200,
+                    hasCategoryMap: context.hasCategoryMap
+                )
+                let previousStats = try Self.fetchUsageStatsNormalized(
+                    db: context.db,
+                    filters: previousComparisonFilters,
+                    hasCategoryMap: context.hasCategoryMap,
+                    includeWebUsage: false
+                )
+                periodDelta = Self.buildPeriodDelta(
+                    currentApps: currentApps,
+                    previousApps: previousApps,
+                    currentTotal: currentStats.totalSeconds,
+                    previousTotal: previousStats.totalSeconds,
+                    currentAppsUsed: currentStats.uniqueAppCount,
+                    previousAppsUsed: previousStats.uniqueAppCount
+                )
+            } else {
+                periodDelta = nil
+            }
+
+            return OverviewScreenData(
+                topApps: Array(currentApps.prefix(limit)),
+                hourlyUsage: hourlyUsage,
+                periodSummary: periodSummary,
+                periodDelta: periodDelta
+            )
+        }
+    }
+
+    func fetchDashboardComposite(filters: FilterSnapshot, topAppsLimit: Int) async throws -> DashboardCompositeData {
+        let limit = max(topAppsLimit, 1)
+
+        return try await runQuery { context in
+            let focusRows = try Self.fetchFocusDayRowsNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let focusDays = Self.completeFocusDays(rows: focusRows, filters: filters)
+            let summary = Self.dashboardSummary(from: focusDays)
+
+            let topApps = try Self.fetchTopAppsNormalized(
+                db: context.db,
+                filters: filters,
+                limit: limit,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let periodSummary = try Self.buildPeriodSummary(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap,
+                currentApps: topApps
+            )
+            let dailyTotals = try Self.fetchDailyTotalsNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let sparklinePoints = Self.aggregateTrend(dailyTotals: dailyTotals, filters: filters)
+                .map { SparklinePoint(date: $0.date, totalSeconds: $0.totalSeconds) }
+
+            let hourlyTrendPoints = try Self.hourlySparklinePointsIfNeeded(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+
+            let fetchedHeatmap = try Self.fetchHeatmapNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let heatmapCells = Self.completeHeatmap(cells: fetchedHeatmap)
+            let heatmapMax = heatmapCells.map(\.totalSeconds).max() ?? 0
+
+            let longest = try Self.fetchLongestSessionNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let buckets = try Self.fetchSessionBucketsNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let weekdayAverages = try Self.fetchWeekdayAveragesNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let insights = Self.buildInsights(
+                summary: summary,
+                topApps: topApps,
+                buckets: buckets,
+                longest: longest,
+                weekdayAvgs: weekdayAverages
+            )
+            let periodDelta = try Self.fetchPeriodDeltaNormalized(
+                db: context.db,
+                current: filters,
+                hasCategoryMap: context.hasCategoryMap,
+                currentStats: Self.fetchUsageStatsNormalized(
+                    db: context.db,
+                    filters: filters,
+                    hasCategoryMap: context.hasCategoryMap,
+                    includeWebUsage: false
+                )
+            )
+
+            return DashboardCompositeData(
+                summary: summary,
+                topApps: topApps,
+                longestSession: longest,
+                periodSummary: periodSummary,
+                sparklinePoints: sparklinePoints,
+                hourlyTrendPoints: hourlyTrendPoints,
+                heatmapCells: heatmapCells,
+                heatmapMax: heatmapMax,
+                insights: insights,
+                periodDelta: periodDelta
+            )
+        }
+    }
+
+    func fetchReportData(filters: FilterSnapshot, topAppsLimit: Int, topCategoriesLimit: Int) async throws -> ReportScreenData {
+        let appLimit = max(topAppsLimit, 1)
+        let categoryLimit = max(topCategoriesLimit, 1)
+
+        return try await runQuery { context in
+            let topApps = try Self.fetchTopAppsNormalized(
+                db: context.db,
+                filters: filters,
+                limit: appLimit,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let topCategories = try Self.fetchTopCategoriesNormalized(
+                db: context.db,
+                filters: filters,
+                limit: categoryLimit,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let dailyTotals = try Self.fetchDailyTotalsNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let trendPoints = Self.aggregateTrend(dailyTotals: dailyTotals, filters: filters)
+            let periodSummary = try Self.buildPeriodSummary(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap,
+                currentApps: topApps
+            )
+            let weekdayAverages = try Self.fetchWeekdayAveragesNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+
+            return ReportScreenData(
+                topApps: topApps,
+                topCategories: topCategories,
+                trendPoints: trendPoints,
+                periodSummary: periodSummary,
+                weekdayAverages: weekdayAverages
+            )
+        }
+    }
+
+    func fetchTrendData(filters: FilterSnapshot, topN: Int) async throws -> TrendScreenData {
+        let appLimit = max(topN, 1)
+
+        return try await runQuery { context in
+            if filters.granularity == .day {
+                let hourlyData = try Self.fetchHourlyAppUsageNormalized(
+                    db: context.db,
+                    filters: filters,
+                    hasCategoryMap: context.hasCategoryMap
+                )
+                let calendar = Calendar.current
+                let dayStart = calendar.startOfDay(for: filters.startDate)
+                let hourlyTotals = Dictionary(grouping: hourlyData, by: { $0.hour })
+                    .mapValues { rows in rows.reduce(0.0) { $0 + $1.totalSeconds } }
+                let trend = (0..<24).compactMap { hour -> TrendPoint? in
+                    guard let hourDate = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: dayStart) else { return nil }
+                    return TrendPoint(date: hourDate, totalSeconds: hourlyTotals[hour, default: 0])
+                }
+                let breakdown = hourlyData.compactMap { entry -> DailyAppBreakdown? in
+                    guard let hourDate = calendar.date(bySettingHour: entry.hour, minute: 0, second: 0, of: dayStart) else { return nil }
+                    return DailyAppBreakdown(date: hourDate, appName: entry.appName, totalSeconds: entry.totalSeconds)
+                }
+                return TrendScreenData(trend: trend, dailyBreakdown: breakdown, hourlyAppData: hourlyData)
+            }
+
+            let dailyTotals = try Self.fetchDailyTotalsNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let trend = Self.aggregateTrend(dailyTotals: dailyTotals, filters: filters)
+            let dailyAppRows = try Self.fetchDailyAppRowsNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let breakdown = Self.aggregateDailyAppBreakdown(rawRows: dailyAppRows, filters: filters, topN: appLimit)
+            return TrendScreenData(trend: trend, dailyBreakdown: breakdown, hourlyAppData: [])
+        }
+    }
+
+    func fetchCalendarMonthData(filters: FilterSnapshot, topN: Int) async throws -> CalendarMonthData {
+        let appLimit = max(topN, 1)
+
+        return try await runQuery { context in
+            let focusRows = try Self.fetchFocusDayRowsNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let focusDays = Self.completeFocusDays(rows: focusRows, filters: filters)
+            var totals: [Date: Double] = [:]
+            for day in focusDays {
+                totals[Calendar.current.startOfDay(for: day.date)] = day.totalSeconds
+            }
+
+            let dailyRows = try Self.fetchDailyAppRowsNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let breakdown = Self.aggregateDailyAppBreakdown(rawRows: dailyRows, filters: filters, topN: appLimit)
+            var apps: [Date: [DailyAppBreakdown]] = [:]
+            for entry in breakdown {
+                let dayStart = Calendar.current.startOfDay(for: entry.date)
+                apps[dayStart, default: []].append(entry)
+            }
+            for key in apps.keys {
+                apps[key]?.sort { $0.totalSeconds > $1.totalSeconds }
+            }
+
+            return CalendarMonthData(dailyTotals: totals, dailyApps: apps)
+        }
+    }
+
+    func fetchCalendarWeekData(weekStart: Date) async throws -> CalendarWeekData {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: weekStart)
+        let days = (0..<7).compactMap { calendar.date(byAdding: .day, value: $0, to: start) }
+
+        return try await runQuery { context in
+            var hourlyByDay: [Date: [HourlyAppUsage]] = [:]
+            var rawSessionsByDay: [Date: [RawSession]] = [:]
+            hourlyByDay.reserveCapacity(days.count)
+            rawSessionsByDay.reserveCapacity(days.count)
+
+            for day in days {
+                let dayStart = calendar.startOfDay(for: day)
+
+                let dayFilters = FilterSnapshot(
+                    startDate: dayStart,
+                    endDate: dayStart,
+                    granularity: .day,
+                    selectedApps: [],
+                    selectedCategories: [],
+                    selectedHeatmapCells: []
+                )
+                hourlyByDay[dayStart] = try Self.fetchHourlyAppUsageNormalized(
+                    db: context.db,
+                    filters: dayFilters,
+                    hasCategoryMap: context.hasCategoryMap
+                )
+                rawSessionsByDay[dayStart] = try Self.fetchRawSessionsNormalized(
+                    db: context.db,
+                    filters: dayFilters,
+                    hasCategoryMap: context.hasCategoryMap
+                )
+            }
+
+            return CalendarWeekData(hourlyByDay: hourlyByDay, rawSessionsByDay: rawSessionsByDay)
+        }
+    }
+
+    func fetchDetailsData(filters: FilterSnapshot, selectedApp: String?, sessionLimit: Int) async throws -> DetailsScreenData {
+        let normalizedSelectedApp = selectedApp?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let selectedAppFilter = normalizedSelectedApp?.isEmpty == false ? normalizedSelectedApp : nil
+        let limit = max(sessionLimit, 1)
+
+        return try await runQuery { context in
+            let detailFilters = Self.restricting(filters, toApp: selectedAppFilter)
+            let sessions = try Self.fetchRawSessionsNormalized(
+                db: context.db,
+                filters: detailFilters,
+                hasCategoryMap: context.hasCategoryMap,
+                limit: limit
+            )
+            let totalSessionCount = try Self.fetchRawSessionCountNormalized(
+                db: context.db,
+                filters: detailFilters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let totalSeconds = try Self.totalUsageSecondsNormalized(
+                db: context.db,
+                filters: detailFilters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let uniqueAppCount = try Self.fetchDistinctAppCountNormalized(
+                db: context.db,
+                filters: detailFilters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let appFilterOptions = try Self.fetchTopAppsNormalized(
+                db: context.db,
+                filters: filters,
+                limit: 50,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let contextSwitches = try Self.fetchContextSwitchesNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let transitions = try Self.fetchAppTransitionsNormalized(
+                db: context.db,
+                filters: filters,
+                limit: 10,
+                hasCategoryMap: context.hasCategoryMap
+            )
+
+            return DetailsScreenData(
+                sessions: sessions,
+                totalSessionCount: totalSessionCount,
+                totalSeconds: totalSeconds,
+                uniqueAppCount: uniqueAppCount,
+                appFilterOptions: appFilterOptions,
+                contextSwitches: contextSwitches,
+                transitions: transitions
+            )
+        }
+    }
+
     func fetchDashboardSummary(filters: FilterSnapshot) async throws -> DashboardSummary {
         let focusDays = try await fetchFocusDays(filters: filters)
 
@@ -294,11 +712,10 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
     func fetchHourlyAppUsage(for date: Date) async throws -> [HourlyAppUsage] {
         let calendar = Calendar.current
         let dayStart = calendar.startOfDay(for: date)
-        guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else { return [] }
 
         let filters = FilterSnapshot(
             startDate: dayStart,
-            endDate: dayEnd,
+            endDate: dayStart,
             granularity: .day,
             selectedApps: [],
             selectedCategories: [],
@@ -306,7 +723,11 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
         )
 
         return try await runQuery { context in
-            return try Self.fetchHourlyAppUsageNormalized(db: context.db, filters: filters)
+            return try Self.fetchHourlyAppUsageNormalized(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
+            )
         }
     }
 
@@ -373,73 +794,13 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
     }
 
     func fetchPeriodSummary(filters: FilterSnapshot) async throws -> PeriodSummary {
-        let calendar = Calendar.current
-
-        // Compute the previous period's date range based on granularity
-        let previousFilters: FilterSnapshot
-        switch filters.granularity {
-        case .day:
-            let prevStart = calendar.date(byAdding: .day, value: -1, to: filters.startDate) ?? filters.startDate
-            let prevEnd = filters.startDate
-            previousFilters = FilterSnapshot(
-                startDate: prevStart, endDate: prevEnd,
-                granularity: filters.granularity, selectedApps: filters.selectedApps,
-                selectedCategories: filters.selectedCategories, selectedHeatmapCells: filters.selectedHeatmapCells
-            )
-        case .week:
-            let prevStart = calendar.date(byAdding: .weekOfYear, value: -1, to: filters.startDate) ?? filters.startDate
-            let prevEnd = filters.startDate
-            previousFilters = FilterSnapshot(
-                startDate: prevStart, endDate: prevEnd,
-                granularity: filters.granularity, selectedApps: filters.selectedApps,
-                selectedCategories: filters.selectedCategories, selectedHeatmapCells: filters.selectedHeatmapCells
-            )
-        case .month:
-            let prevStart = calendar.date(byAdding: .month, value: -1, to: filters.startDate) ?? filters.startDate
-            let prevEnd = filters.startDate
-            previousFilters = FilterSnapshot(
-                startDate: prevStart, endDate: prevEnd,
-                granularity: filters.granularity, selectedApps: filters.selectedApps,
-                selectedCategories: filters.selectedCategories, selectedHeatmapCells: filters.selectedHeatmapCells
-            )
-        case .year:
-            let prevStart = calendar.date(byAdding: .year, value: -1, to: filters.startDate) ?? filters.startDate
-            let prevEnd = filters.startDate
-            previousFilters = FilterSnapshot(
-                startDate: prevStart, endDate: prevEnd,
-                granularity: filters.granularity, selectedApps: filters.selectedApps,
-                selectedCategories: filters.selectedCategories, selectedHeatmapCells: filters.selectedHeatmapCells
+        try await runQuery { context in
+            try Self.buildPeriodSummary(
+                db: context.db,
+                filters: filters,
+                hasCategoryMap: context.hasCategoryMap
             )
         }
-
-        async let currentApps = fetchTopApps(filters: filters, limit: 100)
-        async let previousApps = fetchTopApps(filters: previousFilters, limit: 1)
-        async let currentHeatmap = fetchHeatmap(filters: filters)
-
-        let resolvedCurrentApps = try await currentApps
-        let resolvedPreviousApps = try await previousApps
-        let resolvedHeatmap = try await currentHeatmap
-
-        let currentTotal = resolvedCurrentApps.reduce(0.0) { $0 + $1.totalSeconds }
-        let previousTotal = resolvedPreviousApps.reduce(0.0) { $0 + $1.totalSeconds }
-
-        // Peak hour from current period's heatmap (aggregate across all days)
-        let hourTotals = Dictionary(grouping: resolvedHeatmap, by: { $0.hour })
-            .mapValues { cells in cells.reduce(0.0) { $0 + $1.totalSeconds } }
-        let peak = hourTotals.max(by: { $0.value < $1.value })
-
-        let topApp = resolvedCurrentApps.first
-
-        return PeriodSummary(
-            granularity: filters.granularity,
-            totalSeconds: currentTotal,
-            previousTotalSeconds: previousTotal,
-            peakHour: peak?.key ?? 0,
-            peakHourSeconds: peak?.value ?? 0,
-            appsUsedCount: resolvedCurrentApps.count,
-            topAppName: topApp?.appName ?? "None",
-            topAppSeconds: topApp?.totalSeconds ?? 0
-        )
     }
 
     func fetchLongestSession(filters: FilterSnapshot) async throws -> LongestSession? {
@@ -470,38 +831,40 @@ struct SQLiteScreenTimeDataService: ScreenTimeDataServing {
     }
 
     func fetchPeriodComparison(current: FilterSnapshot, previous: FilterSnapshot) async throws -> PeriodDelta {
-        async let currentApps = fetchTopApps(filters: current, limit: 200)
-        async let previousApps = fetchTopApps(filters: previous, limit: 200)
-
-        let resolvedCurrent = try await currentApps
-        let resolvedPrevious = try await previousApps
-
-        let currentTotal = resolvedCurrent.reduce(0.0) { $0 + $1.totalSeconds }
-        let previousTotal = resolvedPrevious.reduce(0.0) { $0 + $1.totalSeconds }
-        let percentChange: Double = previousTotal > 0
-            ? ((currentTotal - previousTotal) / previousTotal) * 100
-            : (currentTotal > 0 ? 100 : 0)
-
-        // Build per-app deltas
-        let previousMap = Dictionary(uniqueKeysWithValues: resolvedPrevious.map { ($0.appName, $0.totalSeconds) })
-        let allApps = Set(resolvedCurrent.map(\.appName)).union(resolvedPrevious.map(\.appName))
-
-        var deltas: [AppDelta] = []
-        for app in allApps {
-            let curr = resolvedCurrent.first(where: { $0.appName == app })?.totalSeconds ?? 0
-            let prev = previousMap[app] ?? 0
-            deltas.append(AppDelta(appName: app, currentSeconds: curr, previousSeconds: prev))
+        try await runQuery { context in
+            let currentApps = try Self.fetchTopAppsNormalized(
+                db: context.db,
+                filters: current,
+                limit: 200,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let previousApps = try Self.fetchTopAppsNormalized(
+                db: context.db,
+                filters: previous,
+                limit: 200,
+                hasCategoryMap: context.hasCategoryMap
+            )
+            let currentStats = try Self.fetchUsageStatsNormalized(
+                db: context.db,
+                filters: current,
+                hasCategoryMap: context.hasCategoryMap,
+                includeWebUsage: false
+            )
+            let previousStats = try Self.fetchUsageStatsNormalized(
+                db: context.db,
+                filters: previous,
+                hasCategoryMap: context.hasCategoryMap,
+                includeWebUsage: false
+            )
+            return Self.buildPeriodDelta(
+                currentApps: currentApps,
+                previousApps: previousApps,
+                currentTotal: currentStats.totalSeconds,
+                previousTotal: previousStats.totalSeconds,
+                currentAppsUsed: currentStats.uniqueAppCount,
+                previousAppsUsed: previousStats.uniqueAppCount
+            )
         }
-        deltas.sort { abs($0.currentSeconds - $0.previousSeconds) > abs($1.currentSeconds - $1.previousSeconds) }
-
-        return PeriodDelta(
-            currentTotalSeconds: currentTotal,
-            previousTotalSeconds: previousTotal,
-            percentChange: percentChange,
-            currentAppsUsed: resolvedCurrent.count,
-            previousAppsUsed: resolvedPrevious.count,
-            appDeltas: Array(deltas.prefix(20))
-        )
     }
 
     func generateInsights(filters: FilterSnapshot) async throws -> [Insight] {
@@ -837,8 +1200,22 @@ private extension SQLiteScreenTimeDataService {
         return try focusRowsFromQuery(db: db, sql: sql, parameters: filter.parameters)
     }
 
-    static func fetchHourlyAppUsageNormalized(db: OpaquePointer, filters: FilterSnapshot) throws -> [HourlyAppUsage] {
-        let range = normalizedDateRange(filters: filters)
+    static func fetchHourlyAppUsageNormalized(
+        db: OpaquePointer,
+        filters: FilterSnapshot,
+        hasCategoryMap: Bool
+    ) throws -> [HourlyAppUsage] {
+        if canUseUsageHourlyRollups(filters: filters, db: db) {
+            return try fetchHourlyAppUsageFromRollups(db: db, filters: filters)
+        }
+
+        let filter = normalizedFilter(
+            filters: filters,
+            alias: "u",
+            hasCategoryMap: hasCategoryMap,
+            includeCategorySelection: true
+        )
+        let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
 
         let sql = """
         SELECT
@@ -846,33 +1223,86 @@ private extension SQLiteScreenTimeDataService {
             u.app_name,
             SUM(u.duration_seconds) AS total_seconds
         FROM usage u
-        WHERE u.stream_type IN ('app_usage', 'web_usage', 'media_usage')
-          AND u.start_time >= ?
-          AND u.start_time < ?
-          AND (u.metadata_hash = 'direct_observation'
-               OR NOT EXISTS (
-                   SELECT 1 FROM usage _dedup
-                   WHERE _dedup.metadata_hash = 'direct_observation'
-                     AND _dedup.start_time >= ?
-                     AND _dedup.start_time < ?
-                   LIMIT 1
-               ))
+        \(join)
+        WHERE \(filter.whereClause)
         GROUP BY hour, u.app_name
         ORDER BY hour, total_seconds DESC
         """
 
-        return try SQLiteRunner.query(db: db, sql: sql, parameters: [
-            .text(range.startISO),
-            .text(range.endExclusiveISO),
-            .text(range.startISO),
-            .text(range.endExclusiveISO)
-        ]) { statement in
+        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
             HourlyAppUsage(
                 hour: Int(SQLiteRunner.columnInt(statement, index: 0)),
                 appName: SQLiteRunner.columnText(statement, index: 1) ?? "Unknown",
                 totalSeconds: SQLiteRunner.columnDouble(statement, index: 2)
             )
         }
+    }
+
+    static func canUseUsageHourlyRollups(filters: FilterSnapshot, db: OpaquePointer) -> Bool {
+        filters.selectedCategories.isEmpty
+            && filters.selectedHeatmapCells.isEmpty
+            && !filters.hasAdvancedFilters
+            && tableExists(db: db, table: "usage_hourly_app_rollups")
+    }
+
+    static func fetchHourlyAppUsageFromRollups(db: OpaquePointer, filters: FilterSnapshot) throws -> [HourlyAppUsage] {
+        let range = normalizedDateRange(filters: filters)
+        let dayStart = String(range.startISO.prefix(10))
+        let dayEndExclusive = String(range.endExclusiveISO.prefix(10))
+        let scope = try usageRollupScope(db: db, range: range)
+
+        var conditions = [
+            "rollup_scope = ?",
+            "day >= ?",
+            "day < ?",
+            "stream_type IN ('app_usage', 'web_usage', 'media_usage')"
+        ]
+        var parameters: [SQLiteBinding] = [
+            .text(scope),
+            .text(dayStart),
+            .text(dayEndExclusive)
+        ]
+
+        if !filters.selectedApps.isEmpty {
+            let sortedApps = filters.selectedApps.sorted()
+            conditions.append("app_name IN (\(placeholders(count: sortedApps.count)))")
+            parameters.append(contentsOf: sortedApps.map { .text($0) })
+        }
+
+        let sql = """
+        SELECT hour, app_name, SUM(total_seconds) AS total_seconds
+        FROM usage_hourly_app_rollups
+        WHERE \(conditions.joined(separator: " AND "))
+        GROUP BY hour, app_name
+        ORDER BY hour, total_seconds DESC
+        """
+
+        return try SQLiteRunner.query(db: db, sql: sql, parameters: parameters) { statement in
+            HourlyAppUsage(
+                hour: Int(SQLiteRunner.columnInt(statement, index: 0)),
+                appName: SQLiteRunner.columnText(statement, index: 1) ?? "Unknown",
+                totalSeconds: SQLiteRunner.columnDouble(statement, index: 2)
+            )
+        }
+    }
+
+    static func usageRollupScope(
+        db: OpaquePointer,
+        range: (startISO: String, endExclusiveISO: String)
+    ) throws -> String {
+        let sql = """
+        SELECT 1
+        FROM usage
+        WHERE metadata_hash = 'direct_observation'
+          AND start_time >= ?
+          AND start_time < ?
+        LIMIT 1
+        """
+        let directRows: [Int] = try SQLiteRunner.query(db: db, sql: sql, parameters: [
+            .text(range.startISO),
+            .text(range.endExclusiveISO)
+        ]) { _ in 1 }
+        return directRows.isEmpty ? "all" : "direct"
     }
 
     // MARK: - Longest session queries
@@ -902,9 +1332,15 @@ private extension SQLiteScreenTimeDataService {
 
     // MARK: - Raw session queries
 
-    static func fetchRawSessionsNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> [RawSession] {
+    static func fetchRawSessionsNormalized(
+        db: OpaquePointer,
+        filters: FilterSnapshot,
+        hasCategoryMap: Bool,
+        limit: Int? = nil
+    ) throws -> [RawSession] {
         let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
         let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
+        let limitClause = limit.map { _ in "LIMIT ?" } ?? ""
 
         let sql = """
         SELECT
@@ -915,9 +1351,15 @@ private extension SQLiteScreenTimeDataService {
         \(join)
         WHERE \(filter.whereClause)
         ORDER BY u.start_time ASC
+        \(limitClause)
         """
 
-        return try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+        var parameters = filter.parameters
+        if let limit {
+            parameters.append(.int(Int64(max(limit, 0))))
+        }
+
+        return try SQLiteRunner.query(db: db, sql: sql, parameters: parameters) { statement in
             let appName = SQLiteRunner.columnText(statement, index: 0) ?? "Unknown"
             let startTimeText = SQLiteRunner.columnText(statement, index: 1) ?? ""
             let duration = SQLiteRunner.columnDouble(statement, index: 2)
@@ -1166,17 +1608,41 @@ private extension SQLiteScreenTimeDataService {
     }
 
     static func totalUsageSecondsNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> Double {
+        try fetchUsageStatsNormalized(db: db, filters: filters, hasCategoryMap: hasCategoryMap).totalSeconds
+    }
+
+    static func fetchDistinctAppCountNormalized(db: OpaquePointer, filters: FilterSnapshot, hasCategoryMap: Bool) throws -> Int {
+        try fetchUsageStatsNormalized(db: db, filters: filters, hasCategoryMap: hasCategoryMap).uniqueAppCount
+    }
+
+    static func fetchUsageStatsNormalized(
+        db: OpaquePointer,
+        filters: FilterSnapshot,
+        hasCategoryMap: Bool,
+        includeWebUsage: Bool = true
+    ) throws -> UsageStats {
         let filter = normalizedFilter(filters: filters, alias: "u", hasCategoryMap: hasCategoryMap, includeCategorySelection: true)
         let join = filter.needsCategoryJoin ? " LEFT JOIN app_category_map m ON m.app_name = u.app_name " : " "
+        let webUsagePredicate = includeWebUsage ? "" : " AND u.stream_type != 'web_usage'"
 
         let sql = """
-        SELECT SUM(u.duration_seconds)
+        SELECT
+            COALESCE(SUM(u.duration_seconds), 0) AS total_seconds,
+            COUNT(*) AS session_count,
+            COUNT(DISTINCT u.app_name) AS unique_app_count
         FROM usage u
         \(join)
-        WHERE \(filter.whereClause)
+        WHERE \(filter.whereClause)\(webUsagePredicate)
         """
 
-        return try SQLiteRunner.scalarDouble(db: db, sql: sql, parameters: filter.parameters) ?? 0
+        let rows: [UsageStats] = try SQLiteRunner.query(db: db, sql: sql, parameters: filter.parameters) { statement in
+            UsageStats(
+                totalSeconds: SQLiteRunner.columnDouble(statement, index: 0),
+                sessionCount: Int(SQLiteRunner.columnInt(statement, index: 1)),
+                uniqueAppCount: Int(SQLiteRunner.columnInt(statement, index: 2))
+            )
+        }
+        return rows.first ?? UsageStats(totalSeconds: 0, sessionCount: 0, uniqueAppCount: 0)
     }
 
     static func focusRowsFromQuery(db: OpaquePointer, sql: String, parameters: [SQLiteBinding]) throws -> [FocusDayRow] {
@@ -1205,6 +1671,341 @@ private extension SQLiteScreenTimeDataService {
 // MARK: - Filters / aggregation
 
 private extension SQLiteScreenTimeDataService {
+    static func previousPeriodFilters(for filters: FilterSnapshot, calendar: Calendar = .current) -> FilterSnapshot {
+        let previousStart: Date
+        switch filters.granularity {
+        case .day:
+            previousStart = calendar.date(byAdding: .day, value: -1, to: filters.startDate) ?? filters.startDate
+        case .week:
+            previousStart = calendar.date(byAdding: .weekOfYear, value: -1, to: filters.startDate) ?? filters.startDate
+        case .month:
+            previousStart = calendar.date(byAdding: .month, value: -1, to: filters.startDate) ?? filters.startDate
+        case .year:
+            previousStart = calendar.date(byAdding: .year, value: -1, to: filters.startDate) ?? filters.startDate
+        }
+
+        return replacingRange(in: filters, start: previousStart, end: filters.startDate)
+    }
+
+    static func previousComparisonFilters(for filters: FilterSnapshot, calendar: Calendar = .current) -> FilterSnapshot? {
+        let rangeDays = calendar.dateComponents([.day], from: filters.startDate, to: filters.endDate).day ?? 7
+        guard let previousEnd = calendar.date(byAdding: .day, value: -1, to: filters.startDate),
+              let previousStart = calendar.date(byAdding: .day, value: -rangeDays, to: previousEnd) else {
+            return nil
+        }
+        return replacingRange(in: filters, start: previousStart, end: previousEnd)
+    }
+
+    static func replacingRange(in filters: FilterSnapshot, start startDate: Date, end endDate: Date) -> FilterSnapshot {
+        FilterSnapshot(
+            startDate: startDate,
+            endDate: endDate,
+            granularity: filters.granularity,
+            selectedApps: filters.selectedApps,
+            selectedCategories: filters.selectedCategories,
+            selectedHeatmapCells: filters.selectedHeatmapCells,
+            timeOfDayRanges: filters.timeOfDayRanges,
+            weekdayFilter: filters.weekdayFilter,
+            minDurationSeconds: filters.minDurationSeconds,
+            maxDurationSeconds: filters.maxDurationSeconds
+        )
+    }
+
+    static func restricting(_ filters: FilterSnapshot, toApp selectedApp: String?) -> FilterSnapshot {
+        guard let selectedApp else { return filters }
+        return FilterSnapshot(
+            startDate: filters.startDate,
+            endDate: filters.endDate,
+            granularity: filters.granularity,
+            selectedApps: [selectedApp],
+            selectedCategories: filters.selectedCategories,
+            selectedHeatmapCells: filters.selectedHeatmapCells,
+            timeOfDayRanges: filters.timeOfDayRanges,
+            weekdayFilter: filters.weekdayFilter,
+            minDurationSeconds: filters.minDurationSeconds,
+            maxDurationSeconds: filters.maxDurationSeconds
+        )
+    }
+
+    static func buildPeriodDelta(
+        currentApps: [AppUsageSummary],
+        previousApps: [AppUsageSummary],
+        currentTotal: Double,
+        previousTotal: Double,
+        currentAppsUsed: Int,
+        previousAppsUsed: Int
+    ) -> PeriodDelta {
+        let percentChange: Double = previousTotal > 0
+            ? ((currentTotal - previousTotal) / previousTotal) * 100
+            : (currentTotal > 0 ? 100 : 0)
+
+        let currentMap = Dictionary(uniqueKeysWithValues: currentApps.map { ($0.appName, $0.totalSeconds) })
+        let previousMap = Dictionary(uniqueKeysWithValues: previousApps.map { ($0.appName, $0.totalSeconds) })
+        let allApps = Set(currentMap.keys).union(previousMap.keys)
+
+        var deltas: [AppDelta] = []
+        deltas.reserveCapacity(allApps.count)
+        for app in allApps {
+            deltas.append(AppDelta(
+                appName: app,
+                currentSeconds: currentMap[app] ?? 0,
+                previousSeconds: previousMap[app] ?? 0
+            ))
+        }
+        deltas.sort { abs($0.currentSeconds - $0.previousSeconds) > abs($1.currentSeconds - $1.previousSeconds) }
+
+        return PeriodDelta(
+            currentTotalSeconds: currentTotal,
+            previousTotalSeconds: previousTotal,
+            percentChange: percentChange,
+            currentAppsUsed: currentAppsUsed,
+            previousAppsUsed: previousAppsUsed,
+            appDeltas: Array(deltas.prefix(20))
+        )
+    }
+
+    static func buildPeriodSummary(
+        db: OpaquePointer,
+        filters: FilterSnapshot,
+        hasCategoryMap: Bool,
+        currentApps: [AppUsageSummary]? = nil
+    ) throws -> PeriodSummary {
+        let apps = try currentApps ?? fetchTopAppsNormalized(
+            db: db,
+            filters: filters,
+            limit: 200,
+            hasCategoryMap: hasCategoryMap
+        )
+        let currentStats = try fetchUsageStatsNormalized(
+            db: db,
+            filters: filters,
+            hasCategoryMap: hasCategoryMap,
+            includeWebUsage: false
+        )
+        let previousFilters = previousPeriodFilters(for: filters)
+        let previousStats = try fetchUsageStatsNormalized(
+            db: db,
+            filters: previousFilters,
+            hasCategoryMap: hasCategoryMap,
+            includeWebUsage: false
+        )
+        let heatmap = try fetchHeatmapNormalized(db: db, filters: filters, hasCategoryMap: hasCategoryMap)
+        let hourTotals = Dictionary(grouping: heatmap, by: { $0.hour })
+            .mapValues { cells in cells.reduce(0.0) { $0 + $1.totalSeconds } }
+        let peak = hourTotals.max(by: { $0.value < $1.value })
+        let topApp = apps.first
+
+        return PeriodSummary(
+            granularity: filters.granularity,
+            totalSeconds: currentStats.totalSeconds,
+            previousTotalSeconds: previousStats.totalSeconds,
+            peakHour: peak?.key ?? 0,
+            peakHourSeconds: peak?.value ?? 0,
+            appsUsedCount: currentStats.uniqueAppCount,
+            topAppName: topApp?.appName ?? "None",
+            topAppSeconds: topApp?.totalSeconds ?? 0
+        )
+    }
+
+    static func fetchPeriodDeltaNormalized(
+        db: OpaquePointer,
+        current: FilterSnapshot,
+        hasCategoryMap: Bool,
+        currentApps: [AppUsageSummary]? = nil,
+        currentStats: UsageStats? = nil
+    ) throws -> PeriodDelta? {
+        guard let previous = previousComparisonFilters(for: current) else { return nil }
+        let resolvedCurrentApps = try currentApps ?? fetchTopAppsNormalized(
+            db: db,
+            filters: current,
+            limit: 200,
+            hasCategoryMap: hasCategoryMap
+        )
+        let resolvedCurrentStats = try currentStats ?? fetchUsageStatsNormalized(
+            db: db,
+            filters: current,
+            hasCategoryMap: hasCategoryMap,
+            includeWebUsage: false
+        )
+        let previousApps = try fetchTopAppsNormalized(
+            db: db,
+            filters: previous,
+            limit: 200,
+            hasCategoryMap: hasCategoryMap
+        )
+        let previousStats = try fetchUsageStatsNormalized(
+            db: db,
+            filters: previous,
+            hasCategoryMap: hasCategoryMap,
+            includeWebUsage: false
+        )
+
+        return buildPeriodDelta(
+            currentApps: resolvedCurrentApps,
+            previousApps: previousApps,
+            currentTotal: resolvedCurrentStats.totalSeconds,
+            previousTotal: previousStats.totalSeconds,
+            currentAppsUsed: resolvedCurrentStats.uniqueAppCount,
+            previousAppsUsed: previousStats.uniqueAppCount
+        )
+    }
+
+    static func completeFocusDays(rows: [FocusDayRow], filters: FilterSnapshot) -> [FocusDay] {
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: filters.startDate)
+        let end = calendar.startOfDay(for: filters.endDate)
+        let mapped = Dictionary(uniqueKeysWithValues: rows.map { ($0.day, $0) })
+
+        var result: [FocusDay] = []
+        var cursor = start
+        while cursor <= end {
+            if let row = mapped[cursor] {
+                result.append(FocusDay(date: cursor, focusBlocks: row.focusBlocks, totalSeconds: row.totalSeconds))
+            } else {
+                result.append(FocusDay(date: cursor, focusBlocks: 0, totalSeconds: 0))
+            }
+            guard let next = calendar.date(byAdding: .day, value: 1, to: cursor) else { break }
+            cursor = next
+        }
+        return result
+    }
+
+    static func dashboardSummary(from focusDays: [FocusDay]) -> DashboardSummary {
+        let totalSeconds = focusDays.reduce(0) { $0 + $1.totalSeconds }
+        let averageDailySeconds = focusDays.isEmpty ? 0 : totalSeconds / Double(focusDays.count)
+        let focusBlocks = focusDays.reduce(0) { $0 + $1.focusBlocks }
+        return DashboardSummary(
+            totalSeconds: totalSeconds,
+            averageDailySeconds: averageDailySeconds,
+            focusBlocks: focusBlocks
+        )
+    }
+
+    static func completeHeatmap(cells: [HeatmapCell]) -> [HeatmapCell] {
+        var byCoordinate = Dictionary(uniqueKeysWithValues: cells.map { (HeatmapCellCoordinate(weekday: $0.weekday, hour: $0.hour), $0.totalSeconds) })
+        var completed: [HeatmapCell] = []
+        completed.reserveCapacity(7 * 24)
+        for weekday in 0..<7 {
+            for hour in 0..<24 {
+                let coordinate = HeatmapCellCoordinate(weekday: weekday, hour: hour)
+                completed.append(HeatmapCell(
+                    weekday: weekday,
+                    hour: hour,
+                    totalSeconds: byCoordinate.removeValue(forKey: coordinate) ?? 0
+                ))
+            }
+        }
+        return completed
+    }
+
+    static func hourlySparklinePointsIfNeeded(
+        db: OpaquePointer,
+        filters: FilterSnapshot,
+        hasCategoryMap: Bool
+    ) throws -> [SparklinePoint] {
+        guard filters.granularity == .day else { return [] }
+        let calendar = Calendar.current
+        let dayStart = calendar.startOfDay(for: filters.startDate)
+        let dayFilters = FilterSnapshot(
+            startDate: dayStart,
+            endDate: dayStart,
+            granularity: .day,
+            selectedApps: filters.selectedApps,
+            selectedCategories: filters.selectedCategories,
+            selectedHeatmapCells: filters.selectedHeatmapCells,
+            timeOfDayRanges: filters.timeOfDayRanges,
+            weekdayFilter: filters.weekdayFilter,
+            minDurationSeconds: filters.minDurationSeconds,
+            maxDurationSeconds: filters.maxDurationSeconds
+        )
+        let hourlyData = try fetchHourlyAppUsageNormalized(db: db, filters: dayFilters, hasCategoryMap: hasCategoryMap)
+        let hourlyTotals = Dictionary(grouping: hourlyData, by: { $0.hour })
+            .mapValues { rows in rows.reduce(0.0) { $0 + $1.totalSeconds } }
+        return (0..<24).compactMap { hour in
+            guard let hourDate = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: dayStart) else { return nil }
+            return SparklinePoint(date: hourDate, totalSeconds: hourlyTotals[hour, default: 0])
+        }
+    }
+
+    static func buildInsights(
+        summary: DashboardSummary,
+        topApps: [AppUsageSummary],
+        buckets: [SessionBucket],
+        longest: LongestSession?,
+        weekdayAvgs: [WeekdayAverage]
+    ) -> [Insight] {
+        var insights: [Insight] = []
+
+        let totalHours = summary.totalSeconds / 3600
+        insights.append(Insight(
+            icon: "clock.fill",
+            text: String(format: "Total screen time: %.1fh across the selected period", totalHours),
+            sentiment: .neutral
+        ))
+
+        let avgHours = summary.averageDailySeconds / 3600
+        let sentiment: InsightSentiment = avgHours < 4 ? .positive : avgHours > 6 ? .negative : .neutral
+        insights.append(Insight(
+            icon: "chart.line.downtrend.xyaxis",
+            text: String(format: "Your daily average is %.1fh", avgHours),
+            sentiment: sentiment
+        ))
+
+        if let top = topApps.first {
+            let pct = summary.totalSeconds > 0 ? (top.totalSeconds / summary.totalSeconds) * 100 : 0
+            insights.append(Insight(
+                icon: "star.fill",
+                text: String(format: "%@ accounts for %.0f%% of your screen time", top.appName, pct),
+                sentiment: .neutral
+            ))
+        }
+
+        insights.append(Insight(
+            icon: "square.grid.3x3.fill",
+            text: "You used \(topApps.count > 4 ? "5+" : "\(topApps.count)") different apps",
+            sentiment: .neutral
+        ))
+
+        if let longest {
+            insights.append(Insight(
+                icon: "timer",
+                text: String(format: "Longest session: %@ in %@", DurationFormatter.short(longest.durationSeconds), longest.appName),
+                sentiment: longest.durationSeconds > 7200 ? .negative : .neutral
+            ))
+        }
+
+        if let peakBucket = buckets.max(by: { $0.sessionCount < $1.sessionCount }) {
+            insights.append(Insight(
+                icon: "chart.bar.fill",
+                text: "Most sessions are \(peakBucket.label) long (\(peakBucket.sessionCount) sessions)",
+                sentiment: .neutral
+            ))
+        }
+
+        if let busiest = weekdayAvgs.max(by: { $0.averageSeconds < $1.averageSeconds }) {
+            let dayNames = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"]
+            let dayName = busiest.weekday < dayNames.count ? dayNames[busiest.weekday] : "Day \(busiest.weekday)"
+            insights.append(Insight(
+                icon: "calendar",
+                text: String(format: "%@ are your busiest — %.1fh avg, mostly %@", dayName, busiest.averageSeconds / 3600, busiest.topApp),
+                sentiment: .neutral
+            ))
+        }
+
+        if let quietest = weekdayAvgs.min(by: { $0.averageSeconds < $1.averageSeconds }),
+           weekdayAvgs.count > 1 {
+            let dayNames = ["Sundays", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays"]
+            let dayName = quietest.weekday < dayNames.count ? dayNames[quietest.weekday] : "Day \(quietest.weekday)"
+            insights.append(Insight(
+                icon: "moon.fill",
+                text: String(format: "%@ are your lightest — %.1fh avg", dayName, quietest.averageSeconds / 3600),
+                sentiment: .positive
+            ))
+        }
+
+        return insights
+    }
+
     static func normalizedFilter(
         filters: FilterSnapshot,
         alias: String,
@@ -1403,55 +2204,49 @@ private extension SQLiteScreenTimeDataService {
 // MARK: - Database resolution / validation
 
 private extension SQLiteScreenTimeDataService {
-    static func openConnectionContext(pathOverride: String?) throws -> SQLiteConnectionContext {
+    nonisolated static func openConnectionContext(pathOverride: String?) throws -> SQLiteConnectionContext {
         let resolved = try resolveDatabase(pathOverride: pathOverride)
-        let temp = try copyDatabaseToTemporary(source: resolved.url)
-        var openedDatabase: OpaquePointer?
+        var dbPointer: OpaquePointer?
+        let flags = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX
+        let openResult = sqlite3_open_v2(resolved.url.path, &dbPointer, flags, nil)
+
+        guard openResult == SQLITE_OK, let db = dbPointer else {
+            let message = dbPointer.flatMap { sqliteMessage(db: $0) } ?? "Unable to open database"
+            if let dbPointer {
+                sqlite3_close(dbPointer)
+            }
+            if openResult == SQLITE_CANTOPEN || openResult == SQLITE_PERM || openResult == SQLITE_AUTH {
+                throw ScreenTimeDataError.permissionDenied(path: resolved.url.path)
+            }
+            throw ScreenTimeDataError.sqlite(path: resolved.url.path, message: message)
+        }
 
         do {
-            var dbPointer: OpaquePointer?
-            let flags = SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX
-            let openResult = sqlite3_open_v2(temp.path, &dbPointer, flags, nil)
-            guard openResult == SQLITE_OK, let db = dbPointer else {
-                let message = dbPointer.flatMap { sqliteMessage(db: $0) } ?? "Unable to open database"
-                if let dbPointer {
-                    sqlite3_close(dbPointer)
-                }
-                throw ScreenTimeDataError.sqlite(
-                    path: temp.path,
-                    message: "Failed to open temporary analysis database copied from \(resolved.url.path). \(message)"
-                )
-            }
-            openedDatabase = db
+            sqlite3_busy_timeout(db, 5000)
 
             try validateNormalizedSchema(db: db, path: resolved.url.path)
 
             do {
-                try CategoryMappingStore.installMappings(into: db, path: temp.path)
+                try CategoryMappingStore.installMappingsIntoTemporaryTable(into: db, path: resolved.url.path)
             } catch {
                 throw ScreenTimeDataError.sqlite(
-                    path: temp.path,
-                    message: "Failed to install category mappings into temporary analysis database for source \(resolved.url.path). Underlying error: \(ScreenTimeDataError.message(for: error))"
+                    path: resolved.url.path,
+                    message: "Failed to install temporary category mappings. Underlying error: \(ScreenTimeDataError.message(for: error))"
                 )
             }
 
-            openedDatabase = nil
             return SQLiteConnectionContext(
                 sourceURL: resolved.url,
-                temporaryURL: temp,
                 hasCategoryMap: true,
                 db: db
             )
         } catch {
-            if let openedDatabase {
-                sqlite3_close(openedDatabase)
-            }
-            try? FileManager.default.removeItem(at: temp.deletingLastPathComponent())
+            sqlite3_close(db)
             throw error
         }
     }
 
-    static func resolveDatabase(pathOverride: String?) throws -> ResolvedDatabase {
+    nonisolated static func resolveDatabase(pathOverride: String?) throws -> ResolvedDatabase {
         if let pathOverride {
             let expanded = (pathOverride as NSString).expandingTildeInPath
             let url = URL(fileURLWithPath: expanded)
@@ -1495,10 +2290,21 @@ private extension SQLiteScreenTimeDataService {
             }
         }
 
-        throw ScreenTimeDataError.databaseNotFound(searchedPaths: searched)
+        // First-launch race guard: dashboard views can query before the tracker
+        // writes its first session, which used to surface a transient "database
+        // not found" banner until the user navigated away and back. If discovery
+        // finds no existing normalized database, create the canonical empty store
+        // and let the query return zero rows instead of an error.
+        do {
+            return ResolvedDatabase(url: try HistoryStore.databaseURL())
+        } catch let dataError as ScreenTimeDataError {
+            throw dataError
+        } catch {
+            throw ScreenTimeDataError.sqlite(path: candidates[0].path, message: error.localizedDescription)
+        }
     }
 
-    static func detectNormalizedBackend(url: URL) throws -> Bool {
+    nonisolated static func detectNormalizedBackend(url: URL) throws -> Bool {
         var dbPointer: OpaquePointer?
         let result = sqlite3_open_v2(url.path, &dbPointer, SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX, nil)
 
@@ -1515,7 +2321,7 @@ private extension SQLiteScreenTimeDataService {
         return tableExists(db: db, table: "usage")
     }
 
-    static func validateNormalizedSchema(db: OpaquePointer, path: String) throws {
+    nonisolated static func validateNormalizedSchema(db: OpaquePointer, path: String) throws {
         let columns = try tableColumns(db: db, table: "usage")
         // Core columns are required; device_id and metadata_hash are optional
         // (added by migration, older DBs may not have them yet).
@@ -1530,7 +2336,7 @@ private extension SQLiteScreenTimeDataService {
         }
     }
 
-    static func tableExists(db: OpaquePointer, table: String) -> Bool {
+    nonisolated static func tableExists(db: OpaquePointer, table: String) -> Bool {
         let sql = "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1"
         do {
             let rows: [Int] = try SQLiteRunner.query(db: db, sql: sql, parameters: [.text(table)]) { _ in 1 }
@@ -1540,7 +2346,7 @@ private extension SQLiteScreenTimeDataService {
         }
     }
 
-    static func tableColumns(db: OpaquePointer, table: String) throws -> Set<String> {
+    nonisolated static func tableColumns(db: OpaquePointer, table: String) throws -> Set<String> {
         let sql = "PRAGMA table_info(\(table))"
         let names: [String] = try SQLiteRunner.query(db: db, sql: sql, parameters: []) { statement in
             SQLiteRunner.columnText(statement, index: 1) ?? ""
@@ -1548,95 +2354,7 @@ private extension SQLiteScreenTimeDataService {
         return Set(names.filter { !$0.isEmpty })
     }
 
-    static func copyDatabaseToTemporary(source: URL) throws -> URL {
-        let fileManager = FileManager.default
-        let tempDirectory = fileManager.temporaryDirectory.appendingPathComponent("time.md-\(UUID().uuidString)", isDirectory: true)
-        try fileManager.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
-
-        let tempDB = tempDirectory.appendingPathComponent(source.lastPathComponent)
-
-        var sourceHandle: OpaquePointer?
-        let sourceOpenResult = sqlite3_open_v2(source.path, &sourceHandle, SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX, nil)
-        guard sourceOpenResult == SQLITE_OK, let sourceDB = sourceHandle else {
-            let message = sourceHandle.flatMap { sqliteMessage(db: $0) } ?? "Unable to open source database"
-            if sourceOpenResult == SQLITE_CANTOPEN || sourceOpenResult == SQLITE_PERM || sourceOpenResult == SQLITE_AUTH {
-                throw ScreenTimeDataError.permissionDenied(path: source.path)
-            }
-            throw ScreenTimeDataError.sqlite(path: source.path, message: message)
-        }
-
-        defer { sqlite3_close(sourceDB) }
-        
-        // Set busy timeout to wait for write locks to release
-        sqlite3_busy_timeout(sourceDB, 10000) // 10 seconds
-
-        var destinationHandle: OpaquePointer?
-        let destinationOpenResult = sqlite3_open_v2(
-            tempDB.path,
-            &destinationHandle,
-            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX,
-            nil
-        )
-
-        guard destinationOpenResult == SQLITE_OK, let destinationDB = destinationHandle else {
-            let message = destinationHandle.flatMap { sqliteMessage(db: $0) } ?? "Unable to create temporary analysis database"
-            if let destinationHandle {
-                sqlite3_close(destinationHandle)
-            }
-            throw ScreenTimeDataError.sqlite(path: tempDB.path, message: message)
-        }
-
-        defer {
-            sqlite3_close(destinationDB)
-            try? fileManager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: tempDB.path)
-        }
-
-        guard let backup = sqlite3_backup_init(destinationDB, "main", sourceDB, "main") else {
-            throw ScreenTimeDataError.sqlite(
-                path: source.path,
-                message: "Failed to initialize temporary copy at \(tempDB.path): \(sqliteMessage(db: destinationDB))"
-            )
-        }
-
-        // Use incremental backup with more retries and exponential backoff
-        // This handles concurrent writes from HistoryStore.syncIfNeeded()
-        var stepResult: Int32 = SQLITE_OK
-        var busyRetries = 0
-        let maxRetries = 500
-        var sleepMs: Int32 = 10
-        
-        repeat {
-            // Copy in chunks of 100 pages at a time to allow other transactions to proceed
-            stepResult = sqlite3_backup_step(backup, 100)
-            
-            if stepResult == SQLITE_BUSY || stepResult == SQLITE_LOCKED {
-                busyRetries += 1
-                if busyRetries > maxRetries {
-                    break
-                }
-                sqlite3_sleep(sleepMs)
-                // Exponential backoff up to 100ms
-                sleepMs = min(sleepMs * 2, 100)
-            } else if stepResult == SQLITE_OK {
-                // More pages to copy, reset backoff
-                sleepMs = 10
-            }
-        } while stepResult == SQLITE_OK || stepResult == SQLITE_BUSY || stepResult == SQLITE_LOCKED
-
-        let finishResult = sqlite3_backup_finish(backup)
-
-        guard stepResult == SQLITE_DONE, finishResult == SQLITE_OK else {
-            let message = sqliteMessage(db: destinationDB)
-            throw ScreenTimeDataError.sqlite(
-                path: source.path,
-                message: "Failed to copy database into temporary analysis file \(tempDB.path). \(message)"
-            )
-        }
-
-        return tempDB
-    }
-
-    static func sqliteMessage(db: OpaquePointer) -> String {
+    nonisolated static func sqliteMessage(db: OpaquePointer) -> String {
         guard let cString = sqlite3_errmsg(db) else { return "Unknown SQLite error" }
         return String(cString: cString)
     }
@@ -1651,7 +2369,7 @@ private enum SQLiteBinding: Sendable {
     case null
 }
 
-private enum SQLiteRunner {
+nonisolated private enum SQLiteRunner {
     private static let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
     static func query<T>(
@@ -1777,21 +2495,24 @@ private struct FocusDayRow {
     let focusBlocks: Int
 }
 
-private final class SQLiteConnectionContext {
+private struct UsageStats {
+    let totalSeconds: Double
+    let sessionCount: Int
+    let uniqueAppCount: Int
+}
+
+nonisolated private final class SQLiteConnectionContext {
     let sourceURL: URL
-    let temporaryURL: URL
     let hasCategoryMap: Bool
     let db: OpaquePointer
 
-    init(sourceURL: URL, temporaryURL: URL, hasCategoryMap: Bool, db: OpaquePointer) {
+    init(sourceURL: URL, hasCategoryMap: Bool, db: OpaquePointer) {
         self.sourceURL = sourceURL
-        self.temporaryURL = temporaryURL
         self.hasCategoryMap = hasCategoryMap
         self.db = db
     }
 
     func close() {
         sqlite3_close(db)
-        try? FileManager.default.removeItem(at: temporaryURL.deletingLastPathComponent())
     }
 }

@@ -261,30 +261,17 @@ struct CalendarMonthGridView: View {
         do {
             loadError = nil
 
-            async let focusDaysTask = appEnvironment.dataService.fetchFocusDays(filters: snapshot)
-            async let breakdownTask = appEnvironment.dataService.fetchDailyAppBreakdown(filters: snapshot, topN: 10)
+            let monthData = try await appEnvironment.dataService.fetchCalendarMonthData(filters: snapshot, topN: 10)
+            dailyTotals = monthData.dailyTotals
+            dailyApps = monthData.dailyApps
 
-            let focusDays = try await focusDaysTask
-            let breakdown = try await breakdownTask
-
-            // Daily totals
-            var totals: [Date: Double] = [:]
-            for day in focusDays {
-                totals[cal.startOfDay(for: day.date)] = day.totalSeconds
-            }
-            dailyTotals = totals
-
-            // Daily app breakdown grouped by day
-            var apps: [Date: [DailyAppBreakdown]] = [:]
-            for entry in breakdown {
-                let dayStart = cal.startOfDay(for: entry.date)
-                apps[dayStart, default: []].append(entry)
-            }
-            // Sort each day's apps by seconds descending
-            for key in apps.keys {
-                apps[key]?.sort { $0.totalSeconds > $1.totalSeconds }
-            }
-            dailyApps = apps
+            #if os(macOS)
+            AppIconProvider.shared.preload(
+                bundleIDs: Array(Set(monthData.dailyApps.values.flatMap { $0.map(\.appName) })),
+                size: 16,
+                limit: 50
+            )
+            #endif
         } catch {
             loadError = error
             dailyTotals = [:]

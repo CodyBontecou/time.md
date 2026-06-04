@@ -601,6 +601,10 @@ struct TimingReviewView: View {
             heatmapCells = try await fetchedHeatmap
             periodSummary = try await fetchedPeriod
             dailyBreakdown = try await fetchedDaily
+
+            #if os(macOS)
+            AppIconProvider.shared.preload(bundleIDs: topApps.map(\.appName), size: 16, limit: 30)
+            #endif
         } catch {
             loadError = error
         }

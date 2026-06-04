@@ -43,11 +43,9 @@ enum AppNameDisplay {
         guard rawName.contains(".") else { return rawName }
 
         #if os(macOS)
-        return AppIconProvider.shared.displayName(for: rawName)
+        return AppIconProvider.shared.cachedDisplayName(for: rawName) ?? fallbackShortName(for: rawName)
         #else
-        let lastComponent = rawName.split(separator: ".").last.map(String.init) ?? rawName
-        guard !lastComponent.isEmpty, lastComponent != rawName else { return rawName }
-        return lastComponent
+        return fallbackShortName(for: rawName)
         #endif
     }
 
@@ -61,10 +59,14 @@ enum AppNameDisplay {
         #if os(macOS)
         return ExportAppNameCache.shared.name(for: rawName)
         #else
+        return fallbackShortName(for: rawName)
+        #endif
+    }
+
+    static func fallbackShortName(for rawName: String) -> String {
         let lastComponent = rawName.split(separator: ".").last.map(String.init) ?? rawName
         guard !lastComponent.isEmpty, lastComponent != rawName else { return rawName }
         return lastComponent
-        #endif
     }
 }
 

@@ -445,6 +445,10 @@ struct TimingProjectsView: View {
             topApps = try await fetchedApps
             topCategories = try await fetchedCategories
             categoryMappings = try await fetchedMappings
+
+            #if os(macOS)
+            AppIconProvider.shared.preload(bundleIDs: topApps.map(\.appName), size: 16, limit: 60)
+            #endif
         } catch {
             loadError = error
         }

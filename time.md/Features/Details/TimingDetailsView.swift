@@ -10,21 +10,25 @@ struct TimingDetailsView: View {
     @Environment(\.appNameDisplayMode) private var appNameDisplayMode
 
     @State private var rawSessions: [RawSession] = []
+    @State private var totalSessionCount = 0
+    @State private var totalSessionSeconds: Double = 0
+    @State private var uniqueAppCount = 0
+    @State private var appFilterOptions: [AppUsageSummary] = []
     @State private var contextSwitches: [ContextSwitchPoint] = []
     @State private var transitions: [AppTransition] = []
     @State private var isLoading = true
     @State private var loadError: Error?
     @State private var selectedApp: String?
+    @State private var sessionLimit = 200
 
-    private var filteredSessions: [RawSession] {
-        if let selectedApp {
-            return rawSessions.filter { $0.appName == selectedApp }
-        }
-        return rawSessions
+    private let pageSize = 200
+
+    private var maxVisibleDuration: Double {
+        rawSessions.map(\.durationSeconds).max() ?? 1
     }
 
     private var uniqueApps: [String] {
-        Array(Set(rawSessions.map(\.appName))).sorted()
+        appFilterOptions.map(\.appName)
     }
 
     var body: some View {
@@ -52,7 +56,7 @@ struct TimingDetailsView: View {
                 }
             }
         }
-        .task(id: "\(filters.rangeLabel)\(filters.granularity.rawValue)\(filters.refreshToken)") {
+        .task(id: "\(filters.rangeLabel)\(filters.granularity.rawValue)\(filters.refreshToken)\(selectedApp ?? "all")\(sessionLimit)") {
             await loadData()
         }
     }
@@ -74,7 +78,7 @@ struct TimingDetailsView: View {
                 Text("--")
                     .foregroundColor(BrutalTheme.textTertiary)
 
-                Text("\(filteredSessions.count) sessions")
+                Text("\(totalSessionCount) sessions")
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
                     .foregroundColor(BrutalTheme.accent)
             }
@@ -88,6 +92,7 @@ struct TimingDetailsView: View {
             // All apps button
             Button {
                 selectedApp = nil
+                sessionLimit = pageSize
             } label: {
                 Text("All Apps")
                     .font(.system(size: 11, weight: selectedApp == nil ? .bold : .medium))
@@ -106,6 +111,7 @@ struct TimingDetailsView: View {
                     ForEach(uniqueApps.prefix(15), id: \.self) { appName in
                         Button {
                             selectedApp = selectedApp == appName ? nil : appName
+                            sessionLimit = pageSize
                         } label: {
                             HStack(spacing: 4) {
                                 Circle()
@@ -142,7 +148,7 @@ struct TimingDetailsView: View {
                     .tracking(1)
                     .padding(.bottom, 12)
 
-                if filteredSessions.isEmpty {
+                if rawSessions.isEmpty {
                     Text("No sessions recorded for this period.")
                         .font(BrutalTheme.bodyMono)
                         .foregroundColor(BrutalTheme.textTertiary)
@@ -151,16 +157,25 @@ struct TimingDetailsView: View {
                 } else {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 0) {
-                            ForEach(Array(filteredSessions.prefix(200).enumerated()), id: \.element.id) { index, session in
-                                timelineEntry(session: session, isLast: index == min(filteredSessions.count, 200) - 1)
+                            ForEach(Array(rawSessions.enumerated()), id: \.element.id) { index, session in
+                                timelineEntry(
+                                    session: session,
+                                    isLast: index == rawSessions.count - 1,
+                                    maxDuration: maxVisibleDuration
+                                )
                             }
 
-                            if filteredSessions.count > 200 {
-                                Text("+ \(filteredSessions.count - 200) more sessions")
-                                    .font(BrutalTheme.captionMono)
-                                    .foregroundColor(BrutalTheme.textTertiary)
-                                    .padding(.top, 12)
-                                    .padding(.leading, 48)
+                            if totalSessionCount > rawSessions.count {
+                                Button {
+                                    sessionLimit += pageSize
+                                } label: {
+                                    Text("Load \(min(pageSize, totalSessionCount - rawSessions.count)) more of \(totalSessionCount - rawSessions.count) remaining sessions")
+                                        .font(BrutalTheme.captionMono)
+                                        .foregroundColor(BrutalTheme.accent)
+                                        .padding(.top, 12)
+                                        .padding(.leading, 48)
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
                     }
@@ -170,7 +185,7 @@ struct TimingDetailsView: View {
         }
     }
 
-    private func timelineEntry(session: RawSession, isLast: Bool) -> some View {
+    private func timelineEntry(session: RawSession, isLast: Bool, maxDuration: Double) -> some View {
         HStack(alignment: .top, spacing: 12) {
             // Time column
             VStack(alignment: .trailing, spacing: 2) {
@@ -218,7 +233,6 @@ struct TimingDetailsView: View {
                 Spacer()
 
                 // Duration bar
-                let maxDuration = filteredSessions.map(\.durationSeconds).max() ?? 1
                 let barWidth = max(session.durationSeconds / maxDuration * 80, 2)
                 RoundedRectangle(cornerRadius: 2)
                     .fill(BrutalTheme.color(for: session.appName).opacity(0.4))
@@ -246,14 +260,13 @@ struct TimingDetailsView: View {
                         .foregroundColor(BrutalTheme.textSecondary)
                         .tracking(1)
 
-                    let totalDuration = filteredSessions.reduce(0) { $0 + $1.durationSeconds }
-                    let avgDuration = filteredSessions.isEmpty ? 0 : totalDuration / Double(filteredSessions.count)
+                    let avgDuration = totalSessionCount == 0 ? 0 : totalSessionSeconds / Double(totalSessionCount)
 
                     VStack(alignment: .leading, spacing: 6) {
-                        statRow(label: "Total Sessions", value: "\(filteredSessions.count)")
-                        statRow(label: "Total Time", value: DurationFormatter.short(totalDuration))
+                        statRow(label: "Total Sessions", value: "\(totalSessionCount)")
+                        statRow(label: "Total Time", value: DurationFormatter.short(totalSessionSeconds))
                         statRow(label: "Avg Session", value: DurationFormatter.short(avgDuration))
-                        statRow(label: "Unique Apps", value: "\(Set(filteredSessions.map(\.appName)).count)")
+                        statRow(label: "Unique Apps", value: "\(uniqueAppCount)")
                     }
                 }
             }
@@ -341,14 +354,32 @@ struct TimingDetailsView: View {
         do {
             loadError = nil
             let snapshot = filters.snapshot
+            let details = try await appEnvironment.dataService.fetchDetailsData(
+                filters: snapshot,
+                selectedApp: selectedApp,
+                sessionLimit: sessionLimit
+            )
 
-            async let fetchedSessions = appEnvironment.dataService.fetchRawSessions(filters: snapshot)
-            async let fetchedSwitches = appEnvironment.dataService.fetchContextSwitchRate(filters: snapshot)
-            async let fetchedTransitions = appEnvironment.dataService.fetchAppTransitions(filters: snapshot, limit: 10)
+            rawSessions = details.sessions
+            totalSessionCount = details.totalSessionCount
+            totalSessionSeconds = details.totalSeconds
+            uniqueAppCount = details.uniqueAppCount
+            appFilterOptions = details.appFilterOptions
+            contextSwitches = details.contextSwitches
+            transitions = details.transitions
 
-            rawSessions = try await fetchedSessions
-            contextSwitches = try await fetchedSwitches
-            transitions = try await fetchedTransitions
+            if let selectedApp, !details.appFilterOptions.contains(where: { $0.appName == selectedApp }) {
+                self.selectedApp = nil
+                sessionLimit = pageSize
+            }
+
+            #if os(macOS)
+            AppIconProvider.shared.preload(
+                bundleIDs: Array(Set(details.sessions.map(\.appName) + details.appFilterOptions.map(\.appName))),
+                size: 20,
+                limit: 60
+            )
+            #endif
         } catch {
             loadError = error
         }
@@ -356,10 +387,14 @@ struct TimingDetailsView: View {
 
     // MARK: - Helpers
 
-    private func timeString(_ date: Date) -> String {
+    private static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm"
-        return formatter.string(from: date)
+        return formatter
+    }()
+
+    private func timeString(_ date: Date) -> String {
+        Self.timeFormatter.string(from: date)
     }
 
     private func formatHour(_ hour: Int) -> String {

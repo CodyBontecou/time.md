@@ -50,6 +50,7 @@ struct TimeMdApp: App {
                 ActiveAppTracker.shared.start()
                 ScreenTimeAutoSaveWriter.shared.start(dataService: AppEnvironment.live.dataService)
                 ScheduledExportEnvironment.runner.start()
+                synchronizeBlockingRulesOnLaunch()
                 WebsiteAccessEventSource.shared.start()
                 AppBlockActivationWatcher.shared.start()
                 reconcileDomainBlocksOnLaunch()
@@ -120,6 +121,18 @@ struct TimeMdApp: App {
         // Idempotent — gated by a UserDefaults flag inside HistoryStore.
         Task.detached(priority: .utility) {
             _ = try? HistoryStore.inputTrackingDatabaseURL()
+        }
+    }
+
+    /// Ensure the simplified on/off blocking model is reflected in persisted
+    /// active state before browser/app watchers begin enforcing.
+    private func synchronizeBlockingRulesOnLaunch() {
+        guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
+
+        do {
+            _ = try ManualBlockStateSynchronizer.synchronize(store: LiveBlockingRuleStore(), now: Date())
+        } catch {
+            NSLog("[TimeMdApp] Failed to synchronize blocking rules on launch: \(error.localizedDescription)")
         }
     }
 

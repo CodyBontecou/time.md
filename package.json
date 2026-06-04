@@ -1,5 +1,14 @@
 {
+  "scripts": {
+    "dev": "wrangler pages dev site",
+    "deploy": "wrangler pages deploy site --project-name time-md",
+    "db:migrate:local": "wrangler d1 migrations apply time-md-commerce --local",
+    "db:migrate:remote": "wrangler d1 migrations apply time-md-commerce --remote"
+  },
   "dependencies": {
     "puppeteer": "^24.37.5"
+  },
+  "devDependencies": {
+    "wrangler": "^4.95.0"
   }
 }

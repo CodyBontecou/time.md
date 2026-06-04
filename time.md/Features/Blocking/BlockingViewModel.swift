@@ -61,6 +61,67 @@ struct StaticBlockingHelperStatusProvider: BlockingHelperStatusProviding {
     }
 }
 
+/// Keeps the simplified on/off blocking model consistent with the persisted
+/// rule store. Enabled rules have an active manual block state; disabled or
+/// deleted rules do not keep an active block behind.
+enum ManualBlockStateSynchronizer {
+    @discardableResult
+    static func synchronize(store: any BlockingRuleStoring, now: Date = Date()) throws -> Bool {
+        let rules = try store.fetchRules(includeDisabled: true)
+        let states = try store.fetchStates()
+        let statesByTarget = Dictionary(uniqueKeysWithValues: states.map { (ManualBlockTargetKey($0.target), $0) })
+        let rulesByTarget = Dictionary(grouping: rules) { ManualBlockTargetKey($0.target) }
+        var changed = false
+
+        for rule in rules {
+            let key = ManualBlockTargetKey(rule.target)
+            if shouldBlock(rule) {
+                let existing = statesByTarget[key]
+                if existing?.blockedUntil != BlockState.manualBlockUntil || existing?.ruleID != rule.id || existing?.lastBlockedAt != nil {
+                    try store.upsert(state: try manualState(for: rule, existing: existing, now: now))
+                    changed = true
+                }
+            } else if statesByTarget[key]?.blockedUntil != nil {
+                try store.deleteState(for: rule.target)
+                changed = true
+            }
+        }
+
+        for state in states where state.blockedUntil != nil && rulesByTarget[ManualBlockTargetKey(state.target)] == nil {
+            try store.deleteState(for: state.target)
+            changed = true
+        }
+
+        return changed
+    }
+
+    static func shouldBlock(_ rule: BlockRule) -> Bool {
+        rule.enabled && rule.enforcementMode != .monitorOnly
+    }
+
+    static func manualState(for rule: BlockRule, existing: BlockState? = nil, now: Date = Date()) throws -> BlockState {
+        try BlockState(
+            target: rule.target,
+            ruleID: rule.id,
+            strikeCount: max(existing?.strikeCount ?? 0, 1),
+            blockedUntil: BlockState.manualBlockUntil,
+            lastAllowedAt: nil,
+            lastBlockedAt: nil,
+            updatedAt: now
+        )
+    }
+}
+
+private struct ManualBlockTargetKey: Hashable {
+    let type: BlockTargetType
+    let value: String
+
+    init(_ target: BlockTarget) {
+        self.type = target.type
+        self.value = target.value
+    }
+}
+
 enum BlockingPolicyPreset: String, CaseIterable, Identifiable, Sendable {
     case oneMinute = "1m ×2, max 4h"
     case fiveMinutes = "5m ×2, max 8h"
@@ -285,8 +346,8 @@ struct BlockingViewModel {
     }
 
     var helperUIState: BlockingHelperUIState {
-        let hasDomainRule = rules.contains { $0.target.type == .domain && $0.enforcementMode == .domainNetwork }
-        guard hasDomainRule else { return .notNeeded }
+        let hasEnabledDomainRule = rules.contains { $0.enabled && $0.target.type == .domain && $0.enforcementMode == .domainNetwork }
+        guard hasEnabledDomainRule else { return .notNeeded }
         switch helperStatus.installState {
         case .installed:
             if let error = helperStatus.lastErrorDescription, !error.isEmpty { return .unhealthy(error) }
@@ -299,7 +360,7 @@ struct BlockingViewModel {
     }
 
     var emptyStateMessage: String {
-        "Create app, category, or website rules. When you use something you marked as distracting, time.md starts an exponential cooldown before it can be used again."
+        "Add a website or app, then use its switch. On means time.md blocks it; off means it is viewable again."
     }
 
     func loaded() async -> BlockingViewModel {
@@ -312,7 +373,9 @@ struct BlockingViewModel {
         isLoading = true
         defer { isLoading = false }
         do {
-            _ = try clearExpiredBlocksInStore(now: nowProvider())
+            let now = nowProvider()
+            _ = try ManualBlockStateSynchronizer.synchronize(store: store, now: now)
+            _ = try clearExpiredBlocksInStore(now: now)
             rules = try store.fetchRules(includeDisabled: true)
             states = try store.fetchStates()
             activeBlocks = makeActiveBlocks(rules: rules, states: states, now: nowProvider())
@@ -355,17 +418,27 @@ struct BlockingViewModel {
             customMinimumSessionSeconds: draft.minimumSessionSeconds
         )
         let now = nowProvider()
+        let enforcementMode = draft.targetType == .domain ? BlockEnforcementMode.domainNetwork : BlockEnforcementMode.appFocus
         let rule = BlockRule(
             id: existing?.id ?? UUID(),
             target: target,
             policy: policy,
             enabled: draft.enabled,
-            enforcementMode: draft.enforcementMode,
+            enforcementMode: enforcementMode,
             priority: draft.priority,
             createdAt: existing?.createdAt ?? now,
             updatedAt: now
         )
+        if let existing, existing.target != target {
+            try store.deleteState(for: existing.target)
+        }
         try store.upsert(rule: rule)
+        if rule.enabled {
+            let existingState = try store.fetchStates().first { $0.target == rule.target }
+            try store.upsert(state: try ManualBlockStateSynchronizer.manualState(for: rule, existing: existingState, now: now))
+        } else {
+            try store.deleteState(for: rule.target)
+        }
         try reloadSynchronous()
         beginEditing(rule)
         return rule
@@ -379,9 +452,31 @@ struct BlockingViewModel {
 
     mutating func toggleRule(_ rule: BlockRule, enabled: Bool) throws {
         var updated = rule
+        let now = nowProvider()
         updated.enabled = enabled
-        updated.updatedAt = nowProvider()
+        updated.enforcementMode = updated.target.type == .domain ? .domainNetwork : .appFocus
+        updated.updatedAt = now
         try store.upsert(rule: updated)
+        if enabled {
+            let existingState = try store.fetchStates().first { $0.target == updated.target }
+            try store.upsert(state: try ManualBlockStateSynchronizer.manualState(for: updated, existing: existingState, now: now))
+        } else {
+            try store.deleteState(for: updated.target)
+        }
+        try reloadSynchronous()
+    }
+
+    mutating func turnOffAllBlocks() throws {
+        let now = nowProvider()
+        for var rule in try store.fetchRules(includeDisabled: true) where rule.enabled {
+            rule.enabled = false
+            rule.updatedAt = now
+            try store.upsert(rule: rule)
+            try store.deleteState(for: rule.target)
+        }
+        for state in try store.fetchStates() where state.blockedUntil != nil {
+            try store.deleteState(for: state.target)
+        }
         try reloadSynchronous()
     }
 

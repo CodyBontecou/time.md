@@ -19,8 +19,9 @@ xcuserdata/
 
 # App icon generation artifacts
 app-icon-options/
-.vercel
 .env*.local
+.dev.vars
+.wrangler/
 node_modules/
 
 # Distribution (keep dist-assets/)

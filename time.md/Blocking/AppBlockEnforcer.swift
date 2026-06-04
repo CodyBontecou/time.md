@@ -438,6 +438,10 @@ final class AppBlockNoticeWindowController {
         NSApp.activate(ignoringOtherApps: true)
 
         timer?.invalidate()
+        guard !BlockState.isManualBlock(until: blockedUntil) else {
+            timer = nil
+            return
+        }
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
@@ -451,12 +455,6 @@ final class AppBlockNoticeWindowController {
     }
 
     private func updateLabels(action: AppBlockEnforcementAction) {
-        let remaining = max(0, Int(ceil(blockedUntil.timeIntervalSince(Date()))))
-        let minutes = remaining / 60
-        let seconds = remaining % 60
-        let countdown = minutes > 0 ? "\(minutes)m \(seconds)s" : "\(seconds)s"
-        messageLabel.stringValue = "\(appName) is blocked for \(countdown)"
-        let scope = category.map { " because its \($0) category is cooling down" } ?? " because it is cooling down"
         let actionText: String
         switch action {
         case .showCountdownAndHide, .hide:
@@ -466,6 +464,20 @@ final class AppBlockNoticeWindowController {
         case .notifyOnly:
             actionText = "time.md is only showing this reminder."
         }
+
+        if BlockState.isManualBlock(until: blockedUntil) {
+            messageLabel.stringValue = "\(appName) is blocked"
+            let scope = category.map { " because its \($0) category block is on" } ?? " because its block is on"
+            detailLabel.stringValue = "You opened \(appName)\(scope). Turn the block off in time.md to use it again. \(actionText)"
+            return
+        }
+
+        let remaining = max(0, Int(ceil(blockedUntil.timeIntervalSince(Date()))))
+        let minutes = remaining / 60
+        let seconds = remaining % 60
+        let countdown = minutes > 0 ? "\(minutes)m \(seconds)s" : "\(seconds)s"
+        messageLabel.stringValue = "\(appName) is blocked for \(countdown)"
+        let scope = category.map { " because its \($0) category is cooling down" } ?? " because it is cooling down"
         detailLabel.stringValue = "You opened \(appName)\(scope). It will become available at \(blockedUntil.formatted(date: .omitted, time: .shortened)). \(actionText)"
     }
 

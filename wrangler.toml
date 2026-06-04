@@ -1,0 +1,23 @@
+name = "time-md"
+compatibility_date = "2026-06-02"
+pages_build_output_dir = "site"
+
+# Replace database_id with the real value from `npx wrangler d1 create time-md-commerce`
+# before deploying. The preview_database_id is used for local Pages development.
+[[d1_databases]]
+binding = "DB"
+database_name = "time-md-commerce"
+database_id = "00000000-0000-0000-0000-000000000000"
+preview_database_id = "time-md-commerce-local"
+
+# Cloudflare Email Service binding used for activation-key license emails.
+# Sender domain/address must be verified in Cloudflare Email Service / Email Routing.
+[[send_email]]
+name = "EMAIL"
+allowed_sender_addresses = ["cody@isolated.tech"]
+
+# Optional private release delivery. Uncomment after creating the bucket.
+# [[r2_buckets]]
+# binding = "RELEASE_BUCKET"
+# bucket_name = "time-md-releases"
+# preview_bucket_name = "time-md-releases-preview"

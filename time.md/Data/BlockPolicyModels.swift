@@ -230,6 +230,11 @@ struct BlockRule: Identifiable, Codable, Hashable, Sendable {
 /// Persisted cooldown/strike state. State is keyed by normalized target so it
 /// can survive rule edits and remain independent from rule definitions.
 struct BlockState: Codable, Hashable, Sendable {
+    /// Sentinel used by the simplified blocking UI: an enabled rule stays
+    /// blocked until the user turns its toggle off instead of expiring on a
+    /// cooldown timer.
+    static let manualBlockUntil = Date(timeIntervalSince1970: 253_402_300_799)
+
     var target: BlockTarget
     var ruleID: UUID?
     var strikeCount: Int
@@ -257,6 +262,15 @@ struct BlockState: Codable, Hashable, Sendable {
         self.lastAllowedAt = lastAllowedAt
         self.lastBlockedAt = lastBlockedAt
         self.updatedAt = updatedAt
+    }
+
+    static func isManualBlock(until date: Date?) -> Bool {
+        guard let date else { return false }
+        return date.timeIntervalSince1970 >= manualBlockUntil.timeIntervalSince1970 - 1
+    }
+
+    var isManualBlock: Bool {
+        Self.isManualBlock(until: blockedUntil)
     }
 }
 

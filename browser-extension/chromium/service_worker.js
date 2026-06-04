@@ -18,6 +18,7 @@ async function showBlockedPage(tabId, response) {
   if (typeof tabId !== 'number' || tabId < 0) return;
   const params = new URLSearchParams({
     domain: response.targetDomain ?? 'this site',
+    permanent: response.isPermanent ? '1' : '0',
     remaining: String(Math.max(0, Math.ceil(response.remainingSeconds ?? 0))),
     until: response.blockedUntil ? String(response.blockedUntil) : ''
   });
@@ -42,7 +43,9 @@ async function reportURL(url, tabId, frameId = 0) {
       const remaining = Math.max(0, Math.ceil(response.remainingSeconds ?? 0));
       chrome.action.setBadgeText({ text: 'BLOCK' });
       chrome.action.setBadgeBackgroundColor({ color: '#D97706' });
-      console.info(`time.md blocked ${response.targetDomain}; ${remaining}s remaining`);
+      console.info(response.isPermanent
+        ? `time.md blocked ${response.targetDomain} until toggled off`
+        : `time.md blocked ${response.targetDomain}; ${remaining}s remaining`);
       await showBlockedPage(tabId, response);
     } else if (response?.action === 'allow') {
       chrome.action.setBadgeText({ text: '' });

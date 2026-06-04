@@ -57,6 +57,25 @@ final class BlockingViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.helperUIState, .unhealthy("pfctl failed"))
     }
 
+    func testOnOffToggleCreatesAndRemovesManualBlockState() throws {
+        let store = InMemoryBlockingRuleStore()
+        let now = Date(timeIntervalSince1970: 100)
+        var viewModel = BlockingViewModel(store: store, helperStatusProvider: StaticBlockingHelperStatusProvider(.unavailable), nowProvider: { now })
+
+        viewModel.draft = BlockingRuleDraft(targetType: .app, targetValue: "com.example.Game")
+        let rule = try viewModel.saveDraft()
+        XCTAssertEqual(try store.fetchStates().first?.blockedUntil, BlockState.manualBlockUntil)
+
+        try viewModel.toggleRule(rule, enabled: false)
+        XCTAssertFalse(try XCTUnwrap(store.fetchRules(includeDisabled: true).first).enabled)
+        XCTAssertTrue(try store.fetchStates().isEmpty)
+
+        let disabledRule = try XCTUnwrap(store.fetchRules(includeDisabled: true).first)
+        try viewModel.toggleRule(disabledRule, enabled: true)
+        XCTAssertTrue(try XCTUnwrap(store.fetchRules(includeDisabled: true).first).enabled)
+        XCTAssertEqual(try store.fetchStates().first?.blockedUntil, BlockState.manualBlockUntil)
+    }
+
     func testEditDeleteAndResetFlowsUseInjectedStore() throws {
         let store = InMemoryBlockingRuleStore()
         let now = Date(timeIntervalSince1970: 100)

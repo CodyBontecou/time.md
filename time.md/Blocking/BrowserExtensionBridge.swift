@@ -39,6 +39,7 @@ struct BrowserExtensionBridgeResponse: Codable, Hashable, Sendable {
     var blockedUntil: Date?
     var remainingSeconds: TimeInterval?
     var reason: String?
+    var isPermanent: Bool = false
 
     static func invalid(_ reason: String) -> BrowserExtensionBridgeResponse {
         BrowserExtensionBridgeResponse(version: 1, action: .invalid, targetDomain: nil, blockedUntil: nil, remainingSeconds: nil, reason: reason)
@@ -191,13 +192,15 @@ struct BrowserExtensionBridge: Sendable {
                 reason: "Access allowed; cooldown scheduled."
             )
         case .deniedActiveBlock:
+            let isPermanent = BlockState.isManualBlock(until: decision.blockedUntil)
             return BrowserExtensionBridgeResponse(
                 version: 1,
                 action: .block,
                 targetDomain: matchedDomain,
                 blockedUntil: decision.blockedUntil,
-                remainingSeconds: decision.blockedUntil.map { max(0, $0.timeIntervalSince(now)) },
-                reason: decision.reason ?? "Domain is currently blocked."
+                remainingSeconds: isPermanent ? nil : decision.blockedUntil.map { max(0, $0.timeIntervalSince(now)) },
+                reason: isPermanent ? "Domain is blocked until you turn it off in time.md." : decision.reason ?? "Domain is currently blocked.",
+                isPermanent: isPermanent
             )
         }
     }

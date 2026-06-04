@@ -26,11 +26,11 @@
         <span class="nav-wordmark">time.md</span>
       </a>
       <div class="nav-links">
+        <a href="index.html#portal">PORTAL</a>
         <a href="index.html#features">FEATURES</a>
-        <a href="index.html#how-it-works">HOW IT WORKS</a>
         <a href="index.html#privacy">PRIVACY</a>
       </div>
-      <a href="index.html#download" class="nav-cta">DOWNLOAD</a>
+      <a href="index.html#portal" class="nav-cta">BUY $19.99</a>
     </div>
   </nav>
 
@@ -40,7 +40,7 @@
       <div class="legal-header">
         <div class="section-label">LEGAL</div>
         <h1 class="legal-title">Privacy Policy<span class="hero-dot">.</span></h1>
-        <p class="legal-effective">EFFECTIVE DATE: FEBRUARY 23, 2026</p>
+        <p class="legal-effective">EFFECTIVE DATE: JUNE 3, 2026</p>
       </div>
 
       <div class="legal-body">
@@ -48,21 +48,22 @@
         <section class="legal-section">
           <h2>01 / OVERVIEW</h2>
           <p>time.md ("the App") is a macOS screen time analytics application built and operated by Isolated Tech ("we", "us", "our"). This Privacy Policy describes how the App handles your information.</p>
-          <p><strong>The short version:</strong> time.md is a local-only application. We do not collect, transmit, store, or process any of your personal data. Your screen time data never leaves your machine.</p>
+          <p><strong>The short version:</strong> time.md is a local-only desktop application. We do not collect, transmit, store, or process your Screen Time data. Your screen time data never leaves your machine.</p>
+          <p>The website purchase portal is hosted on Cloudflare and uses Stripe Checkout to sell the desktop license. Stripe processes payment and receipt information; Cloudflare stores order and activation-key records; Cloudflare Email Service delivers license emails. The desktop app remains local-only unless you explicitly use a future activation flow.</p>
         </section>
 
         <section class="legal-section">
           <h2>02 / DATA COLLECTION</h2>
-          <p>time.md does <strong>not</strong> collect any data. Specifically:</p>
+          <p>The time.md desktop App does <strong>not</strong> collect any screen time data. Specifically, the App has:</p>
           <ul>
-            <li>No personal information (name, email, account details)</li>
+            <li>No app account or password</li>
             <li>No usage analytics or telemetry</li>
             <li>No crash reports</li>
-            <li>No device identifiers</li>
-            <li>No IP addresses</li>
-            <li>No cookies or tracking technologies</li>
+            <li>No device identifiers sent to us</li>
+            <li>No cookies or tracking technologies inside the App</li>
           </ul>
           <p>The App makes <strong>zero outbound network connections</strong>. There are no analytics SDKs, no crash reporters, and no phone-home mechanisms of any kind embedded in the App.</p>
+          <p>If you buy time.md through the website, Stripe may collect your email address, payment details, billing details, IP address, and fraud-prevention information for payment processing, receipts, tax, and dispute handling. We store your checkout session ID, payment status, email address, activation key, and email-delivery audit records in Cloudflare D1 so we can fulfill and support your purchase.</p>
         </section>
 
         <section class="legal-section">
@@ -92,26 +93,33 @@
 
         <section class="legal-section">
           <h2>05 / THIRD-PARTY SERVICES</h2>
-          <p>time.md does not integrate with, connect to, or share data with any third-party services, APIs, or platforms.</p>
+          <p>The time.md desktop App does not integrate with, connect to, or share screen time data with any third-party services, APIs, or platforms.</p>
+          <p>The website purchase portal uses Stripe Checkout for payment processing and Cloudflare Pages/Functions/D1/R2/Email Service for hosting, fulfillment, private downloads, and transactional license emails. Stripe handles payment forms, receipts, tax configuration when enabled, fraud prevention, and payment records according to Stripe's own terms and privacy policy. Cloudflare stores and processes the email address, activation key, download link, and support text needed to deliver the license email.</p>
         </section>
 
         <section class="legal-section">
-          <h2>06 / DATA EXPORT</h2>
+          <h2>06 / PURCHASE RECORDS</h2>
+          <p>When a Stripe Checkout payment completes, the portal verifies the Checkout Session ID, creates an activation key, sends a license email, and unlocks the download page. We may use Stripe and Cloudflare records to provide support for receipts, activation keys, download issues, refunds, disputes, and tax/accounting obligations.</p>
+          <p>If a future version of the desktop app validates an activation key online, it may send the activation key and an optional device identifier hash to the activation API. We do not connect purchase or activation records to your local screen time database or app usage. There is no app login.</p>
+        </section>
+
+        <section class="legal-section">
+          <h2>07 / DATA EXPORT</h2>
           <p>The App allows you to export your screen time data in CSV, JSON, YAML, Markdown, and Obsidian-flavored Markdown formats. The live <code>screen-time-auto.&lt;ext&gt;</code> export uses your last selected export settings. These files are generated locally and saved on your device. We do not have access to your exports.</p>
         </section>
 
         <section class="legal-section">
-          <h2>07 / CHILDREN'S PRIVACY</h2>
-          <p>time.md does not collect any data from any users, including children under the age of 13. Since no data is collected or transmitted, there are no specific children's privacy concerns.</p>
+          <h2>08 / CHILDREN'S PRIVACY</h2>
+          <p>The time.md desktop App does not collect screen time data from any users, including children under the age of 13. The purchase portal is intended for adults or users with permission to make online purchases.</p>
         </section>
 
         <section class="legal-section">
-          <h2>08 / CHANGES TO THIS POLICY</h2>
-          <p>We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated effective date. Since we do not collect contact information, we cannot notify you directly of changes — we recommend checking this page periodically.</p>
+          <h2>09 / CHANGES TO THIS POLICY</h2>
+          <p>We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated effective date. We recommend checking this page periodically.</p>
         </section>
 
         <section class="legal-section">
-          <h2>09 / CONTACT</h2>
+          <h2>10 / CONTACT</h2>
           <p>If you have questions about this Privacy Policy, contact us at:</p>
           <p class="legal-contact"><a href="mailto:cody@isolated.tech">cody@isolated.tech</a></p>
         </section>

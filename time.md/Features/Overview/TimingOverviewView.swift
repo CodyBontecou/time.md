@@ -14,6 +14,7 @@ struct TimingOverviewView: View {
     @State private var periodSummary: PeriodSummary?
     @State private var periodDelta: PeriodDelta?
     @State private var isLoading = true
+    @State private var hasLoadedOnce = false
     @State private var loadError: Error?
     @State private var selectedApp: String?
     @State private var hoveredApp: String?
@@ -33,7 +34,7 @@ struct TimingOverviewView: View {
             VStack(alignment: .leading, spacing: 32) {
                 headerSection
 
-                if isLoading {
+                if isLoading && !hasLoadedOnce {
                     OverviewSkeletonView()
                 } else if let loadError {
                     DataLoadErrorView(error: loadError)
@@ -337,8 +338,13 @@ struct TimingOverviewView: View {
     // MARK: - Data Loading
 
     private func loadData() async {
+        let trace = PerformanceTrace.begin("TimingOverviewView.loadData")
         isLoading = true
-        defer { isLoading = false }
+        defer {
+            isLoading = false
+            hasLoadedOnce = true
+            PerformanceTrace.end("TimingOverviewView.loadData", startedAt: trace)
+        }
 
         do {
             loadError = nil

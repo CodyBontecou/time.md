@@ -10,6 +10,7 @@ struct TimeMdMenuBarExtra: View {
     @State private var topApps: [AppUsageSummary] = []
     @State private var activeBlocks: [ActiveBlock] = []
     @State private var isLoading = true
+    @State private var hasRequestedInitialLoad = false
 
     private let refreshTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
     
@@ -109,17 +110,27 @@ struct TimeMdMenuBarExtra: View {
         .padding()
         .frame(width: 220)
         .task {
-            await loadData()
+            guard !hasRequestedInitialLoad else { return }
+            hasRequestedInitialLoad = true
+            PerformanceTrace.event("TimeMdMenuBarExtra initial task scheduled")
+            try? await Task.sleep(nanoseconds: 750_000_000)
+            guard !Task.isCancelled else { return }
+            await loadData(reason: "initial")
         }
         .onReceive(refreshTimer) { _ in
             Task {
-                await loadData()
+                await loadData(reason: "timer")
             }
         }
     }
     
-    private func loadData() async {
+    private func loadData(reason: String) async {
+        let trace = PerformanceTrace.begin("TimeMdMenuBarExtra.loadData", metadata: "reason=\(reason)")
         isLoading = true
+        defer {
+            isLoading = false
+            PerformanceTrace.end("TimeMdMenuBarExtra.loadData", startedAt: trace, metadata: "reason=\(reason)")
+        }
 
         do {
             // Fetch today's summary
@@ -148,8 +159,6 @@ struct TimeMdMenuBarExtra: View {
         } catch {
             print("[MenuBar] Failed to load data: \(error)")
         }
-        
-        isLoading = false
     }
     
     private func formatDuration(_ seconds: TimeInterval) -> String {
@@ -246,20 +255,27 @@ struct MenuBarLabel: View {
                     .monospacedDigit()
             }
         }
-        .task {
-            if style.showsTime {
-                await loadTotal()
-            }
+        .task(id: style.rawValue) {
+            guard style.showsTime else { return }
+            PerformanceTrace.event("MenuBarLabel initial total task scheduled")
+            try? await Task.sleep(nanoseconds: 750_000_000)
+            guard !Task.isCancelled else { return }
+            await loadTotal(reason: "initial")
         }
         .onReceive(refreshTimer) { _ in
             guard style.showsTime else { return }
             Task {
-                await loadTotal()
+                await loadTotal(reason: "timer")
             }
         }
     }
 
-    private func loadTotal() async {
+    private func loadTotal(reason: String) async {
+        let trace = PerformanceTrace.begin("MenuBarLabel.loadTotal", metadata: "reason=\(reason)")
+        defer {
+            PerformanceTrace.end("MenuBarLabel.loadTotal", startedAt: trace, metadata: "reason=\(reason)")
+        }
+
         do {
             let summary = try await appEnvironment.dataService.fetchTodaySummary()
             todayTotal = summary.todayTotalSeconds

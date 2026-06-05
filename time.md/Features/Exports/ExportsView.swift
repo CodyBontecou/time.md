@@ -1375,6 +1375,11 @@ struct ExportsView: View {
     // MARK: - Data Loading
 
     private func loadAvailableData() async {
+        let trace = PerformanceTrace.begin("ExportsView.loadAvailableData")
+        defer {
+            PerformanceTrace.end("ExportsView.loadAvailableData", startedAt: trace)
+        }
+
         do {
             let snapshot = filters.snapshot
             async let appsResult = appEnvironment.dataService.fetchTopApps(filters: snapshot, limit: 500)

@@ -40,34 +40,38 @@ struct RootSplitView: View {
                     Group {
                         switch navigation.selectedDestination ?? .overview {
                         case .overview:
-                            TimingOverviewView(filters: filters)
+                            tracedDestination(.overview) { TimingOverviewView(filters: filters) }
                         case .review:
-                            TimingReviewView(filters: filters)
+                            tracedDestination(.review) { TimingReviewView(filters: filters) }
                         case .details:
-                            TimingDetailsView(filters: filters)
+                            tracedDestination(.details) { TimingDetailsView(filters: filters) }
                         case .projects:
-                            TimingProjectsView(filters: filters)
+                            tracedDestination(.projects) { TimingProjectsView(filters: filters) }
                         case .rules:
-                            TimingRulesView(filters: filters)
+                            tracedDestination(.rules) { TimingRulesView(filters: filters) }
                         case .blocking:
-                            BlockingView()
+                            tracedDestination(.blocking) { BlockingView() }
                         case .webHistory:
-                            WebHistoryView(filters: filters)
+                            tracedDestination(.webHistory) { WebHistoryView(filters: filters) }
                         case .input:
-                            InputTrackingView(filters: filters)
+                            tracedDestination(.input) { InputTrackingView(filters: filters) }
                         case .reports:
-                            TimingReportsView(filters: filters)
+                            tracedDestination(.reports) { TimingReportsView(filters: filters) }
                         case .export:
-                            ExportsView(filters: filters)
+                            tracedDestination(.export) { ExportsView(filters: filters) }
                         case .settings:
-                            SettingsScaffoldView(filters: filters)
+                            tracedDestination(.settings) { SettingsScaffoldView(filters: filters) }
                         }
                     }
                     .padding(20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 .onChange(of: filters.granularity) { _, newValue in
+                    PerformanceTrace.event("RootSplitView granularity changed: \(newValue.rawValue)")
                     filters.adjustDateRange(for: newValue)
+                }
+                .onChange(of: navigation.selectedDestination) { _, newValue in
+                    PerformanceTrace.event("RootSplitView selected destination: \(newValue?.rawValue ?? "nil")")
                 }
             }
             .toolbar(removing: .sidebarToggle)
@@ -87,6 +91,20 @@ struct RootSplitView: View {
             }
 
         }
+    }
+
+    @ViewBuilder
+    private func tracedDestination<Content: View>(
+        _ destination: NavigationDestination,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        content()
+            .onAppear {
+                PerformanceTrace.event("Destination appear: \(destination.rawValue)")
+            }
+            .onDisappear {
+                PerformanceTrace.event("Destination disappear: \(destination.rawValue)")
+            }
     }
 
 }

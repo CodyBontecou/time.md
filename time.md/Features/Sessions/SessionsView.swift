@@ -596,10 +596,12 @@ struct SessionsView: View {
     }
 
     private func load() async {
+        let trace = PerformanceTrace.begin("SessionsView.load")
         isLoading = true
         defer {
             isLoading = false
             hasLoadedOnce = true
+            PerformanceTrace.end("SessionsView.load", startedAt: trace)
         }
         
         do {

@@ -348,8 +348,12 @@ struct TimingDetailsView: View {
     // MARK: - Data Loading
 
     private func loadData() async {
+        let trace = PerformanceTrace.begin("TimingDetailsView.loadData")
         isLoading = true
-        defer { isLoading = false }
+        defer {
+            isLoading = false
+            PerformanceTrace.end("TimingDetailsView.loadData", startedAt: trace)
+        }
 
         do {
             loadError = nil

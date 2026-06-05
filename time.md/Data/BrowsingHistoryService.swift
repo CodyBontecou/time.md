@@ -152,9 +152,11 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
         databaseCache.removeAll()
     }
 
-    /// Prefetch databases in the background to warm up the cache.
-    /// Call this early (e.g., at app launch) to ensure instant loading when user opens Web History.
-    func prefetchDatabases() {
+    /// Prefetch browser database copies in the background to warm up the cache.
+    /// Keep launch prefetch bounded: archive snapshots can scan/upsert tens of
+    /// thousands of browser rows and should only run from the scheduler or the
+    /// active Web History view, not while the app is trying to gain focus.
+    func prefetchDatabases(includeArchiveSnapshot: Bool = false) {
         Task.detached(priority: .utility) {
             let service = SQLiteBrowsingHistoryService()
             let browsers = service.availableBrowsers().filter { $0 != .all }
@@ -167,7 +169,7 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
                 }
             }
 
-            if WebHistoryArchiveStore.isEnabled {
+            if includeArchiveSnapshot, WebHistoryArchiveStore.isEnabled {
                 await service.snapshotRecentHistoryForPersistence(days: 90)
             }
         }
@@ -324,7 +326,7 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
         limit: Int
     ) async throws -> [BrowsingVisit] {
         if WebHistoryArchiveStore.isEnabled {
-            let syncError = await archiveSyncError(browser: browser, startDate: startDate, endDate: endDate)
+            let syncError = await archiveSyncError(browser: browser, startDate: startDate, endDate: endDate, limit: limit)
             let archived = try await fetchArchivedVisits(
                 browser: browser,
                 startDate: startDate,
@@ -558,31 +560,51 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
 
     // MARK: - Helpers
 
-    private func archiveSyncError(browser: BrowserSource, startDate: Date, endDate: Date) async -> Error? {
+    private func archiveSyncError(
+        browser: BrowserSource,
+        startDate: Date,
+        endDate: Date,
+        limit: Int? = nil
+    ) async -> Error? {
         do {
-            try await syncArchiveIfNeeded(browser: browser, startDate: startDate, endDate: endDate)
+            try await syncArchiveIfNeeded(browser: browser, startDate: startDate, endDate: endDate, limit: limit)
             return nil
         } catch {
             return error
         }
     }
 
-    private func syncArchiveIfNeeded(browser: BrowserSource, startDate: Date, endDate: Date) async throws {
+    private func syncArchiveIfNeeded(
+        browser: BrowserSource,
+        startDate: Date,
+        endDate: Date,
+        limit: Int? = nil
+    ) async throws {
         let browsers = resolveBrowsers(browser)
         var firstError: Error?
+        let syncLimit = max(1, min(limit ?? Self.archiveSyncVisitLimit, Self.archiveSyncVisitLimit))
 
         for source in browsers {
-            let key = Self.archiveSyncKey(browser: source, startDate: startDate, endDate: endDate)
+            let key = Self.archiveSyncKey(browser: source, startDate: startDate, endDate: endDate, limit: syncLimit)
             do {
                 try await WebHistoryArchiveSyncCoordinator.shared.run(key: key) { [self] in
+                    let trace = PerformanceTrace.begin(
+                        "WebHistoryArchiveSync",
+                        metadata: "browser=\(source.rawValue) limit=\(syncLimit)"
+                    )
                     let visits = try await self.fetchVisitsFromBrowser(
                         source,
                         startDate: startDate,
                         endDate: endDate,
                         searchText: "",
-                        limit: Self.archiveSyncVisitLimit
+                        limit: syncLimit
                     )
                     try await WebHistoryArchiveStore.upsert(visits)
+                    PerformanceTrace.end(
+                        "WebHistoryArchiveSync",
+                        startedAt: trace,
+                        metadata: "browser=\(source.rawValue) visits=\(visits.count)"
+                    )
                 }
             } catch {
                 if firstError == nil {
@@ -596,10 +618,10 @@ final class SQLiteBrowsingHistoryService: BrowsingHistoryServing, @unchecked Sen
         }
     }
 
-    private static func archiveSyncKey(browser: BrowserSource, startDate: Date, endDate: Date) -> String {
+    private static func archiveSyncKey(browser: BrowserSource, startDate: Date, endDate: Date, limit: Int) -> String {
         let startHour = Int(startDate.timeIntervalSince1970 / 3600)
         let endHour = Int(endDate.timeIntervalSince1970 / 3600)
-        return "\(browser.rawValue)|\(startHour)|\(endHour)"
+        return "\(browser.rawValue)|\(startHour)|\(endHour)|limit=\(limit)"
     }
 
     private func archiveQueryBrowsers(_ source: BrowserSource) -> [BrowserSource] {

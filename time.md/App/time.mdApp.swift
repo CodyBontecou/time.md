@@ -51,9 +51,12 @@ struct TimeMdApp: App {
             .environment(navigation)
             .environment(activationStore)
             .task {
+                let trace = PerformanceTrace.begin("TimeMdApp.prepareForLaunch")
                 await activationStore.prepareForLaunch()
+                PerformanceTrace.end("TimeMdApp.prepareForLaunch", startedAt: trace)
             }
             .task(id: activationStore.isUnlockedForLaunch) {
+                PerformanceTrace.event("TimeMdApp unlock state task: unlocked=\(activationStore.isUnlockedForLaunch)")
                 if activationStore.isUnlockedForLaunch {
                     await startAppServicesIfNeeded()
                 } else {
@@ -121,6 +124,8 @@ struct TimeMdApp: App {
     /// validation succeeds.
     private func startAppServicesIfNeeded() async {
         guard !appServicesStarted else { return }
+        let trace = PerformanceTrace.begin("TimeMdApp.startAppServicesIfNeeded")
+        defer { PerformanceTrace.end("TimeMdApp.startAppServicesIfNeeded", startedAt: trace) }
         appServicesStarted = true
 
         await initialSync()
@@ -204,6 +209,7 @@ struct TimeMdApp: App {
 /// the app remains reachable in `.menuBarOnly` and `.hidden` modes.
 final class TimeMdAppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        PerformanceTrace.event("TimeMdAppDelegate.applicationDidFinishLaunching")
         AppVisibilityMode.current.applyImmediately()
     }
 

@@ -1025,10 +1025,12 @@ struct WebHistoryView: View {
     // MARK: - Data loading
 
     private func loadAll() async {
+        let trace = PerformanceTrace.begin("WebHistoryView.loadAll")
         isLoading = true
-        defer { 
+        defer {
             isLoading = false
             hasLoadedOnce = true
+            PerformanceTrace.end("WebHistoryView.loadAll", startedAt: trace)
         }
 
         do {

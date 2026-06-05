@@ -98,6 +98,10 @@ enum HistoryStore {
         CREATE INDEX IF NOT EXISTS idx_usage_app_name ON usage(app_name);
         CREATE INDEX IF NOT EXISTS idx_usage_stream_type ON usage(stream_type);
         CREATE INDEX IF NOT EXISTS idx_usage_device_id ON usage(device_id);
+        CREATE INDEX IF NOT EXISTS idx_usage_stream_start_time ON usage(stream_type, start_time);
+        CREATE INDEX IF NOT EXISTS idx_usage_metadata_start_time ON usage(metadata_hash, start_time);
+        CREATE INDEX IF NOT EXISTS idx_usage_app_start_time ON usage(app_name, start_time);
+        CREATE INDEX IF NOT EXISTS idx_usage_duration_start_time ON usage(duration_seconds DESC, start_time);
         """
         guard sqlite3_exec(db, indexSQL, nil, nil, nil) == SQLITE_OK else {
             throw ScreenTimeDataError.sqlite(path: url.path, message: String(cString: sqlite3_errmsg(db)))

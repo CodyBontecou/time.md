@@ -18,11 +18,13 @@ final class ScreenTimeAutoSaveWriter {
 
     private let refreshInterval: TimeInterval = 5 * 60
     private let debounceInterval: TimeInterval = 10
+    private let initialWriteDelay: TimeInterval = 30
 
     private var dataService: (any ScreenTimeDataServing)?
     private var timer: Timer?
     private var observers: [NSObjectProtocol] = []
     private var pendingTask: Task<Void, Never>?
+    private let launchDate = Date()
     private var isWriting = false
     private var needsWriteAfterCurrent = false
 
@@ -80,7 +82,8 @@ final class ScreenTimeAutoSaveWriter {
             })
         }
 
-        requestWrite(delay: 1)
+        PerformanceTrace.event("ScreenTimeAutoSaveWriter initial write scheduled delay=\(initialWriteDelay)s")
+        requestWrite(delay: initialWriteDelay)
     }
 
     func stop() {
@@ -100,7 +103,13 @@ final class ScreenTimeAutoSaveWriter {
         guard dataService != nil else { return }
 
         pendingTask?.cancel()
-        let delay = delay ?? debounceInterval
+        var delay = delay ?? debounceInterval
+        let secondsSinceLaunch = Date().timeIntervalSince(launchDate)
+        let remainingInitialDelay = max(0, initialWriteDelay - secondsSinceLaunch)
+        if remainingInitialDelay > delay {
+            delay = remainingInitialDelay
+        }
+
         pendingTask = Task { [weak self] in
             if delay > 0 {
                 let nanoseconds = UInt64(delay * 1_000_000_000)
@@ -128,12 +137,16 @@ final class ScreenTimeAutoSaveWriter {
             }
         }
 
+        let trace = PerformanceTrace.begin("ScreenTimeAutoSaveWriter.writeNow")
+        defer { PerformanceTrace.end("ScreenTimeAutoSaveWriter.writeNow", startedAt: trace) }
+
         let now = Date()
         let activeSession = ActiveAppTracker.shared.snapshot()
         let device = DeviceInfo.current()
 
-        await Task.detached(priority: .utility) {
+        await Task.detached(priority: .background) {
             do {
+                let snapshotTrace = PerformanceTrace.begin("ScreenTimeAutoSaveWriter.snapshot")
                 let snapshot = try await Self.makeSnapshot(
                     dataService: dataService,
                     days: Self.historyDays,
@@ -142,16 +155,21 @@ final class ScreenTimeAutoSaveWriter {
                     device: device
                 )
                 try Self.write(snapshot: snapshot, to: Self.fileURL)
+                PerformanceTrace.end("ScreenTimeAutoSaveWriter.snapshot", startedAt: snapshotTrace)
             } catch {
                 NSLog("[ScreenTimeAutoSaveWriter] Failed to write snapshot: \(error.localizedDescription)")
             }
         }.value
 
-        do {
-            try await Self.writeFormattedAutoExport(dataService: dataService, now: now)
-        } catch {
-            NSLog("[ScreenTimeAutoSaveWriter] Failed to write formatted auto-export: \(error.localizedDescription)")
-        }
+        await Task.detached(priority: .background) {
+            do {
+                let exportTrace = PerformanceTrace.begin("ScreenTimeAutoSaveWriter.formattedAutoExport")
+                try await Self.writeFormattedAutoExport(dataService: dataService, now: now)
+                PerformanceTrace.end("ScreenTimeAutoSaveWriter.formattedAutoExport", startedAt: exportTrace)
+            } catch {
+                NSLog("[ScreenTimeAutoSaveWriter] Failed to write formatted auto-export: \(error.localizedDescription)")
+            }
+        }.value
     }
 
     nonisolated private static func write(snapshot: ScreenTimeSnapshot, to url: URL) throws {
@@ -169,7 +187,7 @@ final class ScreenTimeAutoSaveWriter {
         try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
     }
 
-    private static func writeFormattedAutoExport(
+    nonisolated private static func writeFormattedAutoExport(
         dataService: any ScreenTimeDataServing,
         now: Date
     ) async throws {
@@ -181,8 +199,14 @@ final class ScreenTimeAutoSaveWriter {
             granularity: .day
         )
         let template = settings.resolvedAutoSaveFilenameTemplate
+        let sections = liveAutoSaveSections(from: settings.resolvedAutoSaveExportSections)
+        guard !sections.isEmpty else {
+            PerformanceTrace.event("ScreenTimeAutoSaveWriter.formattedAutoExport skipped: no safe sections")
+            return
+        }
+
         let config = CombinedExportConfig(
-            sections: settings.resolvedAutoSaveExportSections,
+            sections: sections,
             format: settings.resolvedAutoSaveExportFormat,
             filenameTemplate: template,
             includeTimestamp: false
@@ -197,7 +221,20 @@ final class ScreenTimeAutoSaveWriter {
         removeStaleFormattedAutoExports(keeping: writtenURL, filenameTemplate: template)
     }
 
-    private static func removeStaleFormattedAutoExports(keeping writtenURL: URL, filenameTemplate: String) {
+    nonisolated private static func liveAutoSaveSections(from selection: ExportSectionSelection) -> ExportSectionSelection {
+        let excludedRawInputSections: Set<ExportSection> = [.inputRawKeystrokes, .inputRawMouseEvents]
+        let safeSections = selection.sections.filter { !excludedRawInputSections.contains($0) }
+        if safeSections.count != selection.sections.count {
+            let excluded = selection.sections
+                .filter { excludedRawInputSections.contains($0) }
+                .map(\.rawValue)
+                .joined(separator: ",")
+            PerformanceTrace.event("ScreenTimeAutoSaveWriter.formattedAutoExport excluded raw input sections=\(excluded)")
+        }
+        return ExportSectionSelection(sections: safeSections)
+    }
+
+    nonisolated private static func removeStaleFormattedAutoExports(keeping writtenURL: URL, filenameTemplate: String) {
         let directory = writtenURL.deletingLastPathComponent()
         let currentPath = writtenURL.path
         let extensions = Set(ExportFormat.allCases.map(\.fileExtension))
@@ -222,40 +259,151 @@ final class ScreenTimeAutoSaveWriter {
         let todayStart = calendar.startOfDay(for: now)
         let firstDay = calendar.date(byAdding: .day, value: -(max(days, 1) - 1), to: todayStart) ?? todayStart
 
+        var accumulators: [Date: DayAccumulator]
+        if let sqliteService = dataService as? SQLiteScreenTimeDataService {
+            do {
+                let trace = PerformanceTrace.begin("ScreenTimeAutoSaveWriter.snapshot.rollups")
+                let rows = try await sqliteService.fetchSnapshotRollupRows(startDate: firstDay, endDate: now)
+                accumulators = accumulatorsFromRollupRows(rows, calendar: calendar, firstDay: firstDay, todayStart: todayStart)
+                PerformanceTrace.end(
+                    "ScreenTimeAutoSaveWriter.snapshot.rollups",
+                    startedAt: trace,
+                    metadata: "rows=\(rows.count)"
+                )
+            } catch {
+                PerformanceTrace.event("ScreenTimeAutoSaveWriter.snapshot.rollups fallback: \(error.localizedDescription)")
+                accumulators = try await rawSessionAccumulators(
+                    dataService: dataService,
+                    calendar: calendar,
+                    firstDay: firstDay,
+                    todayStart: todayStart,
+                    now: now
+                )
+            }
+        } else {
+            accumulators = try await rawSessionAccumulators(
+                dataService: dataService,
+                calendar: calendar,
+                firstDay: firstDay,
+                todayStart: todayStart,
+                now: now
+            )
+        }
+
+        addActiveSession(
+            activeSession,
+            now: now,
+            calendar: calendar,
+            firstDay: firstDay,
+            todayStart: todayStart,
+            accumulators: &accumulators
+        )
+
+        return buildSnapshot(
+            from: accumulators,
+            firstDay: firstDay,
+            todayStart: todayStart,
+            now: now,
+            historyDays: days,
+            device: device,
+            calendar: calendar
+        )
+    }
+
+    nonisolated private static func rawSessionAccumulators(
+        dataService: any ScreenTimeDataServing,
+        calendar: Calendar,
+        firstDay: Date,
+        todayStart: Date,
+        now: Date
+    ) async throws -> [Date: DayAccumulator] {
         let filters = FilterSnapshot(
             startDate: firstDay,
             endDate: now,
             granularity: .day
         )
 
-        var sessions = try await dataService.fetchRawSessions(filters: filters)
-
-        if activeSession.isScreenActive,
-           let appName = activeSession.bundleID,
-           let startedAt = activeSession.switchTime,
-           startedAt >= firstDay,
-           startedAt <= now {
-            let duration = now.timeIntervalSince(startedAt)
-            if duration >= 2 {
-                sessions.append(RawSession(
-                    appName: appName,
-                    startTime: startedAt,
-                    endTime: now,
-                    durationSeconds: duration
-                ))
-            }
-        }
-
+        let sessions = try await dataService.fetchRawSessions(filters: filters)
         var accumulators: [Date: DayAccumulator] = [:]
         for session in sessions where session.durationSeconds > 0 {
             let day = calendar.startOfDay(for: session.startTime)
             guard day >= firstDay, day <= todayStart else { continue }
 
             var accumulator = accumulators[day] ?? DayAccumulator(date: day)
-            accumulator.add(session: session, calendar: calendar)
+            accumulator.add(
+                appName: session.appName,
+                startTime: session.startTime,
+                totalSeconds: session.durationSeconds,
+                sessionCount: 1,
+                calendar: calendar
+            )
             accumulators[day] = accumulator
         }
+        return accumulators
+    }
 
+    nonisolated private static func accumulatorsFromRollupRows(
+        _ rows: [ScreenTimeSnapshotRollupRow],
+        calendar: Calendar,
+        firstDay: Date,
+        todayStart: Date
+    ) -> [Date: DayAccumulator] {
+        var accumulators: [Date: DayAccumulator] = [:]
+        for row in rows where row.totalSeconds > 0 && row.sessionCount > 0 {
+            guard let day = parseSnapshotDay(row.day), day >= firstDay, day <= todayStart else { continue }
+
+            var accumulator = accumulators[day] ?? DayAccumulator(date: day)
+            accumulator.add(
+                appName: row.appName,
+                hour: row.hour,
+                totalSeconds: row.totalSeconds,
+                sessionCount: row.sessionCount
+            )
+            accumulators[day] = accumulator
+        }
+        return accumulators
+    }
+
+    nonisolated private static func addActiveSession(
+        _ activeSession: ActiveAppTracker.CurrentAppSnapshot,
+        now: Date,
+        calendar: Calendar,
+        firstDay: Date,
+        todayStart: Date,
+        accumulators: inout [Date: DayAccumulator]
+    ) {
+        guard activeSession.isScreenActive,
+              let appName = activeSession.bundleID,
+              let startedAt = activeSession.switchTime,
+              startedAt >= firstDay,
+              startedAt <= now else { return }
+
+        let duration = now.timeIntervalSince(startedAt)
+        guard duration >= 2 else { return }
+
+        let day = calendar.startOfDay(for: startedAt)
+        guard day >= firstDay, day <= todayStart else { return }
+
+        var accumulator = accumulators[day] ?? DayAccumulator(date: day)
+        accumulator.add(
+            appName: appName,
+            startTime: startedAt,
+            totalSeconds: duration,
+            sessionCount: 1,
+            calendar: calendar
+        )
+        accumulators[day] = accumulator
+    }
+
+    nonisolated private static func buildSnapshot(
+        from accumulators: [Date: DayAccumulator],
+        firstDay: Date,
+        todayStart: Date,
+        now: Date,
+        historyDays: Int,
+        device: DeviceInfo,
+        calendar: Calendar
+    ) -> ScreenTimeSnapshot {
         var snapshotDays: [ScreenTimeSnapshot.Day] = []
         var cursor = firstDay
         while cursor <= todayStart {
@@ -269,11 +417,28 @@ final class ScreenTimeAutoSaveWriter {
             generatedAt: now,
             fileURL: fileURL.path,
             canonicalDatabasePath: (try? HistoryStore.databaseURL().path) ?? HistoryStore.defaultDatabasePath,
-            historyDays: days,
+            historyDays: historyDays,
             device: device,
             range: .init(startDate: firstDay, endDate: now),
             days: snapshotDays
         )
+    }
+
+    nonisolated private static func parseSnapshotDay(_ value: String) -> Date? {
+        let parts = value.split(separator: "-")
+        guard parts.count == 3,
+              let year = Int(parts[0]),
+              let month = Int(parts[1]),
+              let day = Int(parts[2]) else { return nil }
+
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = day
+        components.hour = 0
+        components.minute = 0
+        components.second = 0
+        return Calendar.current.date(from: components)
     }
 }
 
@@ -289,17 +454,27 @@ nonisolated private struct DayAccumulator {
     var apps: [String: AppAccumulator] = [:]
     var hours: [Int: Double] = [:]
 
-    mutating func add(session: RawSession, calendar: Calendar) {
-        totalSeconds += session.durationSeconds
-        sessionCount += 1
+    mutating func add(
+        appName: String,
+        startTime: Date,
+        totalSeconds: Double,
+        sessionCount: Int,
+        calendar: Calendar
+    ) {
+        let hour = calendar.component(.hour, from: startTime)
+        add(appName: appName, hour: hour, totalSeconds: totalSeconds, sessionCount: sessionCount)
+    }
 
-        var app = apps[session.appName] ?? AppAccumulator()
-        app.totalSeconds += session.durationSeconds
-        app.sessionCount += 1
-        apps[session.appName] = app
+    mutating func add(appName: String, hour: Int, totalSeconds: Double, sessionCount: Int) {
+        self.totalSeconds += totalSeconds
+        self.sessionCount += sessionCount
 
-        let hour = calendar.component(.hour, from: session.startTime)
-        hours[hour, default: 0] += session.durationSeconds
+        var app = apps[appName] ?? AppAccumulator()
+        app.totalSeconds += totalSeconds
+        app.sessionCount += sessionCount
+        apps[appName] = app
+
+        hours[hour, default: 0] += totalSeconds
     }
 
     var snapshotDay: ScreenTimeSnapshot.Day {

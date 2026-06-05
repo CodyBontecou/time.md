@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI  // For IndexSet/Array move operations
+import ExportAutomationKit
 
 // MARK: - Export Field Definitions
 
@@ -1074,6 +1075,17 @@ enum RelativeDateRange: String, Codable, CaseIterable, Identifiable {
         }
     }
     
+    var automationLookbackDays: Int {
+        switch self {
+        case .today, .yesterday:
+            return 1
+        case .last7Days, .thisWeek, .lastWeek:
+            return 7
+        case .last30Days, .thisMonth, .lastMonth, .thisYear:
+            return 30
+        }
+    }
+
     func dateRange(from date: Date = Date()) -> (start: Date, end: Date) {
         let calendar = Calendar.current
         let now = date
@@ -1361,6 +1373,19 @@ enum ScheduleFrequency: String, Codable, CaseIterable, Identifiable {
     case monthly
     
     var id: String { rawValue }
+
+    var automationFrequency: AutomationScheduleFrequency? {
+        switch self {
+        case .daily:
+            return .daily
+        case .weekly:
+            return .weekly
+        case .monthly:
+            // ExportAutomationKit currently owns daily/weekly primitives; time.md
+            // keeps monthly trigger math app-local.
+            return nil
+        }
+    }
     
     var displayName: String {
         switch self {
@@ -1462,6 +1487,23 @@ struct ExportSchedule: Codable {
         }
     }
 
+    /// Generic ExportAutomationKit schedule snapshot for domain-free automation math.
+    /// Existing time.md settings (sections, format, destination, relative range)
+    /// remain app-owned and are not stored in ExportAutomationKit.
+    var automationSchedule: AutomationSchedule? {
+        guard let automationFrequency = frequency.automationFrequency else { return nil }
+        return AutomationSchedule(
+            isEnabled: isEnabled,
+            frequency: automationFrequency,
+            preferredHour: hour,
+            preferredMinute: minute,
+            weekday: dayOfWeek.map(Self.isoWeekday(fromCalendarWeekday:)) ?? 1,
+            lookbackDays: relativeDateRange.automationLookbackDays,
+            timeZoneIdentifier: TimeZone.current.identifier,
+            lastExportDate: lastRunAt
+        )
+    }
+
     /// The most-recent moment at or before `date` when this schedule should have fired.
     /// Used by the runner to detect missed runs.
     func mostRecentFireDate(at date: Date = Date(), calendar: Calendar = .current) -> Date? {
@@ -1472,6 +1514,13 @@ struct ExportSchedule: Codable {
 
         switch frequency {
         case .daily:
+            if let automationSchedule {
+                return AutomationScheduleDateMath.latestScheduledOccurrenceDate(
+                    schedule: automationSchedule,
+                    now: date,
+                    calendar: calendar
+                )
+            }
             guard let todayFire = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: date) else {
                 return nil
             }
@@ -1497,6 +1546,13 @@ struct ExportSchedule: Codable {
 
         switch frequency {
         case .daily:
+            if let automationSchedule {
+                return AutomationScheduleDateMath.calculateNextRunDate(
+                    schedule: automationSchedule,
+                    now: date,
+                    calendar: calendar
+                )
+            }
             if let today = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: date),
                today > date {
                 return today
@@ -1511,6 +1567,12 @@ struct ExportSchedule: Codable {
             components.day = dayOfMonth ?? 1
             return calendar.nextDate(after: date, matching: components, matchingPolicy: .nextTime)
         }
+    }
+
+    private nonisolated static func isoWeekday(fromCalendarWeekday weekday: Int) -> Int {
+        // Calendar weekday uses 1 = Sunday. AutomationSchedule stores ISO style
+        // 1 = Monday ... 7 = Sunday for remote/generic schedule payloads.
+        weekday == 1 ? 7 : max(1, min(7, weekday - 1))
     }
 
     /// Whether the schedule is due to run, given the last run date.

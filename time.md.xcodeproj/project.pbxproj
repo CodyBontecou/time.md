@@ -22,6 +22,11 @@
 		0038709BBBA5FB4BF84D53EF /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD65EC6D1AD4EE69F36DF681 /* Database.swift */; };
 		1A9EFD058A65ADD1944F9DAB /* Range.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0854AAA1CC65A614DA8F48C4 /* Range.swift */; };
 		5A80000000000000000000B1 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 5A80000000000000000000B2 /* Sparkle */; };
+		EK0000000000000000000011 /* ExportKit in Frameworks */ = {isa = PBXBuildFile; productRef = EK0000000000000000000021 /* ExportKit */; };
+		EK0000000000000000000012 /* ExportAutomationKit in Frameworks */ = {isa = PBXBuildFile; productRef = EK0000000000000000000022 /* ExportAutomationKit */; };
+		EK0000000000000000000013 /* ExportKit in Frameworks */ = {isa = PBXBuildFile; productRef = EK0000000000000000000023 /* ExportKit */; };
+		EK0000000000000000000014 /* ExportAutomationKit in Frameworks */ = {isa = PBXBuildFile; productRef = EK0000000000000000000024 /* ExportAutomationKit */; };
+		EK0000000000000000000015 /* TimeMdExportKitAdapterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EK0000000000000000000016 /* TimeMdExportKitAdapterTests.swift */; };
 		A0C491357DFD7937376E660A /* Handlers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AFD4FB6382AB13703B46E0E /* Handlers.swift */; };
 		A4A812968C8116EFD69A76D1 /* timemd-mcp in Embed timemd-mcp */ = {isa = PBXBuildFile; fileRef = 7398318A84C4E38901A89C1A /* timemd-mcp */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		CB3E7F56FDC1E5CF05F80818 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0759D0ECDA299009E810F4D /* main.swift */; };
@@ -72,6 +77,7 @@
 		BB0000000000000000000070 /* BlockingViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BlockingViewModelTests.swift; sourceTree = "<group>"; };
 		BB0000000000000000000080 /* BlockingRecoveryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BlockingRecoveryTests.swift; sourceTree = "<group>"; };
 		BB0000000000000000000090 /* BrowserExtensionBridgeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserExtensionBridgeTests.swift; sourceTree = "<group>"; };
+		EK0000000000000000000016 /* TimeMdExportKitAdapterTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TimeMdExportKitAdapterTests.swift; sourceTree = "<group>"; };
 		AA0000000000000000000003 /* time.mdRegressionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "time.mdRegressionTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0854AAA1CC65A614DA8F48C4 /* Range.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Range.swift; sourceTree = "<group>"; };
 		62B65C142F4C534F00A5B243 /* time.md.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = time.md.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -102,6 +108,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EK0000000000000000000011 /* ExportKit in Frameworks */,
+				EK0000000000000000000012 /* ExportAutomationKit in Frameworks */,
 				5A80000000000000000000B1 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -110,6 +118,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EK0000000000000000000013 /* ExportKit in Frameworks */,
+				EK0000000000000000000014 /* ExportAutomationKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -154,6 +164,7 @@
 				AA0000000000000000000001 /* ExportAutomationFormStateTests.swift */,
 				AA00000000000000000000E0 /* MCPServerToggleTests.swift */,
 				LA0000000000000000000001 /* LicenseActivationTests.swift */,
+				EK0000000000000000000016 /* TimeMdExportKitAdapterTests.swift */,
 				BB0000000000000000000010 /* BlockRuleStoreTests.swift */,
 				BB0000000000000000000020 /* BlockPolicyEngineTests.swift */,
 				BB0000000000000000000030 /* AppBlockingEventTests.swift */,
@@ -190,6 +201,8 @@
 			name = time.md;
 			packageProductDependencies = (
 				5A80000000000000000000B2 /* Sparkle */,
+				EK0000000000000000000021 /* ExportKit */,
+				EK0000000000000000000022 /* ExportAutomationKit */,
 			);
 			productName = time.md;
 			productReference = 62B65C142F4C534F00A5B243 /* time.md.app */;
@@ -225,6 +238,10 @@
 				AA000000000000000000000D /* PBXTargetDependency */,
 			);
 			name = "time.mdRegressionTests";
+			packageProductDependencies = (
+				EK0000000000000000000023 /* ExportKit */,
+				EK0000000000000000000024 /* ExportAutomationKit */,
+			);
 			productName = "time.mdRegressionTests";
 			productReference = AA0000000000000000000003 /* time.mdRegressionTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -260,6 +277,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				5A80000000000000000000B3 /* XCRemoteSwiftPackageReference "Sparkle" */,
+				EK0000000000000000000020 /* XCRemoteSwiftPackageReference "ExportKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 62B65C152F4C534F00A5B243 /* Products */;
@@ -317,6 +335,7 @@
 				AA0000000000000000000002 /* ExportAutomationFormStateTests.swift in Sources */,
 				AA00000000000000000000E1 /* MCPServerToggleTests.swift in Sources */,
 				LA0000000000000000000002 /* LicenseActivationTests.swift in Sources */,
+				EK0000000000000000000015 /* TimeMdExportKitAdapterTests.swift in Sources */,
 				BB0000000000000000000011 /* BlockRuleStoreTests.swift in Sources */,
 				BB0000000000000000000021 /* BlockPolicyEngineTests.swift in Sources */,
 				BB0000000000000000000031 /* AppBlockingEventTests.swift in Sources */,
@@ -679,6 +698,14 @@
 				minimumVersion = 2.7.0;
 			};
 		};
+		EK0000000000000000000020 /* XCRemoteSwiftPackageReference "ExportKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/CodyBontecou/ExportKit";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -686,6 +713,26 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5A80000000000000000000B3 /* XCRemoteSwiftPackageReference "Sparkle" */;
 			productName = Sparkle;
+		};
+		EK0000000000000000000021 /* ExportKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EK0000000000000000000020 /* XCRemoteSwiftPackageReference "ExportKit" */;
+			productName = ExportKit;
+		};
+		EK0000000000000000000022 /* ExportAutomationKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EK0000000000000000000020 /* XCRemoteSwiftPackageReference "ExportKit" */;
+			productName = ExportAutomationKit;
+		};
+		EK0000000000000000000023 /* ExportKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EK0000000000000000000020 /* XCRemoteSwiftPackageReference "ExportKit" */;
+			productName = ExportKit;
+		};
+		EK0000000000000000000024 /* ExportAutomationKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EK0000000000000000000020 /* XCRemoteSwiftPackageReference "ExportKit" */;
+			productName = ExportAutomationKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

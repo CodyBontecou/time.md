@@ -128,24 +128,13 @@ struct ExportCoordinator: ExportCoordinating {
 
         let report = try await buildReport(for: destination, filters: filters, settings: settings)
         let outputDirectory = try ensureOutputDirectory()
-        let fileURL = outputDirectory
-            .appendingPathComponent(exportBaseName(destination: destination, filters: filters))
-            .appendingPathExtension(format.fileExtension)
-
-        switch format {
-        case .csv:
-            try writeCSV(report: report, to: fileURL, settings: settings)
-        case .json:
-            try writeJSON(report: report, to: fileURL, settings: settings)
-        case .yaml:
-            try writeYAML(report: report, to: fileURL, settings: settings, filters: filters)
-        case .markdown:
-            try writeMarkdown(report: report, to: fileURL, settings: settings, filters: filters)
-        case .obsidian:
-            try writeObsidian(report: report, to: fileURL, settings: settings, filters: filters)
-        }
-
-        return fileURL
+        let record = TimeMdExportRecord.report(report, filters: filters, settings: settings)
+        return try await TimeMdExportKitAdapter.runExport(
+            record: record,
+            format: format,
+            baseFilename: exportBaseName(destination: destination, filters: filters),
+            to: outputDirectory
+        )
     }
 
     func estimateExport(from destination: NavigationDestination, filters: FilterSnapshot, format: ExportFormat) async throws -> ExportEstimate {
@@ -226,26 +215,20 @@ struct ExportCoordinator: ExportCoordinating {
             reports[section] = report
         }
         
-        // Generate output file
         let outputDirectory = try ensureOutputDirectory()
         let filename = config.generateFilename()
-        let fileURL = outputDirectory
-            .appendingPathComponent(filename)
-            .appendingPathExtension(config.format.fileExtension)
-        
-        // Write combined output
-        switch config.format {
-        case .csv:
-            try writeCombinedCSV(reports: reports, sections: config.sections.sections, to: fileURL, settings: settings)
-        case .json:
-            try writeCombinedJSON(reports: reports, sections: config.sections.sections, to: fileURL, settings: settings, filters: filters)
-        case .yaml:
-            try writeCombinedYAML(reports: reports, sections: config.sections.sections, to: fileURL, settings: settings, filters: filters)
-        case .markdown:
-            try writeCombinedMarkdown(reports: reports, sections: config.sections.sections, to: fileURL, settings: settings, filters: filters)
-        case .obsidian:
-            try writeCombinedObsidian(reports: reports, sections: config.sections.sections, to: fileURL, settings: settings, filters: filters)
-        }
+        let record = TimeMdExportRecord.combined(
+            reports: reports,
+            sections: config.sections.sections,
+            filters: filters,
+            settings: settings
+        )
+        let fileURL = try await TimeMdExportKitAdapter.runExport(
+            record: record,
+            format: config.format,
+            baseFilename: filename,
+            to: outputDirectory
+        )
         
         if let progress {
             await MainActor.run { progress.markComplete() }
@@ -1005,7 +988,7 @@ struct ExportCoordinator: ExportCoordinating {
     }
 }
 
-private extension ExportCoordinator {
+extension ExportCoordinator {
     struct ExportReport {
         let title: String
         let destination: NavigationDestination
@@ -1020,7 +1003,7 @@ private extension ExportCoordinator {
         let rows: [[String]]
     }
 
-    func buildReport(for destination: NavigationDestination, filters: FilterSnapshot, settings: ExportSettings = ExportSettings()) async throws -> ExportReport {
+    func buildReport(for destination: NavigationDestination, filters: FilterSnapshot, settings: ExportSettings) async throws -> ExportReport {
         let generatedAt = Date()
         let filterSummary = summary(for: filters)
 
@@ -1370,7 +1353,7 @@ private extension ExportCoordinator {
         return "screentime-\(destination.rawValue)-\(range)-\(timestamp)"
     }
 
-    func writeCSV(report: ExportReport, to fileURL: URL, settings: ExportSettings = ExportSettings()) throws {
+    func writeCSV(report: ExportReport, to fileURL: URL, settings: ExportSettings) throws {
         let csvOpts = settings.csvOptions
         let delimiter = csvOpts.delimiter.rawValue
         
@@ -1591,7 +1574,7 @@ private extension ExportCoordinator {
 
     // MARK: - JSON Export
 
-    func writeJSON(report: ExportReport, to fileURL: URL, settings: ExportSettings = ExportSettings()) throws {
+    func writeJSON(report: ExportReport, to fileURL: URL, settings: ExportSettings) throws {
         let jsonOpts = settings.jsonOptions
         
         var sectionsArray: [[String: Any]] = []

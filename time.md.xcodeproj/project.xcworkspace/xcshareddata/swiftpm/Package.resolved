@@ -1,6 +1,15 @@
 {
-  "originHash" : "e721da7f9826abdffcb6185e886155efa2514bd6234475f1afa893e29eb258d6",
+  "originHash" : "0f622bb1c780d4fa866a84ce942ceccb28f103e2c9bfb19f755e3be0d857f259",
   "pins" : [
+    {
+      "identity" : "exportkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/CodyBontecou/ExportKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "17993dc0361c41145dc6429738ed369d9976e550"
+      }
+    },
     {
       "identity" : "sparkle",
       "kind" : "remoteSourceControl",

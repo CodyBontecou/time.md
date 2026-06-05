@@ -54,16 +54,16 @@
         <section class="legal-section">
           <h2>02 / DESCRIPTION OF SERVICE</h2>
           <p>time.md is a macOS application that provides local screen time analytics. The App reads data from your Mac's built-in Screen Time database and presents it through dashboards, charts, heatmaps, and exportable reports.</p>
-          <p>The App operates entirely on your local machine. It does not require an internet connection, app account, or subscription to function unless you choose to use a future online activation flow. The Cloudflare-hosted website purchase portal uses Stripe Checkout to process one-time desktop license purchases and Cloudflare Email Service to deliver activation-key emails.</p>
+          <p>The App processes screen time data locally on your machine. It can show onboarding before entitlement, then requires an internet connection for card-backed 14-day trial setup/verification and for initial paid license activation. It may periodically reverify saved trial/license status. It does not require an app account or subscription. Stripe Checkout is used for trial card setup and one-time desktop license purchases; Cloudflare Email Service delivers activation-key emails.</p>
         </section>
 
         <section class="legal-section">
           <h2>03 / LICENSE</h2>
-          <p>Subject to your compliance with these Terms, a completed purchase grants you a limited, non-exclusive, non-transferable license to download and use the time.md macOS desktop application on devices that you own or control. Your activation key is proof of your paid license.</p>
+          <p>Subject to your compliance with these Terms, you may use the App during one card-backed 14-day free trial per device. A completed purchase grants you a limited, non-exclusive, non-transferable license to download and use the time.md macOS desktop application on devices that you own or control. Your activation key is proof of your paid license.</p>
           <p>time.md source code may be separately available under its repository license. These Terms govern use of the website, purchase portal, and distributed desktop builds obtained through this site.</p>
           <p>You may not:</p>
           <ul>
-            <li>Share, resell, rent, lease, lend, or sublicense activation keys or paid download access</li>
+            <li>Share, resell, rent, lease, lend, or sublicense activation keys, trial tokens, or paid download access</li>
             <li>Remove license notices from distributed builds</li>
             <li>Use the App for any unlawful purpose</li>
           </ul>
@@ -71,14 +71,14 @@
 
         <section class="legal-section">
           <h2>04 / PURCHASES & PAYMENT</h2>
-          <p>The time.md desktop license is sold as a one-time purchase for $19.99 USD unless otherwise stated at checkout. Payments are processed by Stripe Checkout. We do not directly store your full card number or payment credentials.</p>
-          <p>Stripe may collect payment details, billing details, tax information, and fraud-prevention signals according to Stripe's own terms and privacy policy. After successful payment, the Cloudflare portal verifies the Stripe Checkout session, creates or retrieves an activation key, sends a license email through Cloudflare Email Service, and unlocks paid download access.</p>
+          <p>time.md includes a 14-day trial that requires Stripe Checkout card setup. The paid desktop license is sold as a one-time purchase for $19.99 USD unless otherwise stated at checkout. Payments are processed by Stripe Checkout. We do not directly store your full card number or payment credentials.</p>
+          <p>Stripe may collect payment details, billing details, tax information, and fraud-prevention signals according to Stripe's own terms and privacy policy. Trial setup requires a card through Stripe Checkout but does not charge your card at setup. The trial is not a subscription; to keep using the App after the trial, complete the one-time paid license checkout. After successful payment, the Cloudflare portal verifies the Stripe Checkout session, creates or retrieves an activation key, sends a license email through Cloudflare Email Service, and unlocks paid download access.</p>
           <p>You are responsible for keeping your activation key private. For purchase issues, duplicate charges, license-email reissues, or refund requests, contact <a href="mailto:cody@isolated.tech">cody@isolated.tech</a> with your Stripe receipt email or Checkout Session ID.</p>
         </section>
 
         <section class="legal-section">
           <h2>05 / DATA & PRIVACY</h2>
-          <p>The App processes screen time data locally on your device. The purchase portal stores order, activation-key, and email-delivery records needed to fulfill your license. For full details, see our <a href="privacy.html">Privacy Policy</a>.</p>
+          <p>The App processes screen time data locally on your device. Stripe Checkout collects and stores card details for trial setup; time.md never receives full card numbers. The trial return page may open a <code>timemd://</code> deep link containing only the Stripe Checkout session ID. Trial/license validation sends only a trial token or activation key, app version, and a random device ID used for entitlement validation. The purchase portal stores trial, order, activation-key, device-hash, and email-delivery records needed to fulfill and support your trial/license. For full details, see our <a href="privacy.html">Privacy Policy</a>.</p>
           <p>You are solely responsible for the data stored on your device and any exports you generate from the App.</p>
         </section>
 
@@ -97,7 +97,7 @@
           <h2>07 / BACKGROUND AGENT</h2>
           <p>The App installs a macOS Launch Agent that runs periodic background syncs (approximately every 4 hours) to capture screen time data. This agent:</p>
           <ul>
-            <li>Runs locally with no network activity</li>
+            <li>Runs locally with no screen-time data network activity</li>
             <li>Can be uninstalled by removing the App</li>
             <li>Requires no additional permissions beyond Screen Time access</li>
           </ul>

@@ -43,9 +43,10 @@
             <span class="status-pulse is-error"></span>
             <span>Checkout canceled.</span>
           </div>
-          <p class="portal-lede">You left Stripe Checkout before completing payment. Return to the portal whenever you're ready to buy the one-time $19.99 time.md desktop license.</p>
+          <p class="portal-lede">You left Stripe Checkout before completing payment or trial card setup. You can still download the app for free, complete onboarding, and start the card-backed trial from the in-app paywall.</p>
           <div class="confirmation-actions">
-            <button type="button" class="btn btn-primary btn-lg" data-checkout-button data-checkout-label="REOPEN STRIPE CHECKOUT">REOPEN STRIPE CHECKOUT</button>
+            <button type="button" class="btn btn-primary btn-lg" data-trial-checkout-button>DOWNLOAD FREE</button>
+            <button type="button" class="btn btn-outline btn-lg" data-checkout-button data-checkout-label="BUY LICENSE — $19.99">BUY LICENSE — $19.99</button>
             <a href="index.html#portal" class="btn btn-outline">BACK TO PORTAL</a>
           </div>
           <p class="checkout-status" data-checkout-status aria-live="polite"></p>
@@ -54,6 +55,7 @@
         <aside class="next-steps-card">
           <h2>WHAT YOU GET</h2>
           <ol class="next-steps-list">
+            <li><strong>14-day free trial</strong> activated through Stripe Checkout with a card.</li>
             <li><strong>One-time license</strong> for the macOS desktop app.</li>
             <li><strong>Local-only analytics</strong> with no app account or telemetry.</li>
             <li><strong>Stripe receipt</strong> and download portal after payment.</li>

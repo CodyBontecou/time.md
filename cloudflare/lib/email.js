@@ -15,7 +15,7 @@ function parseEmailAddress(value) {
   if (match) {
     return {
       name: match[1].trim().replace(/^['"]|['"]$/g, ''),
-      email: match[2].trim(),
+      address: match[2].trim(),
     };
   }
 
@@ -23,15 +23,16 @@ function parseEmailAddress(value) {
 }
 
 export async function sendLicenseEmail(env, { to, activationKey, downloadUrl, sessionId }) {
-  const emailBinding = env?.EMAIL;
+  const apiToken = readEnv(env, 'CLOUDFLARE_EMAIL_API_TOKEN') || readEnv(env, 'CLOUDFLARE_API_TOKEN');
+  const accountId = readEnv(env, 'CLOUDFLARE_ACCOUNT_ID');
   const from = parseEmailAddress(readEnv(env, 'FROM_EMAIL', 'cody@isolated.tech'));
   const supportEmail = readEnv(env, 'SUPPORT_EMAIL', 'cody@isolated.tech');
 
-  if (!emailBinding?.send) {
+  if (!apiToken || !accountId) {
     return {
       status: 'skipped',
       provider: 'cloudflare-email',
-      reason: 'Cloudflare EMAIL binding is not configured.',
+      reason: 'CLOUDFLARE_EMAIL_API_TOKEN and CLOUDFLARE_ACCOUNT_ID are required for Cloudflare Email Service REST sending.',
     };
   }
 
@@ -41,6 +42,8 @@ export async function sendLicenseEmail(env, { to, activationKey, downloadUrl, se
     '',
     'Activation key:',
     activationKey,
+    '',
+    'Open the app and paste this key on first launch to activate this Mac.',
     '',
     'Download:',
     downloadUrl,
@@ -54,32 +57,42 @@ export async function sendLicenseEmail(env, { to, activationKey, downloadUrl, se
       <p>Thanks for buying <strong>time.md</strong>.</p>
       <p>Your activation key:</p>
       <pre style="padding: 16px; background: #EBF2FA; border: 1px solid rgba(0,0,0,.14); font-size: 16px; letter-spacing: 1px; white-space: pre-wrap;">${escapeHtml(activationKey)}</pre>
+      <p>Open the app and paste this key on first launch to activate this Mac.</p>
       <p><a href="${escapeHtml(downloadUrl)}" style="color: #3885E6; font-weight: 700;">Download time.md for macOS</a></p>
       <p style="color: #5A6168; font-size: 12px;">Stripe Checkout Session: ${escapeHtml(sessionId)}</p>
       <p style="color: #5A6168; font-size: 12px;">Need help? Reply here or email <a href="mailto:${escapeHtml(supportEmail)}">${escapeHtml(supportEmail)}</a>.</p>
     </div>
   `;
 
-  try {
-    const result = await emailBinding.send({
+  const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/email/sending/send`, {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${apiToken}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
       to,
       from,
-      replyTo: supportEmail,
+      reply_to: supportEmail,
       subject,
       text,
       html,
-    });
+    }),
+  });
 
-    return {
-      status: 'sent',
-      provider: 'cloudflare-email',
-      provider_message_id: result?.messageId || '',
-    };
-  } catch (error) {
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload.success === false) {
+    const message = payload.errors?.[0]?.message || payload.message || `Cloudflare Email Service returned HTTP ${response.status}.`;
     return {
       status: 'failed',
       provider: 'cloudflare-email',
-      reason: error.message || 'Cloudflare Email Service send failed.',
+      reason: message,
     };
   }
+
+  return {
+    status: 'sent',
+    provider: 'cloudflare-email',
+    provider_message_id: payload.result?.message_id || payload.result?.messageId || payload.result?.id || '',
+  };
 }

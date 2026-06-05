@@ -599,6 +599,21 @@ a {
   width: 100%;
 }
 
+.portal-buy + .portal-buy {
+  margin-top: 10px;
+}
+
+.checkout-card .btn-outline {
+  color: var(--bg);
+  border-color: rgba(235, 242, 250, 0.55);
+}
+
+.checkout-card .btn-outline:hover {
+  background: var(--bg);
+  color: var(--text-primary);
+  border-color: var(--bg);
+}
+
 .checkout-card .btn-primary {
   background: var(--bg);
   color: var(--text-primary);

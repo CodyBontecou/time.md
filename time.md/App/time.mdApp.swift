@@ -8,6 +8,8 @@ struct TimeMdApp: App {
     @NSApplicationDelegateAdaptor(TimeMdAppDelegate.self) private var appDelegate
     @State private var filters = GlobalFilterStore()
     @State private var navigation = NavigationCoordinator()
+    @State private var activationStore = LicenseActivationStore.shared
+    @State private var appServicesStarted = false
     private let updaterController = SPUStandardUpdaterController(
         startingUpdater: true,
         updaterDelegate: nil,
@@ -31,49 +33,42 @@ struct TimeMdApp: App {
     var body: some Scene {
         WindowGroup(id: "main") {
             Group {
-                if hasCompletedMacOnboarding {
-                    RootSplitView(filters: filters, navigation: navigation)
-                } else {
+                if !hasCompletedMacOnboarding {
                     MacOnboardingView(
                         isPresented: .init(
                             get: { !hasCompletedMacOnboarding },
                             set: { if !$0 { hasCompletedMacOnboarding = true } }
                         )
                     )
+                } else if activationStore.isUnlockedForLaunch {
+                    RootSplitView(filters: filters, navigation: navigation)
+                } else {
+                    LicenseActivationGateView()
                 }
             }
             .environment(\.appEnvironment, .live)
             .environment(\.appNameDisplayMode, AppNameDisplayMode(rawValue: appNameDisplayMode) ?? .short)
             .environment(navigation)
+            .environment(activationStore)
             .task {
-                await initialSync()
-                ActiveAppTracker.shared.start()
-                ScreenTimeAutoSaveWriter.shared.start(dataService: AppEnvironment.live.dataService)
-                ScheduledExportEnvironment.runner.start()
-                synchronizeBlockingRulesOnLaunch()
-                WebsiteAccessEventSource.shared.start()
-                AppBlockActivationWatcher.shared.start()
-                reconcileDomainBlocksOnLaunch()
-                Task.detached(priority: .utility) {
-                    AppCategorizer.autoPopulateCategories()
+                await activationStore.prepareForLaunch()
+            }
+            .task(id: activationStore.isUnlockedForLaunch) {
+                if activationStore.isUnlockedForLaunch {
+                    await startAppServicesIfNeeded()
+                } else {
+                    stopAppServicesIfNeeded()
                 }
-                if UserDefaults.standard.bool(forKey: InputEventTracker.enabledKey) {
-                    InputEventTracker.shared.start()
-                    InputAggregator.shared.start()
-                    InputDataPruner.shared.start()
-                }
+            }
+            .onOpenURL { url in
+                NSApplication.shared.activate(ignoringOtherApps: true)
+                activationStore.handleDeepLink(url)
             }
             .onChange(of: visibilityModeRaw) { _, _ in
                 visibilityMode.apply()
             }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
-                ActiveAppTracker.shared.stop()
-                ScreenTimeAutoSaveWriter.shared.stop()
-                InputEventTracker.shared.stop()
-                InputAggregator.shared.stop()
-                InputDataPruner.shared.stop()
-                WebsiteAccessEventSource.shared.stop()
-                AppBlockActivationWatcher.shared.stop()
+                stopAppServicesIfNeeded()
             }
             .onReceive(NotificationCenter.default.publisher(for: ActiveAppTracker.didRecordSessionNotification)) { _ in
                 filters.triggerRefresh()
@@ -97,16 +92,68 @@ struct TimeMdApp: App {
 
         // Menu bar extra for quick access to today's screen time
         MenuBarExtra(isInserted: menuBarVisibilityBinding) {
-            TimeMdMenuBarExtra()
-                .environment(\.appEnvironment, .live)
+            Group {
+                if activationStore.isUnlockedForLaunch {
+                    TimeMdMenuBarExtra()
+                } else {
+                    LicenseMenuBarExtraView()
+                }
+            }
+            .environment(\.appEnvironment, .live)
+            .environment(activationStore)
         } label: {
-            MenuBarLabel()
-                .environment(\.appEnvironment, .live)
+            Group {
+                if activationStore.isUnlockedForLaunch {
+                    MenuBarLabel()
+                } else {
+                    LicenseMenuBarLabel()
+                }
+            }
+            .environment(\.appEnvironment, .live)
+            .environment(activationStore)
         }
         .menuBarExtraStyle(.window)
     }
 
-    /// Run immediately on launch so data is captured even if the user
+    /// Starts local-only data collectors after trial/license activation has
+    /// unlocked the app. Onboarding and the paywall can render before this,
+    /// but screen time/browser/input collection stays disabled until entitlement
+    /// validation succeeds.
+    private func startAppServicesIfNeeded() async {
+        guard !appServicesStarted else { return }
+        appServicesStarted = true
+
+        await initialSync()
+        ActiveAppTracker.shared.start()
+        ScreenTimeAutoSaveWriter.shared.start(dataService: AppEnvironment.live.dataService)
+        ScheduledExportEnvironment.runner.start()
+        synchronizeBlockingRulesOnLaunch()
+        WebsiteAccessEventSource.shared.start()
+        AppBlockActivationWatcher.shared.start()
+        reconcileDomainBlocksOnLaunch()
+        Task.detached(priority: .utility) {
+            AppCategorizer.autoPopulateCategories()
+        }
+        if UserDefaults.standard.bool(forKey: InputEventTracker.enabledKey) {
+            InputEventTracker.shared.start()
+            InputAggregator.shared.start()
+            InputDataPruner.shared.start()
+        }
+    }
+
+    private func stopAppServicesIfNeeded() {
+        guard appServicesStarted else { return }
+        ActiveAppTracker.shared.stop()
+        ScreenTimeAutoSaveWriter.shared.stop()
+        InputEventTracker.shared.stop()
+        InputAggregator.shared.stop()
+        InputDataPruner.shared.stop()
+        WebsiteAccessEventSource.shared.stop()
+        AppBlockActivationWatcher.shared.stop()
+        appServicesStarted = false
+    }
+
+    /// Run immediately after activation so data is captured even if the user
     /// opens the app briefly and closes it without navigating anywhere.
     /// Fire-and-forget — don't block the UI waiting for sync to complete.
     private func initialSync() async {
@@ -158,6 +205,13 @@ struct TimeMdApp: App {
 final class TimeMdAppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppVisibilityMode.current.applyImmediately()
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        application.activate(ignoringOtherApps: true)
+        Task { @MainActor in
+            urls.forEach { LicenseActivationStore.shared.handleDeepLink($0) }
+        }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

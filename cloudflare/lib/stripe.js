@@ -107,10 +107,62 @@ export async function createCheckoutSession(env, { origin, customerEmail, source
   });
 }
 
-export async function retrieveCheckoutSession(env, sessionId) {
-  return stripeRequest(env, 'GET', `/checkout/sessions/${encodeURIComponent(sessionId)}`, {
-    'expand[]': 'line_items.data.price.product',
+export function trialChargeAmount(env) {
+  const amount = Number.parseInt(readEnv(env, 'STRIPE_UNIT_AMOUNT_CENTS', '1999'), 10);
+  return Number.isFinite(amount) && amount > 0 ? amount : 1999;
+}
+
+export function trialChargeCurrency(env) {
+  return readEnv(env, 'STRIPE_CURRENCY', 'usd') || 'usd';
+}
+
+export async function createTrialCheckoutSession(env, { origin, customerEmail, source = 'trial-portal', returnToApp = false }) {
+  const trialDays = Number.parseInt(readEnv(env, 'TIME_MD_TRIAL_DAYS', '14'), 10) || 14;
+  const amount = trialChargeAmount(env);
+  const currency = trialChargeCurrency(env);
+  const amountDisplay = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+  }).format(amount / 100);
+  const successUrl = returnToApp
+    ? `${origin}/trial-success.html?open_app=1&session_id={CHECKOUT_SESSION_ID}`
+    : `${origin}/trial-success.html?session_id={CHECKOUT_SESSION_ID}`;
+
+  return stripeRequest(env, 'POST', '/checkout/sessions', {
+    mode: 'setup',
+    currency,
+    success_url: successUrl,
+    cancel_url: `${origin}/cancel.html`,
+    billing_address_collection: 'auto',
+    customer_creation: 'always',
+    customer_email: customerEmail,
+    'metadata[app]': 'time.md',
+    'metadata[product]': 'desktop-trial',
+    'metadata[source]': String(source).slice(0, 80),
+    'metadata[return_to_app]': returnToApp ? 'true' : 'false',
+    'metadata[trial_days]': trialDays,
+    'metadata[amount_total]': amount,
+    'metadata[currency]': currency,
+    'setup_intent_data[metadata][app]': 'time.md',
+    'setup_intent_data[metadata][product]': 'desktop-trial',
+    'setup_intent_data[metadata][trial_days]': trialDays,
+    'setup_intent_data[metadata][amount_total]': amount,
+    'setup_intent_data[metadata][currency]': currency,
+    'custom_text[submit][message]': `Your card is stored securely by Stripe to activate the ${trialDays}-day time.md trial. You will not be charged today. Buy the ${amountDisplay} license if you want to keep using time.md after the trial.`,
   });
+}
+
+export async function retrieveCheckoutSession(env, sessionId, { expandLineItems = true } = {}) {
+  return stripeRequest(
+    env,
+    'GET',
+    `/checkout/sessions/${encodeURIComponent(sessionId)}`,
+    expandLineItems ? { 'expand[]': 'line_items.data.price.product' } : {},
+  );
+}
+
+export async function retrieveSetupIntent(env, setupIntentId) {
+  return stripeRequest(env, 'GET', `/setup_intents/${encodeURIComponent(setupIntentId)}`);
 }
 
 export function isPaidCheckoutSession(session) {

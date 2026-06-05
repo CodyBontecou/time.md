@@ -107,6 +107,44 @@ document.querySelectorAll('a[href^="#"]').forEach((link) => {
   });
 })();
 
+// Public trial download. Card setup now starts inside the macOS app paywall
+// after onboarding, then returns via the timemd:// deep link.
+(() => {
+  const trialButtons = document.querySelectorAll('[data-trial-checkout-button]');
+  const statusElements = document.querySelectorAll('[data-checkout-status]');
+  if (trialButtons.length === 0) return;
+
+  const setStatus = (message, tone = 'neutral') => {
+    statusElements.forEach((el) => {
+      el.textContent = message;
+      el.dataset.tone = tone;
+    });
+  };
+
+  const setLoading = () => {
+    trialButtons.forEach((button) => {
+      if (!button.dataset.originalHtml) {
+        button.dataset.originalHtml = button.innerHTML;
+      }
+
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+      button.innerHTML = '<span class="checkout-spinner" aria-hidden="true"></span>DOWNLOADING…';
+    });
+  };
+
+  const downloadTrialApp = (event) => {
+    event.preventDefault();
+    setLoading();
+    setStatus('Downloading time.md. Open the app to start your card-backed trial.', 'neutral');
+    window.location.assign('/api/download-trial');
+  };
+
+  trialButtons.forEach((button) => {
+    button.addEventListener('click', downloadTrialApp);
+  });
+})();
+
 // Hero slideshow
 (() => {
   const slides = document.querySelectorAll('.hero-slide');

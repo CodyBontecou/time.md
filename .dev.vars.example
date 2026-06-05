@@ -5,8 +5,9 @@ STRIPE_SECRET_KEY=sk_test_replace_me
 STRIPE_WEBHOOK_SECRET=whsec_replace_me
 SITE_URL=http://localhost:8788
 
-# Email is sent through the Cloudflare EMAIL binding configured in wrangler.toml.
-# In local dev, Wrangler simulates the binding and writes emails to temp files unless configured remote.
+# Email is sent through Cloudflare Email Service REST API.
+CLOUDFLARE_ACCOUNT_ID=e4265f322e6380ee832b83ad45e3e8c0
+CLOUDFLARE_EMAIL_API_TOKEN=replace_me_with_email_sending_token
 FROM_EMAIL=cody@isolated.tech
 SUPPORT_EMAIL=cody@isolated.tech
 
@@ -16,8 +17,11 @@ STRIPE_UNIT_AMOUNT_CENTS=1999
 STRIPE_CURRENCY=usd
 STRIPE_AUTOMATIC_TAX=false
 
-# Optional: public fallback if RELEASE_BUCKET is not bound.
-TIME_MD_DOWNLOAD_URL=https://github.com/codybontecou/time.md/releases/latest
+# Optional: free trial length used by card-backed Stripe trial checkout.
+TIME_MD_TRIAL_DAYS=14
+
+# Optional: preferred public download URL. When set, download endpoints redirect here before R2.
+TIME_MD_DOWNLOAD_URL=https://github.com/CodyBontecou/time.md/releases/download/v2.5.0/time.md-v2.5.0-macOS.zip
 
 # Optional: R2 object key when RELEASE_BUCKET is bound.
 TIME_MD_RELEASE_OBJECT_KEY=time.md-latest-macOS.zip

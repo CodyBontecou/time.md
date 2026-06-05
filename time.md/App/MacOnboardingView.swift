@@ -99,12 +99,12 @@ struct MacOnboardingView: View {
             iconColor: .blue,
             tag: "10 / PRIVACY",
             title: "Local-first, by design",
-            subtitle: "Tracks app switches in real-time. Everything stays on your Mac.",
+            subtitle: "Tracks app switches in real-time. Your activity data stays on your Mac.",
             features: [
                 MacOnboardingFeature(icon: "bolt.fill", text: "Real-time tracking via macOS workspace events"),
-                MacOnboardingFeature(icon: "lock.fill", text: "All data stays on your Mac"),
+                MacOnboardingFeature(icon: "lock.fill", text: "Screen time, browser history, and exports stay local"),
                 MacOnboardingFeature(icon: "person.slash", text: "No account or sign-up required"),
-                MacOnboardingFeature(icon: "antenna.radiowaves.left.and.right.slash", text: "Zero tracking or analytics collected"),
+                MacOnboardingFeature(icon: "key.fill", text: "Trial and license checks verify entitlement — not your activity"),
             ]
         ),
         MacOnboardingPage(
@@ -228,7 +228,7 @@ struct MacOnboardingView: View {
         }
     }
 
-    private var continueLabel: String { isOnLastInfoSlide ? "Get Started" : "Continue" }
+    private var continueLabel: String { isOnLastInfoSlide ? "Continue to Trial" : "Continue" }
 
     private var domainHelperSetupControls: some View {
         VStack(spacing: 8) {

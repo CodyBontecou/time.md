@@ -48,8 +48,8 @@
         <section class="legal-section">
           <h2>01 / OVERVIEW</h2>
           <p>time.md ("the App") is a macOS screen time analytics application built and operated by Isolated Tech ("we", "us", "our"). This Privacy Policy describes how the App handles your information.</p>
-          <p><strong>The short version:</strong> time.md is a local-only desktop application. We do not collect, transmit, store, or process your Screen Time data. Your screen time data never leaves your machine.</p>
-          <p>The website purchase portal is hosted on Cloudflare and uses Stripe Checkout to sell the desktop license. Stripe processes payment and receipt information; Cloudflare stores order and activation-key records; Cloudflare Email Service delivers license emails. The desktop app remains local-only unless you explicitly use a future activation flow.</p>
+          <p><strong>The short version:</strong> time.md keeps your Screen Time data local. We do not collect, transmit, store, or process your Screen Time data. Your screen time data never leaves your machine.</p>
+          <p>The website purchase portal is hosted on Cloudflare and uses Stripe Checkout for trial card setup and desktop license purchases. Stripe processes payment and receipt information; Cloudflare stores trial, order, and activation-key records; Cloudflare Email Service delivers license emails. The desktop app can show onboarding before entitlement, then verify a card-backed 14-day trial or validate your activation key online, but it does not send us your screen time, browser history, exports, or input-tracking data.</p>
         </section>
 
         <section class="legal-section">
@@ -59,11 +59,11 @@
             <li>No app account or password</li>
             <li>No usage analytics or telemetry</li>
             <li>No crash reports</li>
-            <li>No device identifiers sent to us</li>
+            <li>No hardware serial numbers or local Screen Time identifiers sent to us</li>
             <li>No cookies or tracking technologies inside the App</li>
           </ul>
-          <p>The App makes <strong>zero outbound network connections</strong>. There are no analytics SDKs, no crash reporters, and no phone-home mechanisms of any kind embedded in the App.</p>
-          <p>If you buy time.md through the website, Stripe may collect your email address, payment details, billing details, IP address, and fraud-prevention information for payment processing, receipts, tax, and dispute handling. We store your checkout session ID, payment status, email address, activation key, and email-delivery audit records in Cloudflare D1 so we can fulfill and support your purchase.</p>
+          <p>The App makes limited outbound network connections for trial/license validation and Sparkle update checks. Stripe Checkout collects and stores card details for trial setup; time.md never receives full card numbers. The trial return page can open a <code>timemd://</code> deep link containing only the Stripe Checkout session ID. Trial/license requests send only a trial token or activation key, app version, and a random locally generated device ID; the server stores a hash of that device ID. These requests do not include your screen time, browser history, exports, or input-tracking data.</p>
+          <p>If you start a trial, Cloudflare stores the trial token, Stripe customer/payment-method IDs, trial dates, device hash, app version, and last-seen timestamp needed to enforce the 14-day window. If you buy time.md through the website, Stripe may collect your email address, payment details, billing details, IP address, and fraud-prevention information for payment processing, receipts, tax, and dispute handling. We store your checkout session ID, payment status, email address, activation key, and email-delivery audit records in Cloudflare D1 so we can fulfill and support your purchase.</p>
         </section>
 
         <section class="legal-section">
@@ -87,20 +87,20 @@
             <li>Runs entirely on your local machine</li>
             <li>Reads only from local macOS databases</li>
             <li>Writes only to local time.md databases</li>
-            <li>Makes no network connections</li>
+            <li>Makes no screen-time data network connections</li>
           </ul>
         </section>
 
         <section class="legal-section">
           <h2>05 / THIRD-PARTY SERVICES</h2>
-          <p>The time.md desktop App does not integrate with, connect to, or share screen time data with any third-party services, APIs, or platforms.</p>
-          <p>The website purchase portal uses Stripe Checkout for payment processing and Cloudflare Pages/Functions/D1/R2/Email Service for hosting, fulfillment, private downloads, and transactional license emails. Stripe handles payment forms, receipts, tax configuration when enabled, fraud prevention, and payment records according to Stripe's own terms and privacy policy. Cloudflare stores and processes the email address, activation key, download link, and support text needed to deliver the license email.</p>
+          <p>The time.md desktop App does not share screen time data with any third-party services, APIs, or platforms.</p>
+          <p>The website purchase portal uses Stripe Checkout for payment processing and Cloudflare Pages/Functions/D1/R2/Email Service for hosting, fulfillment, card-backed trial checkout, trial downloads, trial validation, activation validation, and transactional license emails. Stripe handles payment forms, receipts, tax configuration when enabled, fraud prevention, and payment records according to Stripe's own terms and privacy policy. Cloudflare stores and processes trial tokens, trial dates, Stripe customer/payment-method IDs, email address, activation key, device hash, download link, and support text needed to deliver and validate trial/license access.</p>
         </section>
 
         <section class="legal-section">
           <h2>06 / PURCHASE RECORDS</h2>
-          <p>When a Stripe Checkout payment completes, the portal verifies the Checkout Session ID, creates an activation key, sends a license email, and unlocks the download page. We may use Stripe and Cloudflare records to provide support for receipts, activation keys, download issues, refunds, disputes, and tax/accounting obligations.</p>
-          <p>If a future version of the desktop app validates an activation key online, it may send the activation key and an optional device identifier hash to the activation API. We do not connect purchase or activation records to your local screen time database or app usage. There is no app login.</p>
+          <p>When a trial starts, Stripe Checkout collects card details and Cloudflare creates one trial record. The app later binds that trial to its random device ID and stores the trial token in Keychain. When a Stripe Checkout payment completes, the portal verifies the Checkout Session ID, creates an activation key, sends a license email, and unlocks the paid download page. We may use Stripe and Cloudflare records to provide support for receipts, activation keys, download issues, refunds, disputes, and tax/accounting obligations.</p>
+          <p>The desktop app validates trials and activation keys online by sending the trial token or activation key, app version, and a random locally generated device ID to the entitlement API. The API stores a hash of the device ID. We do not connect purchase, trial, or activation records to your local screen time database or app usage. There is no app login.</p>
         </section>
 
         <section class="legal-section">

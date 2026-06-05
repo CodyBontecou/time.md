@@ -401,9 +401,12 @@ private struct SettingsScaffoldView: View {
                 settingsBlock(
                     number: 8,
                     title: "PRIVACY",
-                    body: "time.md is local-first. Your raw data never leaves this Mac.",
-                    footnote: nil
+                    body: "time.md is local-first. Your raw screen time, browser history, input tracking, and exports never leave this Mac.",
+                    footnote: "Trial and license checks send only entitlement data, app version, and a random device ID. They never include Screen Time records."
                 )
+
+                // ─── License ───
+                LicenseSettingsSection()
 
                 // ─── Input Tracking (opt-in keystrokes + cursor) ───
                 InputTrackingSettingsSection()

@@ -15,6 +15,25 @@
 	<string>2XiB94uURfV+rZ4RdbaoAxkPYgvEcj8T8x8HsdCZxSk=</string>
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
+	<key>TimeMdActivationURL</key>
+	<string>https://timemd.isolated.tech/api/activate</string>
+	<key>TimeMdTrialCheckoutURL</key>
+	<string>https://timemd.isolated.tech/api/create-trial-checkout-session</string>
+	<key>TimeMdVerifyTrialCheckoutURL</key>
+	<string>https://timemd.isolated.tech/api/verify-trial-checkout-session</string>
+	<key>TimeMdVerifyTrialURL</key>
+	<string>https://timemd.isolated.tech/api/verify-trial</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.bontecou.time.md</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>timemd</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSAccessibilityUsageDescription</key>
 	<string>time.md uses Accessibility services to listen for keyboard and mouse events when you opt in to input tracking. All captured data stays on your Mac.</string>
 	<key>NSInputMonitoringUsageDescription</key>

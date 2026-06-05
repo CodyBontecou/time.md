@@ -7,7 +7,7 @@
 [![Swift](https://img.shields.io/badge/swift-5.9-orange)](#building)
 [![CI](https://github.com/codybontecou/time.md/actions/workflows/ci.yml/badge.svg)](https://github.com/codybontecou/time.md/actions/workflows/ci.yml)
 
-time.md is a screen time analytics app for macOS. It reads Apple's `knowledgeC.db` system database, surfaces your daily, weekly, and monthly habits as charts, calendars, and heatmaps, and **keeps every byte of your data on-device**. No accounts. No cloud sync. No third-party dependencies. No analytics. Just you, your Mac, and your history.
+time.md is a screen time analytics app for macOS. It reads Apple's `knowledgeC.db` system database, surfaces your daily, weekly, and monthly habits as charts, calendars, and heatmaps, and **keeps your screen time data on-device**. No accounts. No cloud sync. No analytics. Download is free; after onboarding, the app can start a card-backed 14-day trial through Stripe Checkout with a `timemd://` return link. Paid activation key validation is also supported, but your activity data stays between you, your Mac, and your history.
 
 **[🌐 timemd.isolated.tech](https://timemd.isolated.tech)** · **[📦 Download](https://github.com/codybontecou/time.md/releases)** · **[🛠 Contribute](CONTRIBUTING.md)** · **[⭐ Star this repo](https://github.com/codybontecou/time.md)**
 
@@ -39,7 +39,7 @@ time.md is a screen time analytics app for macOS. It reads Apple's `knowledgeC.d
 
 ### 🔒 Privacy First
 - **Local-Only** — All raw data stays on your Mac, never leaves your device
-- **No Account Required** — No sign-up, no servers, no tracking
+- **No Account Required** — No app account, no usage analytics, no tracking
 - **Your Data, Your Control** — Export anytime, delete anytime
 
 ## Requirements
@@ -168,7 +168,7 @@ See `make help` for the full list of build/release targets.
 time.md is designed with privacy as a core principle:
 
 - **No Analytics** — We don't track how you use time.md
-- **No Server** — There's no backend; time.md never makes network requests for your data
+- **Entitlement-only Backend** — Trial/license checks never include screen time, browser history, exports, or input data
 - **Local-First** — All data stays on your Mac
 - **Open Source** — Audit the code yourself
 

@@ -9,9 +9,9 @@ time.md is a privacy-first macOS screen time analytics app. It is distributed di
 
 ## Data We Collect
 
-**We do not collect any personal data.**
+**We do not collect your screen time, browser history, input tracking, exports, or in-app usage analytics.**
 
-time.md has no analytics service, no advertising SDK, and no account system. Your usage data stays on your Mac unless you explicitly export it yourself.
+time.md has no analytics service, no advertising SDK, and no account system. Your usage data stays on your Mac unless you explicitly export it yourself. The app can show onboarding before entitlement, then contacts the entitlement API to start/verify a card-backed 14-day trial or validate paid activation keys. Stripe Checkout collects and stores trial card details; time.md never receives full card numbers. The trial success page can open a `timemd://` deep link containing only the Stripe Checkout session ID. Entitlement requests include only the trial token or activation key, app version, and a random locally generated device ID; the server stores a hash of that device ID, not your screen time data.
 
 ## How time.md Works on macOS
 
@@ -22,7 +22,7 @@ time.md has no analytics service, no advertising SDK, and no account system. You
 - Stores local app data under `~/Library/Application Support/time.md/`.
 - Can write formatted exports to a directory you choose.
 
-No screen time, browser history, or input tracking data is sent to us.
+No screen time, browser history, export, or input tracking data is sent to us. Trial and license checks send only the entitlement fields described above.
 
 ## Data Storage
 
@@ -34,12 +34,15 @@ No screen time, browser history, or input tracking data is sent to us.
 | Opt-in web history archive | Your Mac only | Only you |
 | Opt-in input tracking data | Your Mac only | Only you |
 | Category mappings and app preferences | Your Mac only | Only you |
+| Activation key / trial token | macOS Keychain | You and macOS Keychain access controls |
+| Activation/trial status and preview | UserDefaults on your Mac | Only you |
+| Trial/license fulfillment records, including Stripe customer/payment-method IDs | Cloudflare D1 | Isolated Tech support and entitlement systems |
 
 ## Third-Party Services
 
 time.md uses Apple's local macOS services and databases, including Screen Time and privacy permissions. It does not use third-party analytics, advertising, or tracking services.
 
-Sparkle may contact the configured appcast URL to check for app updates. This check does not include your screen time data.
+The entitlement API runs on Cloudflare and creates/verifies the 14-day card-backed trial or validates keys issued after Stripe Checkout. Sparkle may contact the configured appcast URL to check for app updates. Neither request includes your screen time data.
 
 ## Data Deletion
 

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Purchase Complete — time.md</title>
-  <meta name="description" content="Verify your Stripe payment and download time.md for macOS.">
+  <title>Trial Ready — time.md</title>
+  <meta name="description" content="Verify Stripe trial setup and return to time.md for macOS via deep link.">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -34,23 +34,27 @@
 
   <main class="confirmation-hero">
     <div class="section-inner">
-      <div class="section-label">STRIPE CHECKOUT / COMPLETE</div>
-      <h1 class="cta-headline">YOUR LICENSE<br>IS READY<span class="hero-dot">.</span></h1>
+      <div class="section-label">STRIPE TRIAL / COMPLETE</div>
+      <h1 class="cta-headline">YOUR TRIAL<br>IS READY<span class="hero-dot">.</span></h1>
 
       <div class="confirmation-grid">
         <section class="confirmation-card" aria-live="polite">
           <div class="status-row">
             <span class="status-pulse" data-status-pulse></span>
-            <span data-verification-status>Verifying Stripe payment…</span>
+            <span data-verification-status>Verifying Stripe trial setup…</span>
           </div>
 
           <dl class="receipt-grid">
             <div class="receipt-row">
               <dt>PRODUCT</dt>
-              <dd>time.md macOS Desktop License</dd>
+              <dd>time.md 14-Day Card-Backed Trial</dd>
             </div>
             <div class="receipt-row">
-              <dt>AMOUNT</dt>
+              <dt>AMOUNT TODAY</dt>
+              <dd>$0.00</dd>
+            </div>
+            <div class="receipt-row">
+              <dt>LICENSE AFTER TRIAL</dt>
               <dd data-receipt-amount>—</dd>
             </div>
             <div class="receipt-row">
@@ -62,13 +66,14 @@
               <dd data-receipt-session>—</dd>
             </div>
             <div class="receipt-row receipt-row-license">
-              <dt>KEY</dt>
-              <dd data-receipt-license>Generating activation key…</dd>
+              <dt>TRIAL KEY</dt>
+              <dd data-receipt-trial-key>Generating trial key…</dd>
             </div>
           </dl>
 
-          <button type="button" class="btn btn-outline copy-license" data-copy-license disabled>COPY ACTIVATION KEY</button>
-          <a href="#" class="btn btn-primary btn-lg download-link" data-download-link aria-disabled="true">VERIFYING PAYMENT</a>
+          <button type="button" class="btn btn-outline copy-license" data-copy-trial-key disabled>COPY TRIAL KEY</button>
+          <a href="#" class="btn btn-primary btn-lg download-link" data-open-app-link aria-disabled="true">VERIFYING TRIAL</a>
+          <a href="#" class="btn btn-outline btn-lg download-link" data-download-link aria-disabled="true">DOWNLOAD APP AGAIN</a>
           <div class="confirmation-actions">
             <a href="index.html#portal" class="btn btn-outline">BACK TO PORTAL</a>
             <a href="mailto:cody@isolated.tech" class="btn btn-outline">EMAIL SUPPORT</a>
@@ -78,10 +83,10 @@
         <aside class="next-steps-card">
           <h2>NEXT STEPS</h2>
           <ol class="next-steps-list">
-            <li><strong>Copy</strong> your activation key and keep the license email.</li>
-            <li><strong>Download</strong> the macOS app after verification completes.</li>
-            <li><strong>Paste</strong> the key on first launch to activate this Mac.</li>
-            <li><strong>Analyze locally</strong> — activation verifies your license, while Screen Time data stays on your Mac.</li>
+            <li><strong>Return</strong> to the app with the timemd:// deep link.</li>
+            <li><strong>Activate</strong> automatically from the Stripe Checkout session.</li>
+            <li><strong>Copy</strong> the trial key only if automatic activation does not open time.md.</li>
+            <li><strong>Keep it local</strong> — Stripe stores your card, while Screen Time data stays on your Mac.</li>
           </ol>
         </aside>
       </div>
@@ -101,6 +106,6 @@
     </div>
   </footer>
 
-  <script src="success.js"></script>
+  <script src="trial-success.js"></script>
 </body>
 </html>

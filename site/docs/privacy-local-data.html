@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy & Local Data — time.md Docs</title>
+  <meta name="description" content="Plain-English guide to what time.md stores locally, what goes online for licensing, where files live, and how to delete your data.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a class="nav-cta" href="../index.html#download">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">Advanced Feature</div>
+          <h1>Privacy &amp; Local Data</h1>
+          <p>time.md is local-first: your screen time, browser history, optional input tracking, and exports stay on your Mac unless you export or share them yourself.</p>
+        </div>
+        <div class="docs-hero-card">
+          <strong>Short version</strong>
+          <p>No screen-time telemetry, no browser-history collection, no input-data upload, no advertising SDK.</p>
+          <a class="btn btn-secondary" href="../privacy.html">Legal privacy policy</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="docs-layout">
+      <aside class="docs-sidebar">
+        <strong>On this page</strong>
+        <nav>
+          <a href="#overview">Overview</a>
+          <a href="#local">What stays local</a>
+          <a href="#online">What goes online</a>
+          <a href="#storage">Storage map</a>
+          <a href="#permissions">Permissions</a>
+          <a href="#exports">Exports and sharing</a>
+          <a href="#delete">Delete your data</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <section id="overview" class="docs-section">
+          <h2>Plain-English privacy model</h2>
+          <p>time.md runs directly on macOS and stores product data under your user account. It does not operate a backend for your activity data. The app can contact online services for trial, license, payment, and update checks, but those requests do not include your screen time records, browser history, input tracking data, or export contents.</p>
+          <div class="doc-callout">
+            <strong>Important distinction:</strong> this page explains how the product handles local data. The formal legal policy lives at <a href="../privacy.html">Privacy</a>.
+          </div>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <h3>Local analytics</h3>
+              <p>Foreground app sessions, rollups, browser visits, categories, and optional input analytics are read from or written to local databases.</p>
+            </div>
+            <div class="doc-card">
+              <h3>User-controlled exports</h3>
+              <p>Exports are files you create in a folder you choose. They are not uploaded by time.md.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Minimal entitlement traffic</h3>
+              <p>Trial and license checks send only entitlement fields, app version, and a random local device identifier.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="local" class="docs-section">
+          <h2>What stays local</h2>
+          <ul class="doc-checklist">
+            <li>Raw and rolled-up screen time sessions.</li>
+            <li>Local browser history reads and the optional web-history archive.</li>
+            <li>Optional input tracking data, including keystroke events, cursor events, typed-word aggregates, and heatmap bins if you enable them.</li>
+            <li>Export presets, export history, scheduled-export settings, and generated export files.</li>
+            <li>Blocking rules, active block state, helper diagnostics, and audit events.</li>
+            <li>Category mappings, display preferences, browser settings, and app UI settings.</li>
+            <li>CLI and MCP configuration; tools read the same local databases.</li>
+          </ul>
+          <p>Features that need sensitive data are opt-in or permission-gated. For example, Web History needs access to protected browser files, and Input Tracking is off by default.</p>
+        </section>
+
+        <section id="online" class="docs-section">
+          <h2>What can go online</h2>
+          <p>time.md uses online requests for product entitlement and updates, not behavioral analytics.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Purpose</th>
+                  <th>Data involved</th>
+                  <th>What is not included</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Start or verify a trial</td>
+                  <td>Trial token, app version, and a random locally generated device ID.</td>
+                  <td>Screen time, browser history, input data, export data.</td>
+                </tr>
+                <tr>
+                  <td>Validate a paid activation key</td>
+                  <td>Activation key, app version, and the random local device ID.</td>
+                  <td>Activity records, URLs, keystrokes, cursor data.</td>
+                </tr>
+                <tr>
+                  <td>Stripe Checkout</td>
+                  <td>Payment details are handled by Stripe. time.md may receive a Checkout session ID and entitlement result.</td>
+                  <td>Full card numbers are not received by time.md.</td>
+                </tr>
+                <tr>
+                  <td>Update checks</td>
+                  <td>Sparkle may contact the configured appcast URL to check for new versions.</td>
+                  <td>Local analytics databases and exports.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>The entitlement server stores fulfillment records such as license or trial status, Stripe customer/payment-method references, and a hash of the device identifier. It does not store your time.md activity database.</p>
+        </section>
+
+        <section id="storage" class="docs-section">
+          <h2>Storage map</h2>
+          <p>Most product files live here:</p>
+          <pre class="doc-pre"><code>~/Library/Application Support/time.md/</code></pre>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>File or location</th>
+                  <th>Contains</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>screentime.db</code></td>
+                  <td>Main screen-time usage records and analytics rollups.</td>
+                </tr>
+                <tr>
+                  <td><code>screen-time-snapshot.json</code></td>
+                  <td>Readable local snapshot used for quick access and integrations.</td>
+                </tr>
+                <tr>
+                  <td><code>web-history.db</code></td>
+                  <td>Optional persisted archive of normalized browser visits.</td>
+                </tr>
+                <tr>
+                  <td><code>input-tracking.db</code></td>
+                  <td>Optional input tracking events, typed words, cursor heatmap bins, and aggregates.</td>
+                </tr>
+                <tr>
+                  <td><code>blocking-rules.db</code></td>
+                  <td>Website, app, and category block rules plus enforcement state and audit events.</td>
+                </tr>
+                <tr>
+                  <td><code>category-mappings.db</code></td>
+                  <td>Local app-to-category mapping data.</td>
+                </tr>
+                <tr>
+                  <td><code>export-schedule.json</code> and export settings</td>
+                  <td>Scheduled export configuration and recent export metadata.</td>
+                </tr>
+                <tr>
+                  <td><code>screen-time-auto.&lt;ext&gt;</code></td>
+                  <td>Formatted auto export in your chosen export destination.</td>
+                </tr>
+                <tr>
+                  <td>macOS Keychain</td>
+                  <td>Activation key or trial token secrets.</td>
+                </tr>
+                <tr>
+                  <td>UserDefaults</td>
+                  <td>Feature toggles, entitlement previews, UI preferences, and permission-related settings.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>SQLite may create sidecar files such as <code>-wal</code> and <code>-shm</code>. Treat them as part of the same local database.</p>
+        </section>
+
+        <section id="permissions" class="docs-section">
+          <h2>macOS permissions</h2>
+          <p>time.md asks for permissions when a feature needs data macOS protects:</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Full Disk Access</h3>
+              <p>Required for reliable browser-history reads and some local Screen Time development/import paths.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Input Monitoring</h3>
+              <p>Required before optional keystroke tracking can collect activity. Input Tracking is off by default.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Accessibility</h3>
+              <p>May be requested by macOS flows that observe input or app interaction state.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Administrator approval</h3>
+              <p>Needed to install or upgrade the privileged helper used for system-level website blocking.</p>
+            </div>
+          </div>
+          <p>Revoking a permission stops or degrades the related feature. It does not upload or delete data by itself.</p>
+        </section>
+
+        <section id="exports" class="docs-section">
+          <h2>Exports and sharing</h2>
+          <p>Exports are intentionally powerful. If you export raw sessions, web history, or input-tracking sections, the resulting file can reveal detailed behavior. Review the file before attaching it to an email, committing it to a repository, or putting it inside a synced folder.</p>
+          <div class="doc-callout">
+            <strong>Auto export safety:</strong> the automatic formatted snapshot excludes raw input sections. Manual custom exports can include sensitive sections when you select them.
+          </div>
+        </section>
+
+        <section id="delete" class="docs-section">
+          <h2>Delete your data</h2>
+          <ol class="doc-steps">
+            <li class="doc-step">
+              <h3>Quit time.md</h3>
+              <p>Quit the app first so SQLite databases and sidecar files are closed.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Delete app data</h3>
+              <p>Remove the Application Support folder to delete local databases, snapshots, and settings stored there.</p>
+              <pre class="doc-pre"><code>~/Library/Application Support/time.md/</code></pre>
+            </li>
+            <li class="doc-step">
+              <h3>Delete persisted web history</h3>
+              <p>Use <strong>Settings → Web Browsers → Delete persisted web history</strong> or remove <code>web-history.db</code> and its SQLite sidecars after quitting.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Delete input tracking data</h3>
+              <p>Disable Input Tracking, then use the app’s delete action or remove <code>input-tracking.db</code> and its sidecars.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Delete exports</h3>
+              <p>Remove manual exports and <code>screen-time-auto.*</code> files from your chosen export directory.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Remove credentials if desired</h3>
+              <p>Delete time.md trial or activation items from Keychain Access if you want to remove local entitlement secrets.</p>
+            </li>
+          </ol>
+        </section>
+
+        <nav class="docs-next">
+          <a href="export.html">
+            <span>Previous</span>
+            <strong>← Export</strong>
+          </a>
+          <a href="blocking.html">
+            <span>Next</span>
+            <strong>Blocking →</strong>
+          </a>
+        </nav>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <img src="../app-icon.png" alt="time.md" class="footer-icon">
+        <span>time.md</span>
+      </div>
+      <div class="footer-links">
+        <a href="../privacy.html">Privacy</a>
+        <a href="../terms.html">Terms</a>
+        <a href="mailto:cody@isolated.tech">Contact</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

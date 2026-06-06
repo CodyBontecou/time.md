@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filters & Date Ranges — time.md Docs</title>
+  <meta name="description" content="Learn how global filters, date ranges, granularity, app/category filters, weekday filters, time-of-day filters, and duration filters affect time.md screens and exports.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html" aria-current="page">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a href="../index.html#download" class="nav-cta">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">GLOBAL CONTROLS / FILTERING</div>
+          <h1 class="docs-title">FILTERS &amp;<br>DATE RANGES<span class="hero-dot">.</span></h1>
+          <p class="docs-subtitle">time.md uses a shared filter store so most analytics screens answer the same scoped question: this date range, this granularity, these apps/categories, and this time window.</p>
+        </div>
+        <aside class="docs-hero-card">
+          <h2>Use filters when you want to</h2>
+          <ul>
+            <li>Compare today vs this week or this month.</li>
+            <li>Inspect only one app or category.</li>
+            <li>Find weekday, evening, or work-hour patterns.</li>
+            <li>Export exactly the same slice you are viewing.</li>
+          </ul>
+        </aside>
+      </div>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-sidebar-title">On this page</div>
+        <nav class="docs-nav-list">
+          <a href="#global">Global behavior</a>
+          <a href="#granularity">Granularity</a>
+          <a href="#date-range">Date range</a>
+          <a href="#apps-categories">Apps & categories</a>
+          <a href="#advanced">Advanced time filters</a>
+          <a href="#exports">Exports</a>
+          <a href="#troubleshooting">Troubleshooting</a>
+        </nav>
+      </aside>
+
+      <div class="docs-content">
+        <section id="global" class="doc-section">
+          <h2>Filters are shared across the app</h2>
+          <p>The toolbar and filter controls update a global filter store. Overview, Review, Details, Projects, Web History, Reports, and Export all use those values where the screen supports them.</p>
+          <div class="doc-callout">
+            <strong>Important:</strong>
+            <p>If a screen suddenly looks empty, check the active date range and filters first. You may be looking at a valid but very narrow slice.</p>
+          </div>
+        </section>
+
+        <section id="granularity" class="doc-section">
+          <h2>Choose the right granularity</h2>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Granularity</th>
+                  <th>Use it for</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Day</td>
+                  <td>Hour-by-hour behavior, today’s timeline, and exact session inspection.</td>
+                </tr>
+                <tr>
+                  <td>Week</td>
+                  <td>Work rhythm, weekday/weekend contrast, and recurring focus or distraction windows.</td>
+                </tr>
+                <tr>
+                  <td>Month</td>
+                  <td>Habit changes, project/category proportions, and sustained trends.</td>
+                </tr>
+                <tr>
+                  <td>Year</td>
+                  <td>Long-term direction and broad comparison across months.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Changing granularity can also adjust the date window so charts remain meaningful at that scale.</p>
+        </section>
+
+        <section id="date-range" class="doc-section">
+          <h2>Date range controls</h2>
+          <p>Use date ranges to decide which sessions, browser visits, input events, reports, and export rows are included. For the cleanest comparisons, pick ranges with similar lengths: today vs yesterday, this week vs last week, or this month vs last month.</p>
+          <ol class="doc-steps">
+            <li class="doc-step">
+              <h3>Start broad</h3>
+              <p>Use Month or Week to see the overall pattern before zooming into a day.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Find the anomaly</h3>
+              <p>Look for a peak day, peak hour, or top app that needs explanation.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Narrow the range</h3>
+              <p>Switch to Day and open Details to inspect exact sessions around the anomaly.</p>
+            </li>
+          </ol>
+        </section>
+
+        <section id="apps-categories" class="doc-section">
+          <h2>App and category filters</h2>
+          <p>App filters narrow analytics to specific apps such as Safari, Xcode, Slack, or Terminal. Category filters use your local app mappings from Projects and Rules.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Use app filters for exact tools</h3>
+              <p>Example: inspect only Xcode sessions to understand coding blocks.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Use category filters for intent</h3>
+              <p>Example: compare Productivity, Communication, Entertainment, or Games after you map apps.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Map apps first</h3>
+              <p>If category charts look sparse, open Projects &amp; Rules and assign uncategorized apps.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="advanced" class="doc-section">
+          <h2>Advanced time filters</h2>
+          <p>Advanced filters help answer more specific behavioral questions:</p>
+          <ul class="doc-checklist">
+            <li><strong>Weekday filters:</strong> compare Monday-Friday work patterns against weekends.</li>
+            <li><strong>Time-of-day filters:</strong> isolate work hours, evenings, mornings, or custom hour windows.</li>
+            <li><strong>Duration filters:</strong> separate tiny context-switch sessions from longer focus blocks.</li>
+          </ul>
+          <p>These filters are especially useful with Review heatmaps, Details session lists, Reports tables, and focused exports.</p>
+        </section>
+
+        <section id="exports" class="doc-section">
+          <h2>Filters carry into exports</h2>
+          <p>The Export screen can use the current global filters or custom export-specific filters. That means you can build a report for one app, one category, one week, or a specific recurring time window.</p>
+          <div class="doc-callout">
+            <strong>Workflow:</strong>
+            <p>Filter inside the app until the screen answers the question you care about, then export the same slice as CSV, JSON, YAML, Markdown, or Obsidian.</p>
+          </div>
+        </section>
+
+        <section id="troubleshooting" class="doc-section">
+          <h2>Troubleshooting filters</h2>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <h3>Everything is empty</h3>
+              <p>Clear app/category filters, reset advanced time filters, then return to Today or Last 7 Days.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Category totals look wrong</h3>
+              <p>Open Projects &amp; Rules and check whether key apps are unmapped or assigned to the wrong category.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Web History differs from app time</h3>
+              <p>Browser visits count pages in local browser history. App usage counts the browser app being frontmost.</p>
+            </div>
+          </div>
+          <div class="docs-next">
+            <a class="btn btn-primary" href="review.html">REVIEW GUIDE</a>
+            <a class="btn btn-outline" href="export.html">EXPORT GUIDE</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="../privacy.html" class="footer-link">PRIVACY</a>
+        <a href="../terms.html" class="footer-link">TERMS</a>
+        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+      </div>
+      <div class="footer-right">
+        <span>© 2026 time.md. BUILT WITH PRECISION.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

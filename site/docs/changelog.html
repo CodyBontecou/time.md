@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Changelog — time.md Docs</title>
+  <meta name="description" content="User-facing release notes for time.md macOS, including recent Web History, auto-export, input tracking, direct distribution, and UI changes.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html" aria-current="page">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a href="../index.html#download" class="nav-cta">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">RELEASE NOTES / WHAT CHANGED</div>
+          <h1 class="docs-title">CHANGELOG<span class="hero-dot">.</span></h1>
+          <p class="docs-subtitle">A user-facing summary of notable time.md releases. For complete engineering-level history, see the GitHub repository changelog.</p>
+        </div>
+        <aside class="docs-hero-card">
+          <h2>Current track</h2>
+          <ul>
+            <li>macOS direct distribution</li>
+            <li>Local Screen Time and Web History analytics</li>
+            <li>Markdown/Obsidian/export automation</li>
+            <li>Optional input tracking, blocking, CLI, and MCP</li>
+          </ul>
+        </aside>
+      </div>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-sidebar-title">Versions</div>
+        <nav class="docs-nav-list">
+          <a href="#250">2.5.0</a>
+          <a href="#230">2.3.0</a>
+          <a href="#220">2.2.0</a>
+          <a href="#200">2.0.0</a>
+          <a href="#older">Older releases</a>
+        </nav>
+      </aside>
+
+      <div class="docs-content">
+        <section id="250" class="doc-section">
+          <h2>2.5.0 — Firefox, local snapshots, and MCP toggle</h2>
+          <p><strong>Date:</strong> May 15, 2026</p>
+          <ul class="doc-checklist">
+            <li>Added Firefox support to Web History.</li>
+            <li>Added the automatic readable snapshot at <code>~/Library/Application Support/time.md/screen-time-snapshot.json</code>.</li>
+            <li>Added live formatted auto-export as <code>screen-time-auto.&lt;ext&gt;</code> using your selected export format and sections.</li>
+            <li>Added a global MCP server on/off switch in Settings.</li>
+            <li>Changed Web History to read local browser databases directly for direct-distribution builds.</li>
+          </ul>
+          <div class="docs-next">
+            <a class="btn btn-outline" href="web-history.html">WEB HISTORY GUIDE</a>
+            <a class="btn btn-outline" href="export.html">EXPORT GUIDE</a>
+            <a class="btn btn-outline" href="cli-mcp.html">CLI &amp; MCP GUIDE</a>
+          </div>
+        </section>
+
+        <section id="230" class="doc-section">
+          <h2>2.3.0 — Optional input tracking</h2>
+          <p><strong>Date:</strong> May 5, 2026</p>
+          <ul class="doc-checklist">
+            <li>Added opt-in keystroke and cursor tracking for typing intensity, top typed words, top typed keys, and cursor heatmaps.</li>
+            <li>Added privacy guards: Secure Input redaction, default excluded apps, retention windows, and a global <kbd>⌥</kbd><kbd>⌘</kbd><kbd>P</kbd> pause shortcut.</li>
+            <li>Added input-tracking tools to the bundled MCP server.</li>
+            <li>Moved input rows into <code>input-tracking.db</code> so high-volume mouse events do not bloat the main screen-time database.</li>
+          </ul>
+          <div class="docs-next">
+            <a class="btn btn-outline" href="input-tracking.html">INPUT TRACKING GUIDE</a>
+          </div>
+        </section>
+
+        <section id="220" class="doc-section">
+          <h2>2.2.0 — Direct distribution and no subscription</h2>
+          <p><strong>Date:</strong> May 5, 2026</p>
+          <ul class="doc-checklist">
+            <li>Moved time.md to direct distribution outside the Mac App Store.</li>
+            <li>Removed StoreKit subscription code from the app.</li>
+            <li>Kept local browser-history tracking available by distributing outside the App Store sandbox constraints.</li>
+            <li>Auto-updates are delivered through Sparkle.</li>
+          </ul>
+          <div class="doc-callout">
+            <strong>Current checkout model:</strong>
+            <p>The website now offers a free download, a card-backed 14-day trial from inside the app, and a one-time desktop license.</p>
+          </div>
+        </section>
+
+        <section id="200" class="doc-section">
+          <h2>2.0.0 — Rebuilt macOS interface</h2>
+          <p><strong>Date:</strong> April 11, 2026</p>
+          <ul class="doc-checklist">
+            <li>Added the current Overview, Review, Details, Projects, Rules, and Reports screens.</li>
+            <li>Added context-switch analysis, category/project rollups, weekday averages, and richer report data.</li>
+            <li>Reorganized the sidebar into Tracking, Organize, Data, and System groups.</li>
+            <li>Updated keyboard shortcuts to the current screen layout.</li>
+          </ul>
+          <div class="docs-next">
+            <a class="btn btn-outline" href="overview.html">OVERVIEW GUIDE</a>
+            <a class="btn btn-outline" href="projects-rules.html">PROJECTS &amp; RULES GUIDE</a>
+          </div>
+        </section>
+
+        <section id="older" class="doc-section">
+          <h2>Older releases</h2>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Version</th>
+                  <th>Highlights</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>2.0.1</td>
+                  <td>Added automated isolated.tech publishing.</td>
+                </tr>
+                <tr>
+                  <td>1.1.1</td>
+                  <td>Added a Refresh Data button for local sync.</td>
+                </tr>
+                <tr>
+                  <td>1.1.0</td>
+                  <td>Earlier cross-device/iOS-era release. Current time.md is macOS-only.</td>
+                </tr>
+                <tr>
+                  <td>1.0.0</td>
+                  <td>Initial macOS Screen Time analytics release.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="docs-next">
+            <a class="btn btn-primary" href="index.html">BACK TO DOCS</a>
+            <a class="btn btn-outline" href="https://github.com/codybontecou/time.md/releases">GITHUB RELEASES</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="../privacy.html" class="footer-link">PRIVACY</a>
+        <a href="../terms.html" class="footer-link">TERMS</a>
+        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+      </div>
+      <div class="footer-right">
+        <span>© 2026 time.md. BUILT WITH PRECISION.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

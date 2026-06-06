@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getting Started — time.md Docs</title>
+  <meta name="description" content="Install time.md for macOS, complete onboarding, start the 14-day trial or activate a license, grant Full Disk Access, and confirm local data sync.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html" aria-current="page">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a href="../index.html#download" class="nav-cta">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">SETUP / FIRST LAUNCH</div>
+          <h1 class="docs-title">GET STARTED<br>WITH TIME.MD<span class="hero-dot">.</span></h1>
+          <p class="docs-subtitle">Install the macOS app, finish onboarding, unlock the local collectors with a trial or license, grant the permissions macOS requires, and confirm your first screen-time records are being written locally.</p>
+        </div>
+        <aside class="docs-hero-card">
+          <h2>Fast path</h2>
+          <ul>
+            <li>Download time.md, move it to Applications, and open it.</li>
+            <li>Complete onboarding, then start the trial or paste a license key.</li>
+            <li>Grant Full Disk Access and restart the app.</li>
+            <li>Use your Mac for a few minutes and switch apps to create sessions.</li>
+          </ul>
+        </aside>
+      </div>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-sidebar-title">Docs</div>
+        <nav class="docs-nav-list" aria-label="Documentation pages">
+          <a href="index.html">Docs home</a>
+          <a href="getting-started.html" aria-current="page">Getting Started</a>
+          <a href="permissions.html">Permissions</a>
+          <a href="troubleshooting.html">Troubleshooting</a>
+          <a href="faq.html">FAQ</a>
+        </nav>
+        <div class="docs-sidebar-title">On this page</div>
+        <nav class="docs-nav-list" aria-label="Page sections">
+          <a href="#requirements">Requirements</a>
+          <a href="#install">Install</a>
+          <a href="#onboarding">Onboarding & activation</a>
+          <a href="#permissions">Full Disk Access</a>
+          <a href="#data-appears">When data appears</a>
+          <a href="#refresh">Refresh & sync</a>
+          <a href="#storage">Local storage</a>
+          <a href="#next">Next steps</a>
+        </nav>
+      </aside>
+
+      <div class="docs-content">
+        <section id="requirements" class="doc-section">
+          <h2>Requirements</h2>
+          <p>time.md is a macOS desktop app for local screen-time analytics. It is designed for people who want detailed usage data without a cloud account or uploaded activity history.</p>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <span class="doc-card-number">MACOS</span>
+              <h3>macOS 14+</h3>
+              <p>time.md targets macOS 14 Sonoma or newer. If you build from source, use Xcode 15 or newer.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">ACCESS</span>
+              <h3>Full Disk Access</h3>
+              <p>Required so the app can read local macOS and browser history files that Apple protects behind Privacy & Security.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">NETWORK</span>
+              <h3>Trial or license check</h3>
+              <p>Internet is needed to start/verify the 14-day card-backed trial or activate a paid license. Your activity data is not sent.</p>
+            </div>
+          </div>
+          <div class="doc-callout">
+            <strong>Local-first by default</strong>
+            <p>Screen time sessions, browser history views, exports, category mappings, blocking state, and optional input-tracking data are stored on your Mac. Trial/license requests send entitlement fields only.</p>
+          </div>
+        </section>
+
+        <section id="install" class="doc-section">
+          <h2>Download and install</h2>
+          <ol class="doc-steps">
+            <li class="doc-step">
+              <h3>Download the macOS app</h3>
+              <p>Use the Download button on the time.md website or the GitHub release linked from the site. The download is free; the app asks for a trial or license after onboarding.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Move time.md to Applications</h3>
+              <p>Drag <code>time.md.app</code> into <code>/Applications</code>. This helps macOS permissions stay attached to the same app path after updates.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Open it once</h3>
+              <p>Double-click the app. If macOS asks whether you want to open an app downloaded from the internet, choose Open.</p>
+            </li>
+          </ol>
+          <p>If you run a development build from Xcode, grant permissions to the built app you are actually launching. Permissions granted to a different copy do not always transfer.</p>
+        </section>
+
+        <section id="onboarding" class="doc-section">
+          <h2>Onboarding, trial, and activation</h2>
+          <p>On first launch, time.md shows a short onboarding tour before collectors start. The tour explains the main screens, local-only privacy model, optional website-blocking helper, and optional input tracking.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>14-day trial</h3>
+              <p>After onboarding, click <strong>Start 14-Day Free Trial</strong>. time.md opens Stripe Checkout in your browser to collect and store a card for the trial. The app never sees your full card number.</p>
+              <p>When Stripe finishes, the browser returns with a <code>timemd://activate-trial</code> deep link containing a Stripe Checkout session ID. time.md verifies that session, receives a trial token, and stores it locally in Keychain.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Paid license</h3>
+              <p>If you bought the one-time desktop license, paste the <code>TMD-...</code> activation key from the checkout page or license email. A successful paid activation is cached locally so the app can continue working if a later verification attempt is offline.</p>
+            </div>
+          </div>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Flow</th>
+                  <th>What time.md sends</th>
+                  <th>What stays local</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Start trial</td>
+                  <td>Source label and request for a Stripe Checkout URL.</td>
+                  <td>Screen time, browser history, exports, categories, input data.</td>
+                </tr>
+                <tr>
+                  <td>Verify trial</td>
+                  <td>Trial token or Checkout session ID, app version, random local device ID.</td>
+                  <td>Every activity row and every export file.</td>
+                </tr>
+                <tr>
+                  <td>Activate license</td>
+                  <td>Activation key, app version, random local device ID.</td>
+                  <td>Raw usage database and all optional local databases.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="permissions" class="doc-section">
+          <h2>Grant Full Disk Access</h2>
+          <p>Full Disk Access lets time.md read local system and browser files that macOS protects. Without it, the app can launch, but historical Screen Time and browser history may be empty or incomplete.</p>
+          <ol class="doc-steps">
+            <li class="doc-step">
+              <h3>Open System Settings</h3>
+              <p>Go to <strong>System Settings → Privacy & Security → Full Disk Access</strong>.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Add time.md</h3>
+              <p>Click the add button, choose <code>/Applications/time.md.app</code>, and enable the switch. If you see multiple copies, remove stale entries and add the copy you actually open.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Restart time.md</h3>
+              <p>Quit and reopen the app. macOS applies this permission to new file reads after the app relaunches.</p>
+            </li>
+          </ol>
+          <p>For optional permissions such as Input Monitoring, Accessibility, or the website-blocking helper, see the <a href="permissions.html">Permissions guide</a>.</p>
+        </section>
+
+        <section id="data-appears" class="doc-section">
+          <h2>When data appears</h2>
+          <p>After the trial or license unlocks the app, time.md starts local services. New app-usage sessions are recorded from frontmost-app changes while the app is running. A session is written after you switch away from an app, the screen sleeps, the session ends, or the app quits; very short fly-throughs under about two seconds are ignored.</p>
+          <div class="doc-callout warning">
+            <strong>Empty at first can be normal</strong>
+            <p>If you just unlocked the app, use your Mac for a few minutes and switch between apps. The current app is not finalized into the database until the session ends.</p>
+          </div>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Dashboard data</h3>
+              <p>Overview, Review, Details, Calendar, Trends, Projects, and Reports read from <code>screentime.db</code>. Confirm your date filter includes the period you want.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Web History data</h3>
+              <p>Web History reads local Safari, Chrome, Firefox, Arc, Brave, and Edge history databases when those browsers are installed and enabled in Settings → Web Browsers.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="refresh" class="doc-section">
+          <h2>Refresh and sync behavior</h2>
+          <p>time.md updates local data without uploading it. The app refreshes views after recorded sessions, on launch, on day changes, and when you return to the current period. Auto-saved files refresh on launch, after recorded sessions, at day changes, and periodically while the app is running. Browser history databases are prefetched in the background so the Web History screen can load quickly.</p>
+          <ul class="doc-checklist">
+            <li>Use the date controls to return to Today if a past range is selected.</li>
+            <li>Reopen the app after granting Full Disk Access or Input Monitoring.</li>
+            <li>Use any visible Refresh button on screens such as Blocking or Web History when testing a change.</li>
+            <li>For scripts, install the CLI and query the local database directly.</li>
+          </ul>
+          <pre class="doc-pre"><code>timemd today --limit 5
+timemd top-apps --since 7d --limit 20
+timemd sql 'SELECT COUNT(*) AS rows FROM usage'</code></pre>
+        </section>
+
+        <section id="storage" class="doc-section">
+          <h2>Local storage locations</h2>
+          <p>These files are on your Mac. Deleting them removes local time.md history or settings, so export first if you want a copy.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Path</th>
+                  <th>Purpose</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>~/Library/Application Support/time.md/screentime.db</code></td>
+                  <td>Canonical SQLite usage history for app sessions and analytics.</td>
+                </tr>
+                <tr>
+                  <td><code>~/Library/Application Support/time.md/screen-time-snapshot.json</code></td>
+                  <td>Readable JSON mirror for local scripts and automation.</td>
+                </tr>
+                <tr>
+                  <td><code>screen-time-auto.&lt;ext&gt;</code> in your export folder</td>
+                  <td>Auto-refreshed formatted export using your last selected format, sections, and relative date range.</td>
+                </tr>
+                <tr>
+                  <td><code>~/Library/Application Support/time.md/web-history.db</code></td>
+                  <td>Opt-in local web history archive, separate from browsers' own history files.</td>
+                </tr>
+                <tr>
+                  <td><code>~/Library/Application Support/time.md/input-tracking.db</code></td>
+                  <td>Optional keystroke/cursor events and aggregates when Input Tracking is enabled.</td>
+                </tr>
+                <tr>
+                  <td><code>~/Library/Application Support/time.md/blocking-rules.db</code></td>
+                  <td>Website/app blocking rules, states, and audit events.</td>
+                </tr>
+                <tr>
+                  <td><code>~/Library/Application Support/time.md/category-mappings.db</code></td>
+                  <td>Custom app-to-category mappings for Projects, Rules, Reports, and filters.</td>
+                </tr>
+                <tr>
+                  <td>macOS Keychain and UserDefaults</td>
+                  <td>Trial token, activation key, entitlement preview, and app preferences.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="next" class="doc-section">
+          <h2>Next steps</h2>
+          <div class="doc-card-grid">
+            <a class="doc-card" href="permissions.html">
+              <span class="doc-card-number">01</span>
+              <h3>Understand permissions</h3>
+              <p>Plain-English explanations for every macOS permission and network call time.md uses.</p>
+            </a>
+            <a class="doc-card" href="troubleshooting.html">
+              <span class="doc-card-number">02</span>
+              <h3>Fix setup issues</h3>
+              <p>Empty data, browser history, activation links, export writes, hidden app modes, and CLI/MCP setup.</p>
+            </a>
+            <a class="doc-card" href="faq.html">
+              <span class="doc-card-number">03</span>
+              <h3>Read the FAQ</h3>
+              <p>Privacy, telemetry, payments, offline use, browsers, permissions, accuracy, exports, blocking, and input tracking.</p>
+            </a>
+          </div>
+          <div class="docs-next">
+            <a class="btn btn-primary" href="permissions.html">NEXT: PERMISSIONS</a>
+            <a class="btn btn-outline" href="../index.html#download">DOWNLOAD TIME.MD</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="../privacy.html" class="footer-link">PRIVACY</a>
+        <a href="../terms.html" class="footer-link">TERMS</a>
+        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+      </div>
+      <div class="footer-right">
+        <span>© 2026 time.md. BUILT WITH PRECISION.</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

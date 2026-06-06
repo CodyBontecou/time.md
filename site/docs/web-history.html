@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web History — time.md Docs</title>
+  <meta name="description" content="Use time.md Web History to review local browser visits, top domains, activity patterns, filters, persistence, permissions, and troubleshooting.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a class="nav-cta" href="../index.html#download">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">Advanced Feature</div>
+          <h1>Web History</h1>
+          <p>time.md can read your local browser history and turn it into a searchable timeline, domain leaderboard, and activity chart without uploading browsing data anywhere.</p>
+        </div>
+        <div class="docs-hero-card">
+          <strong>Local by design</strong>
+          <p>Browser visits are read from files on your Mac. Optional persistence stores a local archive in time.md’s Application Support folder.</p>
+          <a class="btn btn-secondary" href="privacy-local-data.html">Review local data</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="docs-layout">
+      <aside class="docs-sidebar">
+        <strong>On this page</strong>
+        <nav>
+          <a href="#overview">Overview</a>
+          <a href="#browsers">Supported browsers</a>
+          <a href="#views">Timeline, domains, activity</a>
+          <a href="#permissions">Full Disk Access</a>
+          <a href="#archive">Local archive</a>
+          <a href="#limits">Privacy mode limits</a>
+          <a href="#troubleshooting">Troubleshooting</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <section id="overview" class="docs-section">
+          <h2>What Web History adds</h2>
+          <p>Screen time answers “which app was active?” Web History adds “which sites were visited inside browsers?” When enabled, time.md scans browser history databases on your Mac, normalizes visits into one model, and lets you explore them alongside your daily context.</p>
+          <div class="doc-callout">
+            <strong>No cloud sync.</strong> time.md does not collect your browser history, send it to analytics, or sync it to a server. The feature reads local files and renders them in the app.
+          </div>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <h3>Timeline</h3>
+              <p>Search visits by title, URL, or domain and filter by browser for a chosen date range.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Top Domains</h3>
+              <p>Rank sites by visit count, first and last visit, and the browsers where they appeared.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Activity</h3>
+              <p>See daily and hourly visit patterns to understand when web activity spikes.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="browsers" class="docs-section">
+          <h2>Supported browsers</h2>
+          <p>time.md supports the browser families currently modeled by the Web History reader:</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Browser</th>
+                  <th>Source used</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Safari</td>
+                  <td>Safari history database</td>
+                  <td>Includes local history Safari records outside private browsing.</td>
+                </tr>
+                <tr>
+                  <td>Chrome</td>
+                  <td>Chromium History database</td>
+                  <td>Default profile is scanned when present.</td>
+                </tr>
+                <tr>
+                  <td>Firefox</td>
+                  <td>Firefox places.sqlite profiles</td>
+                  <td>Multiple local profiles can be discovered.</td>
+                </tr>
+                <tr>
+                  <td>Arc</td>
+                  <td>Chromium-compatible history database</td>
+                  <td>Handled with the same normalized model as Chrome-like browsers.</td>
+                </tr>
+                <tr>
+                  <td>Brave</td>
+                  <td>Chromium-compatible history database</td>
+                  <td>Visible after Brave has written local history and permissions allow reading it.</td>
+                </tr>
+                <tr>
+                  <td>Edge</td>
+                  <td>Chromium-compatible history database</td>
+                  <td>Reads local Edge history when installed.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>The browser picker only shows installed, enabled sources that time.md can inspect. If a browser is not installed, has no history, or is blocked by macOS permissions, it may be absent or empty.</p>
+        </section>
+
+        <section id="views" class="docs-section">
+          <h2>Using the Web History screen</h2>
+          <p>Open <strong>Web History</strong> from the app sidebar. Choose a date range, then use the browser filter and search field to narrow results.</p>
+          <ol class="doc-steps">
+            <li class="doc-step">
+              <h3>Timeline</h3>
+              <p>Lists individual visits with title, domain, browser, URL, and visit time. Search matches titles, URLs, and domains.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Top Domains</h3>
+              <p>Groups visits by domain, shows counts and time boundaries, and lets you expand into the pages behind a domain.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Activity</h3>
+              <p>Aggregates visits into daily and hourly buckets so you can spot heavy browsing windows.</p>
+            </li>
+          </ol>
+          <div class="doc-callout">
+            <strong>Search is local.</strong> Filtering happens against data already read on your Mac. It does not query a remote service.
+          </div>
+        </section>
+
+        <section id="permissions" class="docs-section">
+          <h2>Full Disk Access</h2>
+          <p>macOS protects browser history files. To let time.md read them reliably, grant Full Disk Access:</p>
+          <ol class="doc-steps">
+            <li class="doc-step">
+              <h3>Open System Settings</h3>
+              <p>Go to <strong>Privacy &amp; Security → Full Disk Access</strong>.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Add time.md</h3>
+              <p>Turn on Full Disk Access for time.md. If the app is not listed, add it from your Applications folder.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Restart the scan</h3>
+              <p>Quit and reopen time.md, then return to Web History and refresh the date range.</p>
+            </li>
+          </ol>
+          <p>Full Disk Access lets time.md read protected local files. It does not grant special access to private browsing sessions that browsers never write to disk.</p>
+        </section>
+
+        <section id="archive" class="docs-section">
+          <h2>Optional local archive</h2>
+          <p>Web History can be used as a live reader only, or you can enable local persistence so time.md keeps its own archive of normalized visits. The archive is useful when browser history rolls off, profiles move, or you want faster historical queries.</p>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <h3>Where it lives</h3>
+              <p>Current builds store archived visits in <code>~/Library/Application Support/time.md/web-history.db</code>.</p>
+            </div>
+            <div class="doc-card">
+              <h3>What it contains</h3>
+              <p>Normalized visit fields such as URL, title, domain, browser, visit time, and visit count metadata.</p>
+            </div>
+            <div class="doc-card">
+              <h3>What it is not</h3>
+              <p>It is not uploaded, synced, or shared with time.md servers.</p>
+            </div>
+          </div>
+          <h3>Delete the persisted archive</h3>
+          <p>Use the Web Browser settings action to delete persisted web history. This clears time.md’s archive only; it does not delete history from Safari, Chrome, Firefox, Arc, Brave, or Edge.</p>
+          <pre class="doc-pre"><code>~/Library/Application Support/time.md/web-history.db
+~/Library/Application Support/time.md/web-history.db-wal
+~/Library/Application Support/time.md/web-history.db-shm</code></pre>
+          <p>If you remove the files manually, quit time.md first. Older builds may have migrated legacy archive rows out of <code>screentime.db</code>; current archives are stored separately so browser visits do not inflate the screen-time database.</p>
+        </section>
+
+        <section id="limits" class="docs-section">
+          <h2>Private browsing and history clearing</h2>
+          <ul class="doc-checklist">
+            <li>Private or incognito windows usually do not write normal browser history, so time.md cannot show visits that the browser never saved.</li>
+            <li>If you clear browser history before time.md reads it, those visits may disappear from live browser sources.</li>
+            <li>If local persistence was enabled before the clear, visits already archived by time.md can remain in <code>web-history.db</code> until you delete the archive.</li>
+            <li>Browser sync settings are browser-owned. time.md reads the local history files present on this Mac.</li>
+          </ul>
+        </section>
+
+        <section id="troubleshooting" class="docs-section">
+          <h2>Troubleshooting</h2>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>No visits appear</h3>
+              <p>Confirm Full Disk Access, check that the browser has local history, and try a wider date range.</p>
+            </div>
+            <div class="doc-card">
+              <h3>A browser is missing</h3>
+              <p>Install or launch the browser once so it creates a profile. The picker only shows sources that exist locally.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Visits look incomplete</h3>
+              <p>Private browsing, history clearing, profile changes, and browser-specific retention policies can all reduce what is available.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Archive feels stale</h3>
+              <p>Refresh the Web History screen. If needed, delete the local archive and let time.md rebuild it from browser files that still exist.</p>
+            </div>
+          </div>
+        </section>
+
+        <nav class="docs-next">
+          <a href="export.html">
+            <span>Next</span>
+            <strong>Export data →</strong>
+          </a>
+          <a href="privacy-local-data.html">
+            <span>Related</span>
+            <strong>Privacy &amp; local data →</strong>
+          </a>
+        </nav>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <img src="../app-icon.png" alt="time.md" class="footer-icon">
+        <span>time.md</span>
+      </div>
+      <div class="footer-links">
+        <a href="../privacy.html">Privacy</a>
+        <a href="../terms.html">Terms</a>
+        <a href="mailto:cody@isolated.tech">Contact</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

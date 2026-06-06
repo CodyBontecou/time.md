@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ — time.md Docs</title>
+  <meta name="description" content="Frequently asked questions about time.md privacy, telemetry, payments, offline use, browsers, permissions, accuracy, local files, exports, CLI, MCP, blocking, and input tracking.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html" aria-current="page">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a href="../index.html#download" class="nav-cta">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">FAQ / QUICK ANSWERS</div>
+          <h1 class="docs-title">FREQUENTLY<br>ASKED QUESTIONS<span class="hero-dot">.</span></h1>
+          <p class="docs-subtitle">Straight answers for people evaluating time.md and for existing users configuring privacy, permissions, exports, CLI, MCP, blocking, and optional input tracking.</p>
+        </div>
+        <aside class="docs-hero-card">
+          <h2>Short version</h2>
+          <ul>
+            <li>No screen-time upload, analytics SDK, or app account.</li>
+            <li>Trial/license checks send entitlement data only.</li>
+            <li>Most data lives under Application Support/time.md.</li>
+            <li>Input Tracking and web-history persistence are opt-in.</li>
+          </ul>
+        </aside>
+      </div>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-sidebar-title">Docs</div>
+        <nav class="docs-nav-list" aria-label="Documentation pages">
+          <a href="index.html">Docs home</a>
+          <a href="getting-started.html">Getting Started</a>
+          <a href="permissions.html">Permissions</a>
+          <a href="troubleshooting.html">Troubleshooting</a>
+          <a href="faq.html" aria-current="page">FAQ</a>
+        </nav>
+        <div class="docs-sidebar-title">Categories</div>
+        <nav class="docs-nav-list" aria-label="FAQ sections">
+          <a href="#privacy">Privacy</a>
+          <a href="#trial-payment">Trial & payment</a>
+          <a href="#setup">Setup & permissions</a>
+          <a href="#data">Data & accuracy</a>
+          <a href="#exports">Exports</a>
+          <a href="#automation">CLI & MCP</a>
+          <a href="#blocking">Blocking</a>
+          <a href="#input">Input tracking</a>
+          <a href="#uninstall">Delete & uninstall</a>
+        </nav>
+      </aside>
+
+      <div class="docs-content">
+        <section id="privacy" class="doc-section">
+          <h2>Privacy and data upload</h2>
+          <div class="doc-faq">
+            <details open>
+              <summary>Does time.md upload my screen time?</summary>
+              <div>
+                <p>No. time.md stores screen time sessions in a local SQLite database on your Mac. Trial/license requests do not include screen time, browser history, exports, input-tracking rows, categories, or blocking rules.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Does time.md have telemetry or analytics?</summary>
+              <div>
+                <p>No. The desktop app has no app account, no product analytics SDK, no advertising SDK, and no in-app telemetry service.</p>
+              </div>
+            </details>
+            <details>
+              <summary>What network calls does the app make?</summary>
+              <div>
+                <p>It contacts the entitlement API to start/verify the card-backed trial or activate a paid license. It may also check for app updates through Sparkle. These calls do not include your activity database.</p>
+              </div>
+            </details>
+            <details>
+              <summary>What exactly is sent for trial or license verification?</summary>
+              <div>
+                <p>Trial verification sends a trial token or Stripe Checkout session ID plus app version and a random locally generated device ID. Paid activation sends the activation key, app version, and random device ID. The server stores a hash of the device ID, not your screen-time rows.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Does Stripe see my screen-time data?</summary>
+              <div>
+                <p>No. Stripe handles card setup, payment, receipts, and fraud-prevention data in the browser. Stripe does not receive your local screen-time database from time.md.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Can I audit what is stored locally?</summary>
+              <div>
+                <p>Yes. time.md stores readable and SQLite files under <code>~/Library/Application Support/time.md/</code>, and the project is open source. The command-line tool can also query local tables directly.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="trial-payment" class="doc-section">
+          <h2>Trial, payment, activation, and offline use</h2>
+          <div class="doc-faq">
+            <details>
+              <summary>Is the download free?</summary>
+              <div>
+                <p>Yes. You can download the macOS app for free. After onboarding, the app asks you to start a 14-day card-backed trial or paste a paid activation key before local collectors and the main app unlock.</p>
+              </div>
+            </details>
+            <details>
+              <summary>How does the 14-day trial work?</summary>
+              <div>
+                <p>The app opens Stripe Checkout in your browser. Stripe stores card details for the trial setup. When checkout finishes, the browser returns to time.md through a <code>timemd://</code> deep link. time.md verifies the checkout and stores a trial token locally in Keychain.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Is the trial a subscription?</summary>
+              <div>
+                <p>No. The documented checkout flow is a card-backed 14-day trial for the desktop app, followed by a one-time paid license if you choose to keep using time.md.</p>
+              </div>
+            </details>
+            <details>
+              <summary>How much is the paid license?</summary>
+              <div>
+                <p>The site currently sells a one-time macOS desktop license for $19.99 USD unless checkout states otherwise.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Can I use time.md offline?</summary>
+              <div>
+                <p>You need internet for initial trial setup, trial verification, or paid activation. After a successful paid activation is cached locally, the app can continue if a later verification attempt temporarily fails. A saved active trial can continue until its expiration if a temporary recheck fails.</p>
+              </div>
+            </details>
+            <details>
+              <summary>What if the trial deep link does not open time.md?</summary>
+              <div>
+                <p>Open time.md manually and paste the fallback trial key if the success page provides one. The expected deep link contains a Stripe session ID, such as <code>timemd://activate-trial?session_id=cs_...</code>.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Where is my activation key stored?</summary>
+              <div>
+                <p>Activation keys and trial tokens are stored in macOS Keychain. Entitlement previews and last-verified metadata are stored locally in app preferences.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="setup" class="doc-section">
+          <h2>Setup, browsers, and permissions</h2>
+          <div class="doc-faq">
+            <details>
+              <summary>Which macOS version do I need?</summary>
+              <div>
+                <p>time.md targets macOS 14 Sonoma or newer. Building from source requires Xcode 15 or newer.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Why does time.md ask for Full Disk Access?</summary>
+              <div>
+                <p>macOS protects local Screen Time and browser history files. Full Disk Access lets time.md read those files for local analysis. It does not upload them.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Which browsers are supported?</summary>
+              <div>
+                <p>Safari, Chrome, Firefox, Arc, Brave, and Edge are supported. The Web History settings screen shows installed browsers and lets you enable or disable each one.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Do private or incognito windows appear?</summary>
+              <div>
+                <p>No, not normally. time.md reads each browser's local history database. Private/incognito browsing is designed not to be written to normal browser history.</p>
+              </div>
+            </details>
+            <details>
+              <summary>What are Accessibility and Input Monitoring for?</summary>
+              <div>
+                <p>They are for optional Input Tracking. Normal dashboards, exports, and Web History do not need keyboard/mouse monitoring. If you enable Input Tracking, macOS may require Input Monitoring and sometimes Accessibility for global event capture.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Can I use time.md without granting every permission?</summary>
+              <div>
+                <p>Yes, but features that depend on the missing permission will be incomplete. For example, without Full Disk Access browser history may be empty; without Input Monitoring optional input analytics will not record events.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="data" class="doc-section">
+          <h2>Data, local files, and accuracy</h2>
+          <div class="doc-faq">
+            <details>
+              <summary>Where does time.md store its data?</summary>
+              <div>
+                <p>The main usage database is <code>~/Library/Application Support/time.md/screentime.db</code>. Other local files include <code>screen-time-snapshot.json</code>, <code>web-history.db</code>, <code>input-tracking.db</code>, <code>blocking-rules.db</code>, and <code>category-mappings.db</code>.</p>
+              </div>
+            </details>
+            <details>
+              <summary>When should I expect data to appear?</summary>
+              <div>
+                <p>After trial or license activation, time.md starts local collectors. New app sessions are written after the session ends, such as when you switch apps, the screen sleeps, or the app quits. Very short fly-through sessions are ignored.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Why is the current app not counted yet?</summary>
+              <div>
+                <p>The current app is an in-progress session. It is finalized when you switch away, sleep the screen, or quit time.md.</p>
+              </div>
+            </details>
+            <details>
+              <summary>How accurate are the numbers?</summary>
+              <div>
+                <p>App usage is based on frontmost-app sessions and macOS-provided local data. Short app switches under about two seconds are filtered out to avoid Cmd-Tab noise. Browser history depends on each browser's local history database and may not represent exact active reading time for every tab.</p>
+              </div>
+            </details>
+            <details>
+              <summary>What is web-history persistence?</summary>
+              <div>
+                <p>It is an optional setting that copies recent browser visit rows into time.md's local <code>web-history.db</code> so Web History can remain available after a browser clears its own history. It is still local-only.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Can I edit app categories?</summary>
+              <div>
+                <p>Yes. Use Apps & Categories or Projects/Rules views to map apps into categories such as Productivity, Games, or Business. Custom mappings are stored locally in <code>category-mappings.db</code>.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="exports" class="doc-section">
+          <h2>Exports and Obsidian</h2>
+          <div class="doc-faq">
+            <details>
+              <summary>What formats can I export?</summary>
+              <div>
+                <p>time.md supports CSV, JSON, YAML, Markdown, and Obsidian-flavored Markdown. Export options include sections, fields, filters, date ranges, and formatting options.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Does exporting upload data?</summary>
+              <div>
+                <p>No. Exports are written to a folder you choose on your Mac or connected storage. If you choose a cloud-synced folder, that folder's provider may sync the file according to your settings.</p>
+              </div>
+            </details>
+            <details>
+              <summary>How does Obsidian export work?</summary>
+              <div>
+                <p>Choose the Obsidian format in Export. Obsidian exports can include frontmatter, daily-note style date links, and wiki links such as <code>[[App Name]]</code>, depending on your export options.</p>
+              </div>
+            </details>
+            <details>
+              <summary>What is <code>screen-time-auto.&lt;ext&gt;</code>?</summary>
+              <div>
+                <p>It is the live auto-export in your selected export destination. It uses your last selected format, sections, filename template, and relative date range. Raw input-event sections are excluded from live auto-save for safety.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Why did export writing fail?</summary>
+              <div>
+                <p>The destination folder may have moved, become read-only, gone offline, or lost its security-scoped bookmark. Choose the folder again in Export, or try <code>~/Downloads/time.md Exports</code>.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="automation" class="doc-section">
+          <h2>CLI and MCP</h2>
+          <div class="doc-faq">
+            <details>
+              <summary>Does time.md have a command-line tool?</summary>
+              <div>
+                <p>Yes. Settings → CLI Access installs <code>timemd</code> and <code>timemd-mcp</code> into <code>~/.local/bin</code>. Example commands include <code>timemd today --limit 5</code> and <code>timemd top-apps --since 7d --limit 20</code>.</p>
+              </div>
+            </details>
+            <details>
+              <summary>What is MCP integration?</summary>
+              <div>
+                <p>The bundled <code>timemd-mcp</code> server exposes selected local time.md tools to MCP-compatible agents such as Claude Code, Cursor, Windsurf, and other tools that accept the standard <code>mcpServers</code> config shape.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Does MCP send data to time.md servers?</summary>
+              <div>
+                <p>No. MCP lets a local agent process query results from your local databases. The privacy risk is which agent or script you allow to read the results, not a time.md upload.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Can I disable individual MCP tools?</summary>
+              <div>
+                <p>Yes. Settings → MCP Integration includes a server on/off switch and per-tool toggles. Disabled tools are hidden from the server's tool list and rejected if called.</p>
+              </div>
+            </details>
+            <details>
+              <summary>What if <code>timemd</code> is not found?</summary>
+              <div>
+                <p>Install or Repair from Settings → CLI Access, then make sure <code>~/.local/bin</code> is on your shell PATH.</p>
+                <pre class="doc-pre"><code>echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc</code></pre>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="blocking" class="doc-section">
+          <h2>Website and app blocking</h2>
+          <div class="doc-faq">
+            <details>
+              <summary>What does blocking do?</summary>
+              <div>
+                <p>Blocking provides simple on/off blocks for distracting websites and apps. On means blocked; Off means viewable again.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Why does website blocking need an admin password?</summary>
+              <div>
+                <p>System-wide website blocking requires changes to protected system networking files. time.md asks for administrator approval to install or upgrade a helper that manages only time.md-marked hosts entries and its own pf anchor.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Does website blocking inspect my browsing?</summary>
+              <div>
+                <p>No. The helper enforces domain block rules. It does not read page contents, passwords, cookies, or browser tabs.</p>
+              </div>
+            </details>
+            <details>
+              <summary>How do I turn all blocks off?</summary>
+              <div>
+                <p>Open Blocking and use <strong>Turn off all blocks</strong>, or switch individual rules off. Run diagnostics if a website remains blocked after rules are off.</p>
+              </div>
+            </details>
+            <details>
+              <summary>How does app blocking work?</summary>
+              <div>
+                <p>time.md observes frontmost-app changes. When a blocked app opens, it can show a notice and hide the app, hide it without foregrounding time.md, request termination, or notify only depending on the configured action.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="input" class="doc-section">
+          <h2>Input tracking</h2>
+          <div class="doc-faq">
+            <details>
+              <summary>Is input tracking on by default?</summary>
+              <div>
+                <p>No. It is off by default and requires explicit opt-in in Settings → Input Tracking.</p>
+              </div>
+            </details>
+            <details>
+              <summary>What can input tracking record?</summary>
+              <div>
+                <p>Depending on your selected levels, it can store typing timestamps, key codes, actual typed characters, cursor positions, clicks, and scroll events. Lower levels avoid storing typed characters.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Does time.md record passwords?</summary>
+              <div>
+                <p>time.md excludes common password managers and drops typed characters when macOS Secure Input is active. However, not every private field enables Secure Input. Full Content mode can store sensitive typed text locally, so use it only if you accept that risk.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Can I pause input tracking quickly?</summary>
+              <div>
+                <p>Yes. Press <kbd>⌥</kbd><kbd>⌘</kbd><kbd>P</kbd> to pause capture for 30 minutes, or use Pause Now in Settings.</p>
+              </div>
+            </details>
+            <details>
+              <summary>How long is input data kept?</summary>
+              <div>
+                <p>Raw retention is configurable from 1 to 30 days. Aggregates such as top words and heatmap bins may remain until you delete input data.</p>
+              </div>
+            </details>
+            <details>
+              <summary>How do I delete input-tracking data?</summary>
+              <div>
+                <p>Use Settings → Input Tracking → Delete all input data. This removes keystroke events, mouse events, typed words, and cursor heatmap bins from the local input database.</p>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="uninstall" class="doc-section">
+          <h2>Deleting data and uninstalling</h2>
+          <div class="doc-faq">
+            <details>
+              <summary>How do I delete all local time.md data?</summary>
+              <div>
+                <p>Quit time.md, then remove <code>~/Library/Application Support/time.md/</code>. Delete exported files from your chosen export folder separately. You can also delete persisted web history and input data from app settings before removing the app. If you also want to remove saved trial/license credentials from Keychain, use Settings → License & Trial → Reset before uninstalling.</p>
+              </div>
+            </details>
+            <details>
+              <summary>How do I uninstall time.md cleanly?</summary>
+              <div>
+                <ol>
+                  <li>Open Blocking and turn off all blocks if you used blocking.</li>
+                  <li>Use Settings → License & Trial → Reset if you want to remove saved entitlement state from this Mac.</li>
+                  <li>Uninstall CLI/MCP integrations from Settings if you installed them.</li>
+                  <li>Quit time.md.</li>
+                  <li>Delete <code>/Applications/time.md.app</code>.</li>
+                  <li>Remove <code>~/Library/Application Support/time.md/</code> if you want to delete local data.</li>
+                  <li>Remove time.md from Privacy & Security permission lists.</li>
+                </ol>
+              </div>
+            </details>
+            <details>
+              <summary>Will deleting the app cancel or remove Stripe records?</summary>
+              <div>
+                <p>No. Deleting the app removes the local app, not Stripe receipts or Cloudflare entitlement records. Email support for purchase, license email, or refund questions.</p>
+              </div>
+            </details>
+            <details>
+              <summary>Can I move my data to another Mac?</summary>
+              <div>
+                <p>You can copy exports or local databases yourself, but activation/trial credentials live in Keychain and may need reactivation on the new Mac. Copying local databases should be done while time.md is quit.</p>
+              </div>
+            </details>
+          </div>
+          <div class="docs-next">
+            <a class="btn btn-primary" href="getting-started.html">BACK TO GETTING STARTED</a>
+            <a class="btn btn-outline" href="mailto:cody@isolated.tech">ASK SUPPORT</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="../privacy.html" class="footer-link">PRIVACY</a>
+        <a href="../terms.html" class="footer-link">TERMS</a>
+        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+      </div>
+      <div class="footer-right">
+        <span>© 2026 time.md. BUILT WITH PRECISION.</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

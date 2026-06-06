@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Review screen docs — time.md</title>
+  <meta name="description" content="Learn how to use the time.md Review screen: app and category grouping, bar, pie, and trend charts, activity heatmaps, and breakdown tables.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md app icon" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a href="../index.html#download" class="nav-cta">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">02 / Screen guide</div>
+          <h1 class="docs-title">Review screen</h1>
+          <p class="docs-subtitle">Review is where totals become shape. Group your time by app or category, switch between chart styles, inspect weekday-hour heat, and confirm the numbers in the detailed breakdown table.</p>
+        </div>
+        <aside class="docs-hero-card" aria-label="Review quick reference">
+          <h2>Best for</h2>
+          <ul>
+            <li>Comparing apps and categories in one period</li>
+            <li>Seeing share of time as bars or slices</li>
+            <li>Finding hot hours with the activity heatmap</li>
+            <li>Checking sessions and percentages in a table</li>
+          </ul>
+        </aside>
+      </div>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar" aria-label="Documentation navigation">
+        <div class="docs-eyebrow">Docs</div>
+        <nav>
+          <a href="overview.html">Overview</a>
+          <a href="review.html" aria-current="page">Review</a>
+          <a href="details.html">Details</a>
+          <a href="projects-rules.html">Projects + Rules</a>
+          <a href="reports.html">Reports</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <section class="doc-section" id="purpose">
+          <h2>What Review answers</h2>
+          <p>Use Review when Overview tells you something changed and you need to know where the time went. It keeps the same active date range and filters, then gives you multiple ways to compare the same underlying data.</p>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <h3>Which apps dominated?</h3>
+              <p>Group by Apps to rank individual applications by duration, sessions, and share of time.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Which kind of work dominated?</h3>
+              <p>Group by Categories to roll apps into buckets such as Development, Communication, Design, or Entertainment.</p>
+            </div>
+            <div class="doc-card">
+              <h3>When did it happen?</h3>
+              <p>Use the trend chart and heatmap to see whether time clustered on specific days or hours.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-section" id="grouping">
+          <h2>Choose app or category grouping</h2>
+          <p>The first segmented control switches the Review screen between app-level and category-level analysis.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Grouping</th>
+                  <th>Shows</th>
+                  <th>Use when</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Apps</td>
+                  <td>Individual apps such as Xcode, Safari, Slack, or Figma.</td>
+                  <td>You want exact culprits, session counts, or a direct comparison between tools.</td>
+                </tr>
+                <tr>
+                  <td>Categories</td>
+                  <td>Your mapped category totals from Projects and Rules.</td>
+                  <td>You want to compare types of activity instead of individual app names.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="doc-callout">
+            <strong>Category quality matters</strong>
+            <p>If a category looks wrong, fix the app mapping in Projects + Rules. Review will update after the category mappings refresh.</p>
+          </div>
+        </section>
+
+        <section class="doc-section" id="chart-modes">
+          <h2>Switch between Bar, Pie, and Trend</h2>
+          <p>The second segmented control changes how the breakdown is drawn. The numbers are the same; the view changes the question you can answer fastest.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Bar</h3>
+              <p>A ranked horizontal bar chart for the top apps or categories. Use it to compare duration quickly and spot large gaps between the first few rows.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Pie</h3>
+              <p>A share-of-time donut for the biggest items, with remaining time folded into Other. Use it when proportion matters more than raw hours.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Trend</h3>
+              <p>An area and line chart across the selected period. Use it to see whether usage rose steadily, spiked once, or stayed consistent.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Range label</h3>
+              <p>The header repeats the active range and total time, so screenshots and exported notes stay understandable later.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-section" id="heatmap">
+          <h2>Read the activity heatmap</h2>
+          <p>The heatmap is a 7-by-24 grid: weekdays down the side, hours across the top. Darker or more saturated cells mean more recorded time in that weekday-hour slot.</p>
+          <div class="doc-steps">
+            <div class="doc-step">
+              <h3>Find the hot cells</h3>
+              <p>Look for the darkest blocks first. These are the recurring hours where your Mac activity concentrates.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Compare weekday patterns</h3>
+              <p>A bright Monday morning row says something different from a bright Saturday evening row. Use the row position as context.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Validate with Details</h3>
+              <p>If a heatmap cell surprises you, open Details for the same range to inspect the exact sessions around that time.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-section" id="table">
+          <h2>Use the detailed breakdown table</h2>
+          <p>The table is the source of truth for the chart above it. It includes every loaded app or category row, sorted by time.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>How to interpret it</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Rank</td>
+                  <td>The row number after sorting by time. Rank changes when filters or granularity change.</td>
+                </tr>
+                <tr>
+                  <td>Time</td>
+                  <td>The total duration for that app or category inside the active period.</td>
+                </tr>
+                <tr>
+                  <td>Sessions</td>
+                  <td>Available on app rows. More sessions can mean more returns to the same app, not necessarily more total time.</td>
+                </tr>
+                <tr>
+                  <td>Percent</td>
+                  <td>The row's share of the current total. Percentages are best for comparing periods with different total durations.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="doc-callout">
+            <strong>Percentages are range-relative</strong>
+            <p>Thirty percent on a two-hour day is very different from thirty percent on a twelve-hour week. Always read the percent next to the total time in the header.</p>
+          </div>
+        </section>
+
+        <section class="doc-section" id="workflow">
+          <h2>A practical Review workflow</h2>
+          <ol>
+            <li>Pick Apps if you need specific tools; pick Categories if you need broader work buckets.</li>
+            <li>Start with Bar to see the ranking.</li>
+            <li>Switch to Pie when you need share of time.</li>
+            <li>Switch to Trend when the timing of the change matters.</li>
+            <li>Use the heatmap to find the day and hour to inspect in Details.</li>
+          </ol>
+          <div class="docs-next">
+            <a class="btn btn-primary" href="details.html">NEXT: DETAILS</a>
+            <a class="btn btn-outline" href="projects-rules.html">FIX CATEGORIES</a>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="../privacy.html" class="footer-link">PRIVACY</a>
+        <a href="../terms.html" class="footer-link">TERMS</a>
+        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+      </div>
+      <div class="footer-right">
+        <span>© 2026 time.md. BUILT WITH PRECISION.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

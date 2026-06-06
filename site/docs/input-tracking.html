@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Input Tracking — time.md Docs</title>
+  <meta name="description" content="Configure optional local input tracking in time.md, including keystroke levels, cursor levels, permissions, pause controls, retention, deletion, and privacy safeguards.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a class="nav-cta" href="../index.html#download">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">Advanced Feature</div>
+          <h1>Input Tracking</h1>
+          <p>Input Tracking is an optional, local-only feature for typing intensity, most-pressed keys, top typed words, and cursor heatmaps. It is off by default and can be deleted at any time.</p>
+        </div>
+        <div class="docs-hero-card">
+          <strong>High privacy cost</strong>
+          <p>Full content mode stores actual characters. Treat <code>input-tracking.db</code> like a password vault if you enable it.</p>
+          <a class="btn btn-secondary" href="#levels">Choose a level</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="docs-layout">
+      <aside class="docs-sidebar">
+        <strong>On this page</strong>
+        <nav>
+          <a href="#overview">Overview</a>
+          <a href="#enable">Enable and permissions</a>
+          <a href="#levels">Tracking levels</a>
+          <a href="#privacy">Privacy safeguards</a>
+          <a href="#views">Views</a>
+          <a href="#retention">Retention</a>
+          <a href="#delete">Delete data</a>
+          <a href="#exports">Exports and MCP</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <section id="overview" class="docs-section">
+          <h2>What Input Tracking records</h2>
+          <p>When enabled, time.md installs a local macOS event tap while the app is running. It batches allowed keyboard and cursor events into a separate SQLite database and builds aggregates for the Input screen.</p>
+          <div class="doc-callout">
+            <strong>Off by default.</strong> Input Tracking does nothing until you explicitly enable it in <strong>Settings → Input Tracking</strong> and grant macOS permission.
+          </div>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Keystrokes</h3>
+              <p>Configurable from no capture to timestamps, key codes, or actual characters.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Cursor</h3>
+              <p>Configurable from no capture to movement heatmap, clicks, or a full move/drag/click/scroll trail.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Aggregates</h3>
+              <p>Builds typed-word counts, key-frequency counts, typing intensity, and 32-pixel cursor heatmap bins.</p>
+            </div>
+          </div>
+          <p>Input data is stored separately from the main screen-time database at <code>~/Library/Application Support/time.md/input-tracking.db</code>.</p>
+        </section>
+
+        <section id="enable" class="docs-section">
+          <h2>Enable and grant permissions</h2>
+          <ol class="doc-steps">
+            <li class="doc-step">
+              <h3>Turn on the master switch</h3>
+              <p>Open <strong>Settings → Input Tracking</strong> and enable the feature. The app initializes safe default streams if both levels were off.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Grant Input Monitoring</h3>
+              <p>macOS registers time.md in <strong>System Settings → Privacy &amp; Security → Input Monitoring</strong>. Approve it, then restart the app if macOS asks.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Choose stream levels</h3>
+              <p>Select the least detailed keystroke and cursor levels that power the views you need.</p>
+            </li>
+          </ol>
+          <p>Some macOS flows may also request Accessibility permission for global observation. If events do not appear, re-check the privacy pane and relaunch time.md.</p>
+        </section>
+
+        <section id="levels" class="docs-section">
+          <h2>Tracking levels</h2>
+          <h3>Keystrokes</h3>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Level</th>
+                  <th>Stored</th>
+                  <th>Powers</th>
+                  <th>Privacy note</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Off</td>
+                  <td>No keystrokes.</td>
+                  <td>Nothing keyboard-related.</td>
+                  <td>Safest choice if you only want cursor data.</td>
+                </tr>
+                <tr>
+                  <td>Activity only</td>
+                  <td>Timestamps only; no key codes and no characters.</td>
+                  <td>Typing intensity and per-app activity counts.</td>
+                  <td>Does not store what key was pressed.</td>
+                </tr>
+                <tr>
+                  <td>Per-key counts</td>
+                  <td>Timestamps, virtual key codes, and modifier flags.</td>
+                  <td>Intensity plus most-pressed keys.</td>
+                  <td>No characters or message content are stored.</td>
+                </tr>
+                <tr>
+                  <td>Full content</td>
+                  <td>Timestamps, key codes, modifiers, and actual characters when available.</td>
+                  <td>Top typed words, raw character queries, and all lower-level views.</td>
+                  <td>High privacy cost. The app shows a destructive-style confirmation before enabling it.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3>Cursor</h3>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Level</th>
+                  <th>Stored</th>
+                  <th>Powers</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Off</td>
+                  <td>No cursor events.</td>
+                  <td>No cursor views.</td>
+                </tr>
+                <tr>
+                  <td>Heatmap only</td>
+                  <td>Movement and drag positions, roughly 30 events per second while active.</td>
+                  <td>Cursor Heatmap.</td>
+                </tr>
+                <tr>
+                  <td>Heatmap + clicks</td>
+                  <td>Movement, drags, and click locations.</td>
+                  <td>Heatmap plus click overlays.</td>
+                </tr>
+                <tr>
+                  <td>Full event trail</td>
+                  <td>Move, drag, click, and scroll events.</td>
+                  <td>Detailed raw cursor analysis and local queries.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="privacy" class="docs-section">
+          <h2>Privacy safeguards</h2>
+          <ul class="doc-checklist">
+            <li><strong>Secure Input:</strong> when macOS Secure Input is active, time.md drops typed characters and marks the row with <code>secure_input=1</code>.</li>
+            <li><strong>Excluded apps:</strong> default exclusions include 1Password, Bitwarden, Dashlane, LastPass, and Keychain Access. Events in excluded apps are dropped entirely.</li>
+            <li><strong>Pause hotkey:</strong> press <strong>Option-Command-P</strong> to pause all input capture for 30 minutes. Settings also offers Pause Now and Resume Now.</li>
+            <li><strong>Content gate:</strong> full content is a separate explicit level so timestamps or key-count analytics do not silently start storing characters.</li>
+            <li><strong>Word filtering:</strong> typed-word aggregation rejects long blobs, mixed digits/symbols, hex-like values, and high-entropy strings that look like tokens.</li>
+          </ul>
+          <div class="doc-callout">
+            <strong>Redaction is display-only.</strong> The Top Typed Words view can redact words on screen, but that toggle does not delete stored words. Use Delete all input data to erase them.
+          </div>
+        </section>
+
+        <section id="views" class="docs-section">
+          <h2>Input Tracking views</h2>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <h3>Cursor Heatmap</h3>
+              <p>Shows 32-pixel movement-density bins per screen, with click locations when click capture is enabled.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Top Typed</h3>
+              <p>Switch between Words and Keys. Words require Full content; keys require Per-key counts or higher.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Intensity</h3>
+              <p>Shows typing counts over time. Day-scale ranges use minute granularity; wider ranges use hourly buckets.</p>
+            </div>
+          </div>
+          <p>Views respect the global date range and can filter by bundle/app where the underlying query supports it.</p>
+        </section>
+
+        <section id="retention" class="docs-section">
+          <h2>Retention</h2>
+          <p>The pruner runs at app launch and every six hours. The default raw-event retention is 14 days for keystrokes. Raw mouse events use half that retention because they grow faster, so the default mouse retention is 7 days. The slider supports 1–30 days.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Default retention</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>keystroke_events</code></td>
+                  <td>14 days</td>
+                  <td>Controlled by the raw-event retention setting.</td>
+                </tr>
+                <tr>
+                  <td><code>mouse_events</code></td>
+                  <td>7 days</td>
+                  <td>Uses half the configured retention window, minimum 1 day.</td>
+                </tr>
+                <tr>
+                  <td><code>typed_words</code></td>
+                  <td>Kept indefinitely</td>
+                  <td>Aggregate counts power the Top Typed Words view.</td>
+                </tr>
+                <tr>
+                  <td><code>cursor_heatmap_bins</code></td>
+                  <td>Kept indefinitely</td>
+                  <td>Aggregate bins power the Cursor Heatmap view.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Retention pruning removes old raw events, then periodically vacuums the database. Aggregates remain until you use the destructive delete action.</p>
+        </section>
+
+        <section id="delete" class="docs-section">
+          <h2>Delete input data</h2>
+          <p>Use <strong>Settings → Input Tracking → Delete all input data</strong> to remove every row from:</p>
+          <pre class="doc-pre"><code>keystroke_events
+mouse_events
+typed_words
+cursor_heatmap_bins
+input_tracking_meta</code></pre>
+          <p>The delete action runs a local SQLite transaction and then vacuums the database. It cannot be undone.</p>
+          <p>You can also quit time.md and remove the database files manually:</p>
+          <pre class="doc-pre"><code>~/Library/Application Support/time.md/input-tracking.db
+~/Library/Application Support/time.md/input-tracking.db-wal
+~/Library/Application Support/time.md/input-tracking.db-shm</code></pre>
+        </section>
+
+        <section id="exports" class="docs-section">
+          <h2>Exports, CLI, and MCP</h2>
+          <p>Input Tracking data stays local, but you can expose it to local tools if you choose:</p>
+          <ul class="doc-checklist">
+            <li>Export sections can include top words, top keys, cursor heatmap bins, typing intensity, and capped raw keystroke or mouse rows.</li>
+            <li>The formatted auto export excludes raw input sections as a safety guardrail.</li>
+            <li>MCP and CLI database tools read local SQLite data. Agents connected through MCP can see whatever rows the selected tool returns.</li>
+            <li>Share input exports only after reviewing them, especially if Full content was enabled.</li>
+          </ul>
+        </section>
+
+        <nav class="docs-next">
+          <a href="blocking.html">
+            <span>Previous</span>
+            <strong>← Blocking</strong>
+          </a>
+          <a href="cli-mcp.html">
+            <span>Next</span>
+            <strong>CLI &amp; MCP →</strong>
+          </a>
+        </nav>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <img src="../app-icon.png" alt="time.md" class="footer-icon">
+        <span>time.md</span>
+      </div>
+      <div class="footer-links">
+        <a href="../privacy.html">Privacy</a>
+        <a href="../terms.html">Terms</a>
+        <a href="mailto:cody@isolated.tech">Contact</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

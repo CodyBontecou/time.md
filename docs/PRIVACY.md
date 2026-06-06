@@ -17,7 +17,7 @@ time.md has no analytics service, no advertising SDK, and no account system. You
 
 - Reads Apple's local Screen Time database (`knowledgeC.db`) after you grant Full Disk Access.
 - Reads local browser history databases for the Web History view.
-- Can optionally persist browser visit rows in its own local database so they remain visible after a browser clears history.
+- Can optionally persist browser visit rows in its own local `web-history.db` database so they remain visible after a browser clears history.
 - Can optionally track keyboard/mouse activity for input analytics after you enable Input Tracking and grant Accessibility/Input Monitoring permissions.
 - Stores local app data under `~/Library/Application Support/time.md/`.
 - Can write formatted exports to a directory you choose.
@@ -31,7 +31,7 @@ No screen time, browser history, export, or input tracking data is sent to us. T
 | Raw screen time sessions (`screentime.db`) | Your Mac only | Only you |
 | Readable screen time snapshot (`screen-time-snapshot.json`) | Your Mac only | Only you |
 | Formatted auto-export (`screen-time-auto.<ext>`) | Your chosen export directory | Only you |
-| Opt-in web history archive | Your Mac only | Only you |
+| Opt-in web history archive (`web-history.db`) | Your Mac only | Only you |
 | Opt-in input tracking data | Your Mac only | Only you |
 | Category mappings and app preferences | Your Mac only | Only you |
 | Activation key / trial token | macOS Keychain | You and macOS Keychain access controls |

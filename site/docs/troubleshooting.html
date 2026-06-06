@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Troubleshooting — time.md Docs</title>
+  <meta name="description" content="Fix common time.md issues: empty data, browser history, Full Disk Access, trial activation, exports, hidden app modes, blocking helper, input tracking, CLI, and MCP.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html" aria-current="page">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a href="../index.html#download" class="nav-cta">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">SUPPORT / RECOVERY</div>
+          <h1 class="docs-title">FIX TIME.MD<br>WITHOUT GUESSING<span class="hero-dot">.</span></h1>
+          <p class="docs-subtitle">Use these checklists when a view is empty, browser history is missing, permissions do not stick, activation gets stuck, exports cannot write, the app is hidden, blocking needs repair, input tracking is quiet, or CLI/MCP setup fails.</p>
+        </div>
+        <aside class="docs-hero-card">
+          <h2>Before anything else</h2>
+          <ul>
+            <li>Confirm the app is trialing or activated.</li>
+            <li>Restart after granting macOS permissions.</li>
+            <li>Check the selected date range.</li>
+            <li>Email exact error text if you need support.</li>
+          </ul>
+        </aside>
+      </div>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-sidebar-title">Docs</div>
+        <nav class="docs-nav-list" aria-label="Documentation pages">
+          <a href="index.html">Docs home</a>
+          <a href="getting-started.html">Getting Started</a>
+          <a href="permissions.html">Permissions</a>
+          <a href="troubleshooting.html" aria-current="page">Troubleshooting</a>
+          <a href="faq.html">FAQ</a>
+        </nav>
+        <div class="docs-sidebar-title">Problems</div>
+        <nav class="docs-nav-list" aria-label="Troubleshooting sections">
+          <a href="#quick-check">Quick check</a>
+          <a href="#empty-data">Empty data</a>
+          <a href="#browser-history">Browser history</a>
+          <a href="#full-disk-access">Full Disk Access</a>
+          <a href="#activation">Trial/license</a>
+          <a href="#exports">Export failures</a>
+          <a href="#hidden-app">Hidden app</a>
+          <a href="#blocking">Blocking helper</a>
+          <a href="#input">Input tracking</a>
+          <a href="#cli-mcp">CLI/MCP</a>
+        </nav>
+      </aside>
+
+      <div class="docs-content">
+        <section id="quick-check" class="doc-section">
+          <h2>Five-minute quick check</h2>
+          <p>Most setup issues are permission, date-range, or activation problems. Run this list first.</p>
+          <ol class="doc-steps">
+            <li class="doc-step">
+              <h3>Confirm unlock state</h3>
+              <p>Open Settings → License & Trial. You should see an active trial, paid activation, or a message explaining what failed.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Return to Today</h3>
+              <p>If you are viewing a past day, week, or month, the current period will not automatically replace it until you return to the present range.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Grant permissions, then restart</h3>
+              <p>Full Disk Access, Input Monitoring, and Accessibility changes usually require quitting and reopening time.md.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Create a real session</h3>
+              <p>Use one app for more than a few seconds, switch to another app, then wait for the dashboard to refresh.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Capture the exact error</h3>
+              <p>If a screen shows an error, copy the exact wording. It usually names the blocked file, database, or activation endpoint.</p>
+            </li>
+          </ol>
+        </section>
+
+        <section id="empty-data" class="doc-section">
+          <h2>Overview, Review, Details, or Reports show no data</h2>
+          <div class="doc-callout warning">
+            <strong>New installs need a completed session</strong>
+            <p>time.md writes a session after you leave an app or the screen sleeps. The current app is still in progress and may not appear until the session finalizes.</p>
+          </div>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>What to check</h3>
+              <ul>
+                <li>The trial or license is active; collectors do not run while the app is locked.</li>
+                <li>The date range includes today or the period you expect.</li>
+                <li>You used an app for longer than about two seconds before switching away.</li>
+                <li>Full Disk Access is granted if you expect historical local Screen Time data.</li>
+                <li>The app was running while you expected live sessions to be recorded.</li>
+              </ul>
+            </div>
+            <div class="doc-card">
+              <h3>Try this</h3>
+              <ol>
+                <li>Quit and reopen time.md.</li>
+                <li>Open Safari for 20 seconds.</li>
+                <li>Switch to Finder or another app for 20 seconds.</li>
+                <li>Return to time.md and check Overview.</li>
+                <li>If still empty, check the local database path below.</li>
+              </ol>
+            </div>
+          </div>
+          <pre class="doc-pre"><code>~/Library/Application Support/time.md/screentime.db
+~/Library/Application Support/time.md/screen-time-snapshot.json</code></pre>
+          <p>If those files do not exist after activation and app switching, the app may not have permission to write to Application Support or may be running from a damaged install. Move it to <code>/Applications</code> and reinstall the latest build.</p>
+        </section>
+
+        <section id="browser-history" class="doc-section">
+          <h2>Web History is missing browser data</h2>
+          <p>Web History reads local browser databases. Private browsing/incognito windows, cleared history, uninstalled browsers, unsupported profiles, and missing Full Disk Access can all result in empty rows.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Symptom</th>
+                  <th>Likely cause</th>
+                  <th>Fix</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>No browsers listed</td>
+                  <td>time.md cannot see browser history files.</td>
+                  <td>Grant Full Disk Access, restart time.md, and confirm the browsers are installed.</td>
+                </tr>
+                <tr>
+                  <td>One browser missing</td>
+                  <td>Browser disabled in Settings or using a profile time.md does not discover.</td>
+                  <td>Open Settings → Web Browsers and enable the browser. For Firefox, use a standard profile if possible.</td>
+                </tr>
+                <tr>
+                  <td>Recent visits missing</td>
+                  <td>Browser has not flushed history yet, history was cleared, or visits happened in private mode.</td>
+                  <td>Close/reopen the browser, refresh Web History, and avoid private windows for test visits.</td>
+                </tr>
+                <tr>
+                  <td>Older visits disappeared</td>
+                  <td>The browser deleted its own history.</td>
+                  <td>Enable Settings → Web Browsers → Persist web history locally before future clears.</td>
+                </tr>
+                <tr>
+                  <td>Permission denied error</td>
+                  <td>macOS denied access to the browser database path.</td>
+                  <td>Re-add the exact app copy under Full Disk Access and restart.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="doc-callout">
+            <strong>Supported browsers</strong>
+            <p>Safari, Chrome, Firefox, Arc, Brave, and Edge are supported. Chromium forks with custom profile paths may not appear automatically.</p>
+          </div>
+        </section>
+
+        <section id="full-disk-access" class="doc-section">
+          <h2>Full Disk Access still does not work</h2>
+          <ol class="doc-steps">
+            <li class="doc-step">
+              <h3>Remove stale entries</h3>
+              <p>In System Settings → Privacy & Security → Full Disk Access, remove old time.md entries. macOS may keep entries for deleted copies.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Add the real app path</h3>
+              <p>Add <code>/Applications/time.md.app</code>. If you run from Xcode, add the built app or Xcode depending on your launch method.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Restart the app</h3>
+              <p>Quit time.md completely and reopen it. If it runs in the menu bar, use the menu bar item or Activity Monitor to ensure it actually quit.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Restart macOS if needed</h3>
+              <p>Rarely, the macOS privacy database lags behind. A restart usually clears the stale permission state.</p>
+            </li>
+          </ol>
+          <p>If a specific path appears in an error, include it when contacting support. It tells us whether the failure is Screen Time, Safari, Chrome, Firefox, or the local time.md database.</p>
+        </section>
+
+        <section id="activation" class="doc-section">
+          <h2>Trial deep link, checkout, or activation key problems</h2>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Trial did not reopen the app</h3>
+              <p>Return to time.md manually. If the checkout success page shows a trial key, paste it into the activation screen. The automatic link should look like <code>timemd://activate-trial?session_id=cs_...</code>.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Activation key rejected</h3>
+              <p>Make sure you pasted the whole <code>TMD-XXXX-...</code> key, not the Stripe receipt number. Remove extra spaces and try again.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Trial says expired</h3>
+              <p>Expired trials return an expired status from the entitlement API. Buy a license and paste the paid activation key to continue.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Cannot reach server</h3>
+              <p>Check your internet connection, VPN, firewall, and system time. Saved paid activations and still-active saved trials can continue when temporary verification fails.</p>
+            </div>
+          </div>
+          <div class="doc-callout">
+            <strong>Reset only if you need to re-enter credentials</strong>
+            <p>Settings → License & Trial → Reset removes saved trial/license state from this Mac. The app locks until you start a trial or paste a valid key again.</p>
+          </div>
+          <p>For license email reissues or purchase help, email <a href="mailto:cody@isolated.tech">cody@isolated.tech</a> with the email used at checkout and any Stripe Checkout Session ID you have.</p>
+        </section>
+
+        <section id="exports" class="doc-section">
+          <h2>Export destination write failures</h2>
+          <p>time.md stores a security-scoped bookmark for user-selected export directories. If the folder moves, is deleted, is on a disconnected drive, or macOS marks the bookmark stale, writing can fail.</p>
+          <ol class="doc-steps">
+            <li class="doc-step">
+              <h3>Choose the folder again</h3>
+              <p>Open the Export screen and reselect the destination folder. This refreshes the sandbox bookmark.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Try a local folder</h3>
+              <p>Use <code>~/Downloads/time.md Exports</code> to rule out iCloud, Dropbox, external drives, network volumes, or read-only folders.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Check the filename</h3>
+              <p>Use a simple filename without slashes or path traversal. The export writer rejects unsafe absolute or parent-directory paths.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Confirm disk access</h3>
+              <p>Make sure the folder exists and your user account can write to it. If not, choose a different folder.</p>
+            </li>
+          </ol>
+          <div class="doc-callout">
+            <strong>Auto-export location</strong>
+            <p>The live file is named <code>screen-time-auto.&lt;ext&gt;</code> in your selected export directory and mirrors your last selected format, sections, and relative date range.</p>
+          </div>
+        </section>
+
+        <section id="hidden-app" class="doc-section">
+          <h2>The app disappeared from the Dock or menu bar</h2>
+          <p>Settings → Visibility can show time.md in the Dock, menu bar, both, or neither. macOS ties the Dock icon and Cmd-Tab entry together; menu bar visibility is separate.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Mode</th>
+                  <th>Where it appears</th>
+                  <th>How to recover</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Dock + Menu Bar</td>
+                  <td>Dock, Cmd-Tab, and menu bar.</td>
+                  <td>Normal mode.</td>
+                </tr>
+                <tr>
+                  <td>Menu Bar Only</td>
+                  <td>Menu bar item, hidden from Dock/Cmd-Tab.</td>
+                  <td>Click the menu bar item, or reopen time.md from Spotlight/Finder.</td>
+                </tr>
+                <tr>
+                  <td>Dock Only</td>
+                  <td>Dock and Cmd-Tab, no menu bar item.</td>
+                  <td>Use Dock, Cmd-Tab, Spotlight, or Finder.</td>
+                </tr>
+                <tr>
+                  <td>Hidden</td>
+                  <td>No Dock icon and no menu bar item.</td>
+                  <td>Open <code>/Applications/time.md.app</code> from Finder or Spotlight to show the main window.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="blocking" class="doc-section">
+          <h2>Website or app blocking needs recovery</h2>
+          <p>Blocking is intentionally simple: On means blocked, Off means viewable. Website blocks use the optional helper; app blocks observe frontmost applications and hide or notify.</p>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <span class="doc-card-number">WEBSITE</span>
+              <h3>Helper not installed</h3>
+              <p>If a website block is on and the helper card says setup is needed, click <strong>Set up helper once</strong>. macOS asks for an administrator password.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">UPGRADE</span>
+              <h3>Version mismatch</h3>
+              <p>Click <strong>Upgrade helper</strong>. Helper upgrades require admin approval because the helper lives in privileged system locations.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">STUCK</span>
+              <h3>Site still blocked</h3>
+              <p>Turn the rule off, click Refresh, then use <strong>Turn off all blocks</strong> if needed. Run diagnostics to reconcile managed domain rules.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">APP</span>
+              <h3>Blocked app keeps hiding</h3>
+              <p>Open time.md, go to Blocking, and switch the app rule off or delete it. Protected system apps are skipped unless you explicitly allow self/protected blocking.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">SAFETY</span>
+              <h3>Remove managed blocks</h3>
+              <p>Use <strong>Turn off all blocks</strong> before uninstalling or deleting app data so time.md can clear helper-owned domain state.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">SUPPORT</span>
+              <h3>Still stuck?</h3>
+              <p>Email support with the diagnostics message and whether the issue is a website domain, app bundle ID, or category rule.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="input" class="doc-section">
+          <h2>Input data is not appearing</h2>
+          <p>Input Tracking is optional and off by default. It only runs while time.md is running, after you enable it, and after macOS grants the required permission.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Check</th>
+                  <th>Why it matters</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Settings → Input Tracking is on</td>
+                  <td>The master toggle must be enabled before any events are captured.</td>
+                </tr>
+                <tr>
+                  <td>Keystroke/cursor level is not Off</td>
+                  <td>Each stream can be disabled independently.</td>
+                </tr>
+                <tr>
+                  <td>Input Monitoring is granted</td>
+                  <td>macOS blocks global keyboard/mouse event taps without it.</td>
+                </tr>
+                <tr>
+                  <td>Accessibility is granted if needed</td>
+                  <td>Some macOS configurations require Accessibility for global event access.</td>
+                </tr>
+                <tr>
+                  <td>Capture is not paused</td>
+                  <td><kbd>⌥</kbd><kbd>⌘</kbd><kbd>P</kbd> pauses capture for 30 minutes.</td>
+                </tr>
+                <tr>
+                  <td>Active app is not excluded</td>
+                  <td>Password managers such as 1Password and Bitwarden are excluded by default.</td>
+                </tr>
+                <tr>
+                  <td>Secure Input is not redacting content</td>
+                  <td>macOS Secure Input can remove typed characters from stored rows.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>If time.md does not appear under Input Monitoring, toggle Input Tracking on once, quit and reopen time.md, then check System Settings again.</p>
+        </section>
+
+        <section id="cli-mcp" class="doc-section">
+          <h2>CLI or MCP setup is not working</h2>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3><code>timemd</code> command not found</h3>
+              <p>Open Settings → CLI Access → Install. If Terminal still cannot find it, add <code>~/.local/bin</code> to your PATH:</p>
+              <pre class="doc-pre"><code>echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc</code></pre>
+            </div>
+            <div class="doc-card">
+              <h3>CLI conflict or missing binary</h3>
+              <p>If Settings reports a conflict, another file exists at <code>~/.local/bin/timemd</code>. Rename or remove that file, then click Repair. If the bundled binary is missing, reinstall time.md.</p>
+            </div>
+          </div>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>MCP agent not seeing tools</h3>
+              <p>Open Settings → MCP Integration. Confirm the server is on, the agent is registered, and the tools you need are not disabled. Restart the agent after changing config.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Manual MCP config</h3>
+              <p>For agents time.md does not auto-install, copy the manual JSON snippet from Settings. The command path must point to the bundled <code>timemd-mcp</code> binary inside your installed app.</p>
+            </div>
+          </div>
+          <pre class="doc-pre"><code>timemd help
+timemd list-tools
+timemd today --limit 5</code></pre>
+          <div class="doc-callout">
+            <strong>CLI and MCP read local data</strong>
+            <p>These tools query your local time.md databases. Be careful which terminal sessions, scripts, or AI agents you allow to use them.</p>
+          </div>
+        </section>
+
+        <section id="support" class="doc-section">
+          <h2>When to contact support</h2>
+          <p>Email <a href="mailto:cody@isolated.tech">cody@isolated.tech</a> if the troubleshooting steps do not fix the issue.</p>
+          <ul class="doc-checklist">
+            <li>Include your macOS version and time.md version.</li>
+            <li>Say whether you are using a trial or paid activation.</li>
+            <li>Paste the exact error message and file path, if shown.</li>
+            <li>For browser issues, name the browser and profile if known.</li>
+            <li>For blocking issues, name the domain/app and the diagnostics summary.</li>
+          </ul>
+          <div class="docs-next">
+            <a class="btn btn-primary" href="faq.html">NEXT: FAQ</a>
+            <a class="btn btn-outline" href="mailto:cody@isolated.tech">EMAIL SUPPORT</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="../privacy.html" class="footer-link">PRIVACY</a>
+        <a href="../terms.html" class="footer-link">TERMS</a>
+        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+      </div>
+      <div class="footer-right">
+        <span>© 2026 time.md. BUILT WITH PRECISION.</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

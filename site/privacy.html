@@ -28,9 +28,10 @@
       <div class="nav-links">
         <a href="index.html#portal">PORTAL</a>
         <a href="index.html#features">FEATURES</a>
-        <a href="index.html#privacy">PRIVACY</a>
+        <a href="docs/">DOCS</a>
+        <a href="privacy.html">PRIVACY</a>
       </div>
-      <a href="index.html#portal" class="nav-cta">BUY $19.99</a>
+      <a href="index.html#download" class="nav-cta">DOWNLOAD</a>
     </div>
   </nav>
 
@@ -73,7 +74,9 @@
             <li><strong>Screen time data:</strong> Stored at <code>~/Library/Application Support/time.md/screentime.db</code>.</li>
             <li><strong>Readable screen time snapshot:</strong> Automatically refreshed at <code>~/Library/Application Support/time.md/screen-time-snapshot.json</code> for local scripts and tools.</li>
             <li><strong>Formatted auto-export:</strong> Automatically refreshed as <code>screen-time-auto.&lt;ext&gt;</code> in your chosen export destination, using your last selected CSV, JSON, YAML, Markdown, or Obsidian export settings.</li>
-            <li><strong>Browser history:</strong> Read from local browser history databases for the Web History view. If you explicitly enable “Persist web history locally,” visit rows are archived in <code>~/Library/Application Support/time.md/screentime.db</code> so they remain available after a browser clears its own history.</li>
+            <li><strong>Browser history:</strong> Read from local browser history databases for the Web History view. If you explicitly enable “Persist web history locally,” visit rows are archived in <code>~/Library/Application Support/time.md/web-history.db</code> so they remain available after a browser clears its own history.</li>
+            <li><strong>Optional input tracking:</strong> Stored at <code>~/Library/Application Support/time.md/input-tracking.db</code> only after you enable Input Tracking.</li>
+            <li><strong>Blocking rules:</strong> Stored at <code>~/Library/Application Support/time.md/blocking-rules.db</code> if you use website/app blocking.</li>
             <li><strong>Category mappings:</strong> Stored at <code>~/Library/Application Support/time.md/category-mappings.db</code></li>
             <li><strong>Application preferences:</strong> Stored locally via macOS standard <code>UserDefaults</code>.</li>
           </ul>
@@ -132,9 +135,10 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-left">
+        <a href="docs/" class="footer-link">DOCS</a>
         <a href="privacy.html" class="footer-link">PRIVACY</a>
         <a href="terms.html" class="footer-link">TERMS</a>
-        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+        <a href="docs/support.html" class="footer-link">SUPPORT</a>
       </div>
       <div class="footer-right">
         <span>© 2026 time.md. BUILT WITH PRECISION.</span>

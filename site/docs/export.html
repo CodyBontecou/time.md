@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Export — time.md Docs</title>
+  <meta name="description" content="Export time.md screen time, browser history, trends, sessions, heatmaps, and optional input-tracking data as CSV, JSON, YAML, Markdown, or Obsidian notes.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a class="nav-cta" href="../index.html#download">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">Advanced Feature</div>
+          <h1>Export</h1>
+          <p>Turn your local time.md database into portable files for spreadsheets, scripts, archives, Markdown knowledge bases, or Obsidian vaults.</p>
+        </div>
+        <div class="docs-hero-card">
+          <strong>Portable by default</strong>
+          <p>Choose the format, date range, sections, filters, and destination. Exports are files on your Mac.</p>
+          <a class="btn btn-secondary" href="#formats">Compare formats</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="docs-layout">
+      <aside class="docs-sidebar">
+        <strong>On this page</strong>
+        <nav>
+          <a href="#overview">Overview</a>
+          <a href="#formats">Formats</a>
+          <a href="#modes">Modes</a>
+          <a href="#sections">Sections</a>
+          <a href="#filters">Filters</a>
+          <a href="#destinations">Destinations</a>
+          <a href="#schedules">Schedules</a>
+          <a href="#obsidian">Obsidian examples</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <section id="overview" class="docs-section">
+          <h2>What exports include</h2>
+          <p>The Export screen packages time.md’s local analytics into a report. You can export a simple summary, a complete archive, or a custom subset of sections. Filters apply before export so the file can be scoped to the date range, app, category, or browser history slice you need.</p>
+          <div class="doc-callout">
+            <strong>Exports are copies.</strong> Creating an export does not delete or modify your source database. Deleting an export file does not delete time.md’s stored history.
+          </div>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Human-readable</h3>
+              <p>Markdown and Obsidian exports are designed for review, notes, and long-term journaling.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Machine-readable</h3>
+              <p>CSV, JSON, and YAML are useful for spreadsheets, automation, and downstream analysis.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Repeatable</h3>
+              <p>Presets and scheduled exports let you reuse the same format and section choices over time.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="formats" class="docs-section">
+          <h2>Export formats</h2>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Format</th>
+                  <th>Best for</th>
+                  <th>Shape</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>CSV</td>
+                  <td>Spreadsheets and BI tools</td>
+                  <td>Tables with columns and rows.</td>
+                </tr>
+                <tr>
+                  <td>JSON</td>
+                  <td>Scripts, APIs, and structured archives</td>
+                  <td>Nested sections with metadata and records.</td>
+                </tr>
+                <tr>
+                  <td>YAML</td>
+                  <td>Readable config-like archives</td>
+                  <td>Structured data with indentation and keys.</td>
+                </tr>
+                <tr>
+                  <td>Markdown</td>
+                  <td>Reports, docs, and GitHub-friendly notes</td>
+                  <td>Headings, tables, metadata, and optional table of contents.</td>
+                </tr>
+                <tr>
+                  <td>Obsidian</td>
+                  <td>Personal knowledge bases</td>
+                  <td>Markdown plus frontmatter, tags, wiki links, and backlinks.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Markdown exports support GitHub-flavored, simple-text, or HTML table styles; ATX or Setext headings; optional emoji; and optional horizontal rules. Obsidian exports add YAML or TOML frontmatter, app-note folders, daily-note links, tags, Dataview-compatible fields, and related-link sections.</p>
+        </section>
+
+        <section id="modes" class="docs-section">
+          <h2>Modes: General, Extensive, Custom</h2>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <h3>General</h3>
+              <p>A compact report with summary, top apps, categories, and trends. Use it for quick sharing or weekly review.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Extensive</h3>
+              <p>A fuller archive that selects all available report sections exposed by the current build, including detailed and raw sections.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Custom</h3>
+              <p>Choose sections manually, then save the result as a preset when you want to reuse the same shape.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="sections" class="docs-section">
+          <h2>Available sections</h2>
+          <p>Section availability depends on the features you use and the data present in your local databases. The export model supports these groups:</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Group</th>
+                  <th>Sections</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Core screen time</td>
+                  <td>Summary, apps, categories, trends, sessions, raw sessions</td>
+                  <td>Built from the main <code>screentime.db</code> usage history.</td>
+                </tr>
+                <tr>
+                  <td>Visualization data</td>
+                  <td>Heatmap, productivity metrics, focus blocks, app transitions</td>
+                  <td>Useful for custom dashboards and deeper behavioral analysis.</td>
+                </tr>
+                <tr>
+                  <td>Web history</td>
+                  <td>Web history, top domains, browser analytics</td>
+                  <td>Included when browser history data is available and selected.</td>
+                </tr>
+                <tr>
+                  <td>Input tracking</td>
+                  <td>Input summary, cursor heatmap, typed words, key frequency, raw input events</td>
+                  <td>Only meaningful when optional input tracking has been enabled and retained locally.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="doc-callout">
+            <strong>Raw input sections are sensitive.</strong> They can include detailed keyboard or cursor activity depending on your input-tracking level. Review them before sharing any export.
+          </div>
+        </section>
+
+        <section id="filters" class="docs-section">
+          <h2>Filters and presets</h2>
+          <p>Filters are captured with each export so the file can describe the slice of data it contains.</p>
+          <ul class="doc-checklist">
+            <li>Date range and relative ranges such as today, yesterday, last 7 days, last 30 days, this week, and this month.</li>
+            <li>App filters for one app or a selected set of apps.</li>
+            <li>Category filters for grouped screen-time categories.</li>
+            <li>Browser-history filters when exporting web sections.</li>
+            <li>Granularity controls such as day, hour, or week where supported by the section.</li>
+          </ul>
+          <p>Built-in presets cover common exports, and user presets save your own mode, format, date range, and selected sections.</p>
+        </section>
+
+        <section id="destinations" class="docs-section">
+          <h2>Destinations and filenames</h2>
+          <p>You can choose an export folder, or let time.md write to the default location:</p>
+          <pre class="doc-pre"><code>~/Downloads/time.md Exports/</code></pre>
+          <p>When you choose a custom folder, time.md stores permission to use that folder so future manual or scheduled exports can write there. If the folder becomes unavailable, choose it again from the Export screen.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Manual exports</h3>
+              <p>Create timestamped files in the selected destination.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Auto export</h3>
+              <p>Writes a stable snapshot named <code>screen-time-auto.&lt;ext&gt;</code> using the selected export format.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Export history</h3>
+              <p>The app records recent export operations so you can confirm what ran and where it wrote.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="schedules" class="docs-section">
+          <h2>Scheduled and automatic exports</h2>
+          <p>time.md includes two repeatable export paths:</p>
+          <ol class="doc-steps">
+            <li class="doc-step">
+              <h3>Scheduled exports</h3>
+              <p>Use export settings to run the same report on a daily, weekly, or monthly cadence, with a relative date range such as the previous day or previous week.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Auto-save snapshot</h3>
+              <p>The background auto exporter writes <code>screen-time-auto.&lt;ext&gt;</code> to the configured destination, making a predictable file available to other local tools.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Sensitive-data guardrail</h3>
+              <p>The auto exporter excludes raw input sections so a continuously updated snapshot does not silently include detailed keystroke or cursor rows.</p>
+            </li>
+          </ol>
+        </section>
+
+        <section id="obsidian" class="docs-section">
+          <h2>Obsidian export examples</h2>
+          <p>Obsidian mode is Markdown with vault-friendly metadata. Frontmatter can be YAML or TOML, and wiki links can point to daily notes and app notes under a folder such as <code>Apps/</code>.</p>
+          <pre class="doc-pre"><code>---
+title: "time.md Data Export"
+date: 2026-02-25
+type: screentime-export
+total_hours: 7.00
+total_minutes: 420
+created: 2026-02-25T09:30:00
+modified: 2026-02-25T09:30:00
+top_apps:
+  - "Safari"
+  - "Xcode"
+  - "Terminal"
+tags:
+  - timemd
+  - screentime
+---
+
+# time.md Data Export
+
+| Property | Value |
+|----------|-------|
+| Generated | [[2026-02-25]] |
+| Date Range | [[2026-02-18]] → [[2026-02-25]] |
+
+#timemd #screentime
+
+## Top Apps
+
+| app_name | total_seconds | session_count |
+|----------|---------------|---------------|
+| [[Apps/Safari|Safari]] | 7200.000 | 45 |
+| [[Apps/Xcode|Xcode]] | 5400.000 | 23 |
+
+## Related
+
+- Daily Note: [[2026-02-25]]
+- Top Apps:
+  - [[Apps/Safari|Safari]]
+  - [[Apps/Xcode|Xcode]]</code></pre>
+          <p>Because exports are plain files, you can place them directly inside an Obsidian vault, commit them to a private Git repository, or process them with your own scripts.</p>
+        </section>
+
+        <nav class="docs-next">
+          <a href="web-history.html">
+            <span>Previous</span>
+            <strong>← Web History</strong>
+          </a>
+          <a href="privacy-local-data.html">
+            <span>Next</span>
+            <strong>Privacy &amp; local data →</strong>
+          </a>
+        </nav>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <img src="../app-icon.png" alt="time.md" class="footer-icon">
+        <span>time.md</span>
+      </div>
+      <div class="footer-links">
+        <a href="../privacy.html">Privacy</a>
+        <a href="../terms.html">Terms</a>
+        <a href="mailto:cody@isolated.tech">Contact</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

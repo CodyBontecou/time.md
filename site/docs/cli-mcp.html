@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLI & MCP — time.md Docs</title>
+  <meta name="description" content="Install the time.md CLI, query local screen time data, and connect the bundled MCP server to Claude Code, Cursor, Windsurf, or any MCP-compatible agent.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a class="nav-cta" href="../index.html#download">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">Advanced Feature</div>
+          <h1>CLI &amp; MCP</h1>
+          <p>Query your local time.md database from the terminal or connect it to MCP-compatible coding agents for natural-language screen-time analysis.</p>
+        </div>
+        <div class="docs-hero-card">
+          <strong>Local read access</strong>
+          <p>The CLI and MCP server read local SQLite databases on demand. They do not upload your activity data to time.md.</p>
+          <a class="btn btn-secondary" href="#privacy">Review boundaries</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="docs-layout">
+      <aside class="docs-sidebar">
+        <strong>On this page</strong>
+        <nav>
+          <a href="#install">Install CLI</a>
+          <a href="#commands">CLI commands</a>
+          <a href="#sql">Read-only SQL</a>
+          <a href="#mcp">MCP setup</a>
+          <a href="#tools">Tools</a>
+          <a href="#gating">Tool gating</a>
+          <a href="#paths">Data paths</a>
+          <a href="#privacy">Privacy boundaries</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <section id="install" class="docs-section">
+          <h2>Install the CLI</h2>
+          <p>Open <strong>Settings → CLI Access</strong> and choose install. time.md creates symlinks in your user-writable bin directory:</p>
+          <pre class="doc-pre"><code>~/.local/bin/timemd
+~/.local/bin/timemd-mcp</code></pre>
+          <p><code>timemd</code> is the primary command. <code>timemd-mcp</code> remains available for backwards compatibility and for explicit MCP-server use.</p>
+          <p>If <code>~/.local/bin</code> is not on your shell PATH, add it with the snippet shown by the app:</p>
+          <pre class="doc-pre"><code>echo 'export PATH="$HOME/.local/bin:$PATH"' &gt;&gt; ~/.zshrc &amp;&amp; source ~/.zshrc</code></pre>
+          <div class="doc-callout">
+            <strong>Conflict handling:</strong> if another file already exists at <code>~/.local/bin/timemd</code> or <code>timemd-mcp</code>, remove it or choose a different install approach before retrying.
+          </div>
+        </section>
+
+        <section id="commands" class="docs-section">
+          <h2>CLI commands</h2>
+          <p>The CLI prints JSON to stdout. Tool aliases omit the <code>get_</code> prefix, so <code>top-apps</code> resolves to <code>get_top_apps</code>.</p>
+          <pre class="doc-pre"><code>timemd today --limit 5
+
+timemd top-apps --since 7d --limit 20
+
+timemd sessions --since today --app-name Slack --limit 50
+
+timemd call get_heatmap --since 30d --stream-type app_usage
+
+timemd list-tools</code></pre>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Pattern</th>
+                  <th>Meaning</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>timemd &lt;alias&gt; [opts]</code></td>
+                  <td>Run a tool by friendly alias, such as <code>today</code> or <code>top-apps</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>timemd call &lt;tool&gt; [opts]</code></td>
+                  <td>Run an exact MCP tool name, such as <code>get_daily_trend</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>timemd list-tools</code></td>
+                  <td>Print the available tool catalog as JSON.</td>
+                </tr>
+                <tr>
+                  <td><code>timemd mcp</code></td>
+                  <td>Start the stdio MCP server explicitly.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>Date arguments accept values such as <code>today</code>, <code>yesterday</code>, <code>7d</code>, <code>30d</code>, <code>this_week</code>, <code>this_month</code>, <code>this_year</code>, <code>all</code>, and ISO dates such as <code>2026-06-06</code>.</p>
+        </section>
+
+        <section id="sql" class="docs-section">
+          <h2>Read-only SQL</h2>
+          <p>The <code>sql</code> and <code>query</code> commands call the <code>raw_query</code> tool. Only a single read-only statement is allowed, and it must start with <code>SELECT</code>, <code>WITH</code>, or <code>EXPLAIN</code>. Semicolons are rejected.</p>
+          <pre class="doc-pre"><code>timemd sql 'SELECT app_name, SUM(duration_seconds) AS seconds FROM usage GROUP BY app_name ORDER BY seconds DESC LIMIT 10'
+
+timemd sql 'SELECT word, SUM(count) AS total FROM inp.typed_words GROUP BY word ORDER BY total DESC LIMIT 25'</code></pre>
+          <p>When present, the helper attaches sibling databases:</p>
+          <ul class="doc-checklist">
+            <li><code>cat.app_category_map</code> from <code>category-mappings.db</code>.</li>
+            <li><code>inp.keystroke_events</code>, <code>inp.mouse_events</code>, <code>inp.typed_words</code>, and <code>inp.cursor_heatmap_bins</code> from <code>input-tracking.db</code>.</li>
+          </ul>
+        </section>
+
+        <section id="mcp" class="docs-section">
+          <h2>MCP setup</h2>
+          <p>The bundled binary is a standard stdio MCP server. In <strong>Settings → MCP Integration</strong>, time.md can register a <code>mcpServers.timemd</code> entry for supported agents while preserving the rest of each config file.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Agent</th>
+                  <th>Config path</th>
+                  <th>What time.md writes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Claude Code</td>
+                  <td><code>~/.claude.json</code></td>
+                  <td><code>mcpServers.timemd</code></td>
+                </tr>
+                <tr>
+                  <td>Cursor</td>
+                  <td><code>~/.cursor/mcp.json</code></td>
+                  <td><code>mcpServers.timemd</code></td>
+                </tr>
+                <tr>
+                  <td>Windsurf</td>
+                  <td><code>~/.codeium/windsurf/mcp_config.json</code></td>
+                  <td><code>mcpServers.timemd</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>For any other MCP-compatible tool, copy the generic snippet from the MCP settings screen. It points to the bundled <code>timemd-mcp</code> executable inside the app bundle. The exact path depends on where time.md is installed.</p>
+          <pre class="doc-pre"><code>{
+  "mcpServers": {
+    "timemd": {
+      "command": "/Applications/time.md.app/Contents/Resources/timemd-mcp",
+      "args": [],
+      "env": {}
+    }
+  }
+}</code></pre>
+        </section>
+
+        <section id="tools" class="docs-section">
+          <h2>Available tools</h2>
+          <p>The catalog includes summary, trend, session, category, web/media, heatmap, comparison, and input-tracking tools. Use <code>get_schema</code> or <code>timemd list-tools</code> first when you are unsure what is available in your build.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Core summaries</h3>
+              <p><code>get_today</code>, <code>get_range_totals</code>, <code>get_top_apps</code>, <code>get_top_categories</code>, <code>get_sessions</code>.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Time patterns</h3>
+              <p><code>get_hourly_distribution</code>, <code>get_daily_trend</code>, <code>get_weekday_breakdown</code>, <code>get_heatmap</code>, <code>get_typical_day</code>.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Deep analysis</h3>
+              <p><code>get_app_detail</code>, <code>get_longest_sessions</code>, <code>get_context_switches</code>, <code>get_app_transitions</code>, <code>compare_periods</code>.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Input tracking</h3>
+              <p><code>get_cursor_heatmap</code>, <code>get_top_typed_words</code>, <code>get_top_typed_keys</code>, <code>get_typing_intensity</code>, <code>get_input_event_counts</code>.</p>
+            </div>
+          </div>
+          <p>Input tools return empty results when optional input tracking was never enabled or the relevant tables do not exist.</p>
+        </section>
+
+        <section id="gating" class="docs-section">
+          <h2>Global toggle and tool gating</h2>
+          <p>MCP access can be controlled from time.md settings and by environment variables.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Control</th>
+                  <th>Effect</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Global MCP toggle</td>
+                  <td>When off, the server returns no tools and rejects tool calls.</td>
+                </tr>
+                <tr>
+                  <td>Per-tool toggles</td>
+                  <td>Disabled tools are filtered from <code>tools/list</code> and rejected on <code>tools/call</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>TIMEMD_MCP_ENABLED=0</code></td>
+                  <td>Disables the server from an agent config or shell environment.</td>
+                </tr>
+                <tr>
+                  <td><code>TIMEMD_DISABLED_TOOLS</code></td>
+                  <td>Comma-separated tool names to hide, for example <code>raw_query,get_top_typed_words</code>.</td>
+                </tr>
+                <tr>
+                  <td><code>mcp-settings.json</code></td>
+                  <td>Runtime settings file written under Application Support so manual agent configs can still observe time.md’s settings.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <pre class="doc-pre"><code>TIMEMD_DISABLED_TOOLS=raw_query,get_top_typed_words timemd list-tools
+
+TIMEMD_MCP_ENABLED=0 timemd-mcp mcp</code></pre>
+        </section>
+
+        <section id="paths" class="docs-section">
+          <h2>Data paths and overrides</h2>
+          <p>The helper searches for the canonical local data directory and a few legacy/development locations. The default location is:</p>
+          <pre class="doc-pre"><code>~/Library/Application Support/time.md/screentime.db</code></pre>
+          <p>Environment overrides are available for development and diagnostics:</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Variable</th>
+                  <th>Meaning</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>TIMEMD_DATA_DIR</code></td>
+                  <td>Directory containing <code>screentime.db</code> and sibling databases.</td>
+                </tr>
+                <tr>
+                  <td><code>SCREENTIME_DB_PATH</code></td>
+                  <td>Exact path to the main SQLite database.</td>
+                </tr>
+                <tr>
+                  <td><code>TIMEMD_MCP_SETTINGS_PATH</code></td>
+                  <td>Alternate path for the runtime MCP settings JSON file.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="privacy" class="docs-section">
+          <h2>Privacy boundaries</h2>
+          <ul class="doc-checklist">
+            <li>The CLI and MCP server read local SQLite files on demand; time.md does not receive those query results.</li>
+            <li>Agents connected through MCP can see any data returned by enabled tools. Disable sensitive tools before connecting agents you do not fully trust.</li>
+            <li><code>raw_query</code> is read-only, but it can still reveal detailed local data, including input-tracking tables if they exist.</li>
+            <li>Input-tracking tools may expose words, key counts, cursor positions, and event intensity if you enabled that feature locally.</li>
+            <li>Removing the <code>mcpServers.timemd</code> entry from an agent config disconnects that agent. Turning off the global MCP toggle disables all MCP access from time.md settings.</li>
+          </ul>
+          <p>For the full local-data model, see <a href="privacy-local-data.html">Privacy &amp; Local Data</a>.</p>
+        </section>
+
+        <nav class="docs-next">
+          <a href="input-tracking.html">
+            <span>Previous</span>
+            <strong>← Input Tracking</strong>
+          </a>
+          <a href="web-history.html">
+            <span>Start over</span>
+            <strong>Web History →</strong>
+          </a>
+        </nav>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <img src="../app-icon.png" alt="time.md" class="footer-icon">
+        <span>time.md</span>
+      </div>
+      <div class="footer-links">
+        <a href="../privacy.html">Privacy</a>
+        <a href="../terms.html">Terms</a>
+        <a href="mailto:cody@isolated.tech">Contact</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

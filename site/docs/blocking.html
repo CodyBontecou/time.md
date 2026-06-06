@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blocking — time.md Docs</title>
+  <meta name="description" content="Configure time.md website, app, and category blocking with helper setup, diagnostics, recovery, and local-only enforcement notes.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a class="nav-cta" href="../index.html#download">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">Advanced Feature</div>
+          <h1>Blocking</h1>
+          <p>Create local website, app, and category blocks that help you interrupt distracting loops without sending your browsing or app history to a cloud service.</p>
+        </div>
+        <div class="docs-hero-card">
+          <strong>Recovery-first design</strong>
+          <p>Diagnostics and “Remove all managed blocks” are built in so time.md can clean up its own hosts, pf, and active cooldown state.</p>
+          <a class="btn btn-secondary" href="#recovery">Recovery steps</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="docs-layout">
+      <aside class="docs-sidebar">
+        <strong>On this page</strong>
+        <nav>
+          <a href="#overview">Overview</a>
+          <a href="#rule-types">Rule types</a>
+          <a href="#websites">Website blocking</a>
+          <a href="#apps">App and category blocks</a>
+          <a href="#helper">Privileged helper</a>
+          <a href="#diagnostics">Diagnostics</a>
+          <a href="#recovery">Remove managed blocks</a>
+          <a href="#extension">Browser extension bridge</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <section id="overview" class="docs-section">
+          <h2>What Blocking does</h2>
+          <p>Blocking turns selected websites, apps, or categories into active interventions. A direct block stays active until you turn its switch off. Policy-driven cooldowns can also be created after repeated visits or app sessions, then expire after the configured cooldown window.</p>
+          <div class="doc-callout">
+            <strong>Analytics remain separate.</strong> Blocking state lives in its own database and recovery paths are designed so blocking failures do not corrupt the main screen-time analytics store.
+          </div>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <h3>Website rules</h3>
+              <p>Make domains unviewable system-wide with the helper installed.</p>
+            </div>
+            <div class="doc-card">
+              <h3>App rules</h3>
+              <p>Hide blocked apps when they become the frontmost app and show a countdown/reminder.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Category rules</h3>
+              <p>Apply the same policy to groups such as Social, Games, or custom app categories.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="rule-types" class="docs-section">
+          <h2>Rule types and states</h2>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Target</th>
+                  <th>Example</th>
+                  <th>How it is enforced</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Website</td>
+                  <td><code>reddit.com</code></td>
+                  <td>Network-level domain rules applied by the time.md helper when the rule is active.</td>
+                </tr>
+                <tr>
+                  <td>App</td>
+                  <td><code>Slack</code> or a bundle identifier</td>
+                  <td>Frontmost-app observation hides or otherwise handles the app when opened.</td>
+                </tr>
+                <tr>
+                  <td>Category</td>
+                  <td><code>Social</code></td>
+                  <td>Policy evaluation matches the app’s category and applies the chosen intervention.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>The Blocking screen labels enabled direct blocks as <strong>BLOCKED</strong> and disabled blocks as <strong>VIEWABLE</strong>. Deleting a block removes the rule definition. Turning it off keeps the rule but makes the target viewable again.</p>
+        </section>
+
+        <section id="websites" class="docs-section">
+          <h2>Website blocking</h2>
+          <p>Website blocks normalize domains before enforcement. A rule such as <code>https://www.reddit.com/r/all</code> is normalized to <code>reddit.com</code>. time.md then expands common variants because <code>/etc/hosts</code> cannot express true wildcards.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Domain normalization</h3>
+              <p>Protocols, paths, query strings, leading <code>www.</code>, and wildcard prefixes are stripped before the rule is stored.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Hostname variants</h3>
+              <p>Rules include the base domain, <code>www</code>, and common subdomains such as <code>old</code>, <code>new</code>, <code>m</code>, <code>mobile</code>, <code>i</code>, <code>amp</code>, and <code>np</code>.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Observed variants</h3>
+              <p>The policy path can carry observed hostnames so sites you actually visit can be added to managed enforcement state.</p>
+            </div>
+          </div>
+          <p>Website access events are derived from local browser history polling. If browser history access is unavailable, app analytics continue and website-policy events may be incomplete until permissions or browser access recover.</p>
+        </section>
+
+        <section id="apps" class="docs-section">
+          <h2>App and category blocks</h2>
+          <p>App blocking runs through frontmost-app observation. When a blocked app opens, time.md shows a notice and, by default, hides the app so you can switch away. Internal enforcement modes also support notify-only and quit-request behavior.</p>
+          <ul class="doc-checklist">
+            <li>Finder, System Settings, Terminal, time.md, and other protected system paths are not hidden by default.</li>
+            <li>Manual blocks stay active until you turn the rule off.</li>
+            <li>Cooldown blocks show the remaining time and clear when the cooldown expires.</li>
+            <li>Category blocks use time.md’s app category mappings, including automatically populated macOS category metadata where available.</li>
+          </ul>
+        </section>
+
+        <section id="helper" class="docs-section">
+          <h2>Privileged website blocking helper</h2>
+          <p>System-wide website enforcement needs a privileged helper because normal apps cannot safely edit <code>/etc/hosts</code> or manage pf anchor state. The helper is only needed when website blocks are on.</p>
+          <ol class="doc-steps">
+            <li class="doc-step">
+              <h3>Set up once</h3>
+              <p>When website blocks are active and the helper is missing, the app shows a Website Blocking Helper card. Choose <strong>Set up helper once</strong>; macOS asks for administrator approval.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Upgrade when requested</h3>
+              <p>If the helper version is old, choose <strong>Upgrade helper</strong>. Admin approval is required for install or upgrade, not for every rule change.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Rule changes are staged locally</h3>
+              <p>After setup, time.md publishes desired domain state under Application Support and the helper applies it without another password prompt.</p>
+            </li>
+          </ol>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>System resource</th>
+                  <th>How time.md uses it</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>/etc/hosts</code></td>
+                  <td>Maintains one marker-delimited block owned by time.md and preserves unrelated user content.</td>
+                </tr>
+                <tr>
+                  <td><code>/etc/pf.anchors/com.bontecou.time-md</code></td>
+                  <td>Owns a pf anchor for best-effort network rules when resolved IP addresses are available. Hosts entries remain the primary domain-name path.</td>
+                </tr>
+                <tr>
+                  <td><code>~/Library/Application Support/time.md/DomainBlockHelper</code></td>
+                  <td>Staging area for desired state, helper status, and apply results.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="diagnostics" class="docs-section">
+          <h2>Diagnostics and repair</h2>
+          <p>The Blocking screen includes diagnostics that classify the system as healthy, degraded, or broken. Use diagnostics after installing the helper, after editing rules, or any time a site remains blocked after you expected it to clear.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Healthy</h3>
+              <p>Helper status and active block state agree. Website blocks should apply and clear normally.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Degraded</h3>
+              <p>A helper or recovery issue exists. Website blocks may need setup, upgrade, or repair.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Broken</h3>
+              <p>time.md detected unsafe partial state, such as a malformed managed hosts block, that needs attention.</p>
+            </div>
+          </div>
+          <p>Repair operations clear expired cooldowns, reconcile active domain blocks, and recreate owned helper state without touching unrelated hosts, pf, VPN, or firewall rules.</p>
+        </section>
+
+        <section id="recovery" class="docs-section">
+          <h2>Remove all managed blocks</h2>
+          <p>If you need to immediately restore access, use the bulk recovery action in Blocking. The UI may label the button <strong>Turn off all blocks</strong>; internally the conservative recovery operation is <strong>Remove all managed blocks</strong>.</p>
+          <div class="doc-callout">
+            <strong>What it removes:</strong> active cooldown timestamps and time.md-owned domain helper rules. <strong>What it keeps:</strong> rule definitions, strike history, analytics data, browser history, and user content outside time.md’s marker block.
+          </div>
+          <ol class="doc-steps">
+            <li class="doc-step">
+              <h3>Clear active states</h3>
+              <p>Active block timestamps are set to nil so apps and websites become viewable again.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Clear helper state</h3>
+              <p>The helper removes the time.md-owned hosts marker block and clears the owned pf anchor state.</p>
+            </li>
+            <li class="doc-step">
+              <h3>Leave rules intact</h3>
+              <p>Your block rules remain in <code>blocking-rules.db</code>. Turn them on again when you want to re-enable them.</p>
+            </li>
+          </ol>
+          <p>For a full uninstall, remove managed blocks first, then uninstall the helper with admin consent.</p>
+        </section>
+
+        <section id="extension" class="docs-section">
+          <h2>Optional Chromium browser-extension bridge</h2>
+          <p>time.md’s source includes an optional browser-extension bridge for Chromium-family browsers. Its purpose is a low-latency URL signal for blocking-policy evaluation. It is not required for normal screen-time analytics, app blocking, or browser-history polling.</p>
+          <ul class="doc-checklist">
+            <li>If the bridge is absent, website access can still be inferred from local browser history when permissions allow it.</li>
+            <li>The bridge does not upload browsing data to time.md servers.</li>
+            <li>Private/incognito behavior depends on browser extension permissions and the browser’s own history rules.</li>
+            <li>Full Disk Access and Web History troubleshooting still apply to the polling path.</li>
+          </ul>
+        </section>
+
+        <nav class="docs-next">
+          <a href="privacy-local-data.html">
+            <span>Previous</span>
+            <strong>← Privacy &amp; local data</strong>
+          </a>
+          <a href="input-tracking.html">
+            <span>Next</span>
+            <strong>Input Tracking →</strong>
+          </a>
+        </nav>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <img src="../app-icon.png" alt="time.md" class="footer-icon">
+        <span>time.md</span>
+      </div>
+      <div class="footer-links">
+        <a href="../privacy.html">Privacy</a>
+        <a href="../terms.html">Terms</a>
+        <a href="mailto:cody@isolated.tech">Contact</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

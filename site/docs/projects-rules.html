@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects and Rules docs — time.md</title>
+  <meta name="description" content="Learn how Projects and Rules work in time.md: categories, app grouping, distribution charts, editing categories, suggestions, unmapped coverage, and bulk mapping.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md app icon" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a href="../index.html#download" class="nav-cta">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">04 / Screen guide</div>
+          <h1 class="docs-title">Projects + Rules</h1>
+          <p class="docs-subtitle">Projects and Rules are two sides of the same model. Projects shows how app time rolls up into categories. Rules is where you create, edit, remove, and bulk-assign those app-to-category mappings.</p>
+        </div>
+        <aside class="docs-hero-card" aria-label="Projects and Rules quick reference">
+          <h2>Best for</h2>
+          <ul>
+            <li>Turning app names into meaningful work categories</li>
+            <li>Checking category distribution and app grouping</li>
+            <li>Finding unmapped apps that weaken reports</li>
+            <li>Bulk mapping apps with suggestions</li>
+          </ul>
+        </aside>
+      </div>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar" aria-label="Documentation navigation">
+        <div class="docs-eyebrow">Docs</div>
+        <nav>
+          <a href="overview.html">Overview</a>
+          <a href="review.html">Review</a>
+          <a href="details.html">Details</a>
+          <a href="projects-rules.html" aria-current="page">Projects + Rules</a>
+          <a href="reports.html">Reports</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <section class="doc-section" id="model">
+          <h2>The category and project model</h2>
+          <p>time.md treats a category as a project-like bucket. Each app can map to one category, and every screen that groups by category uses those mappings.</p>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <h3>App</h3>
+              <p>The raw unit from macOS activity data: Safari, Xcode, Slack, Terminal, Figma, and so on.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Category</h3>
+              <p>Your label for what that app means in your work: Development, Communication, Design, Browsing, Writing, Social Media, or any name you choose.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Project rollup</h3>
+              <p>The Projects screen groups app time by category so you can read time as work buckets instead of app trivia.</p>
+            </div>
+          </div>
+          <div class="doc-callout">
+            <strong>Unmapped apps still count</strong>
+            <p>Apps without a mapping still appear in totals. Projects may show them as Uncategorized, while Rules counts them as unmapped coverage to fix.</p>
+          </div>
+        </section>
+
+        <section class="doc-section" id="projects-screen">
+          <h2>Use Projects to inspect grouped time</h2>
+          <p>Projects starts with a searchable list of category groups. Each group shows total time, percentage of the period, app count, and a progress bar. Expand a category to see the apps inside it.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Distribution chart</h3>
+              <p>The sidebar donut shows the biggest category shares. It is useful for a quick balance check: work, communication, browsing, entertainment, and everything else.</p>
+            </div>
+            <div class="doc-card">
+              <h3>App grouping</h3>
+              <p>Expand a category to see its apps sorted by time. Each app row shows its duration and share of that category.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Search</h3>
+              <p>Search by app or category when the list is long. This is the fastest way to find a misfiled app.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Expand all</h3>
+              <p>Use Expand All when auditing mappings. Collapse All returns the page to a high-level summary.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-section" id="editing-categories">
+          <h2>Edit categories from Projects</h2>
+          <p>Projects lets you make quick corrections without leaving the screen. Use the pencil on an app row to open the category editor.</p>
+          <div class="doc-steps">
+            <div class="doc-step">
+              <h3>Expand the category</h3>
+              <p>Open the category that contains the app you want to edit. Uncategorized is the usual place to start during cleanup.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Click the pencil</h3>
+              <p>The editor shows the app name, a category field, and existing category chips you can reuse.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Save or remove</h3>
+              <p>Save assigns the app to the typed category. Remove clears the mapping so it can be remapped later.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-section" id="rules-screen">
+          <h2>Use Rules for coverage and bulk mapping</h2>
+          <p>Rules is built for mapping maintenance. It lists apps, current categories, time, edit controls, and checkboxes for bulk actions.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Rules control</th>
+                  <th>What it does</th>
+                  <th>When to use it</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Search apps</td>
+                  <td>Filters by app name or category name.</td>
+                  <td>Find a specific app or verify all apps in a category.</td>
+                </tr>
+                <tr>
+                  <td>Unmapped only</td>
+                  <td>Shows only apps without a category mapping.</td>
+                  <td>Clean up gaps before reviewing category reports.</td>
+                </tr>
+                <tr>
+                  <td>Coverage</td>
+                  <td>Shows mapped apps over total apps and a percentage bar.</td>
+                  <td>Track whether category reports are trustworthy enough to use.</td>
+                </tr>
+                <tr>
+                  <td>Suggestions</td>
+                  <td>Offers common category labels such as Development, Communication, Design, Browsing, Entertainment, Productivity, Social Media, and Writing.</td>
+                  <td>Keep naming consistent while bulk mapping.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="doc-section" id="bulk-workflow">
+          <h2>Bulk mapping workflow</h2>
+          <p>Bulk mapping is the quickest way to turn a raw app list into clean category analytics.</p>
+          <div class="doc-steps">
+            <div class="doc-step">
+              <h3>Open Rules and enable Unmapped only</h3>
+              <p>This removes noise and shows the apps still weakening category charts and reports.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Select related apps</h3>
+              <p>Use the row checkboxes for apps that belong in the same category. Select all visible rows only when they truly share a category.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Pick or type a category</h3>
+              <p>Use a suggestion for common labels, or type a custom category name for your own project model.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Assign and review coverage</h3>
+              <p>Click Assign, then watch the coverage count improve. Repeat until the remaining unmapped apps are either irrelevant or intentionally left unmapped.</p>
+            </div>
+          </div>
+          <div class="doc-callout">
+            <strong>Keep category names stable</strong>
+            <p>Reports become easier to compare when you reuse the same category names over time. Prefer one category named Communication over several near-duplicates like Chat, Messages, and Comms.</p>
+          </div>
+        </section>
+
+        <section class="doc-section" id="workflow">
+          <h2>A practical Projects + Rules workflow</h2>
+          <ol>
+            <li>Open Projects and inspect the distribution chart for obvious category imbalance.</li>
+            <li>Expand Uncategorized or suspicious categories to find apps that need edits.</li>
+            <li>Use the pencil for one-off corrections.</li>
+            <li>Open Rules, enable Unmapped only, and bulk map related apps.</li>
+            <li>Return to Review or Reports and switch grouping to Category to see the improved rollup.</li>
+          </ol>
+          <div class="docs-next">
+            <a class="btn btn-primary" href="reports.html">NEXT: REPORTS</a>
+            <a class="btn btn-outline" href="review.html">REVIEW CATEGORIES</a>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="../privacy.html" class="footer-link">PRIVACY</a>
+        <a href="../terms.html" class="footer-link">TERMS</a>
+        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+      </div>
+      <div class="footer-right">
+        <span>© 2026 time.md. BUILT WITH PRECISION.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

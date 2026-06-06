@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overview dashboard docs — time.md</title>
+  <meta name="description" content="Learn how to read the time.md Overview dashboard: total time, daily average, peak hour, app timeline, top apps, insights, filters, and granularity.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md app icon" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a href="../index.html#download" class="nav-cta">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">01 / Screen guide</div>
+          <h1 class="docs-title">Overview dashboard</h1>
+          <p class="docs-subtitle">The Overview is the command center for time.md. It compresses your selected period into a few fast answers: how much time you spent, when it peaked, which apps dominated, and what changed compared with the previous period.</p>
+        </div>
+        <aside class="docs-hero-card" aria-label="Overview quick reference">
+          <h2>What you can answer here</h2>
+          <ul>
+            <li>How much screen time did this period contain?</li>
+            <li>What is my daily average and how does it compare?</li>
+            <li>Which hour, app, and session shaped the day?</li>
+            <li>Which apps filled the timeline and top-app list?</li>
+            <li>Which filter or granularity should I switch to next?</li>
+          </ul>
+        </aside>
+      </div>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar" aria-label="Documentation navigation">
+        <div class="docs-eyebrow">Docs</div>
+        <nav>
+          <a href="overview.html" aria-current="page">Overview</a>
+          <a href="review.html">Review</a>
+          <a href="details.html">Details</a>
+          <a href="projects-rules.html">Projects + Rules</a>
+          <a href="reports.html">Reports</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <section class="doc-section" id="summary-cards">
+          <h2>Start with the metric strip</h2>
+          <p>The first row is designed for a quick read before you investigate details. It uses the active date range and granularity, so changing from Day to Week, Month, or Year immediately changes the numbers everywhere on the screen.</p>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <h3>Total time</h3>
+              <p>The total tracked screen time in the current period. Use this as the baseline for every percentage, top-app row, and comparison badge on the page.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Daily average</h3>
+              <p>The normalized pace for the selected range. On a week or month, it helps separate one heavy day from an actually heavier routine.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Peak hour</h3>
+              <p>The hour with the most recorded activity. Pair it with the timeline to see whether the peak came from focused work, meetings, browsing, or context switching.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Apps used</h3>
+              <p>The count of distinct apps seen in the period. A rising count often means fragmented work, especially when Details also shows more context switches.</p>
+            </div>
+          </div>
+          <div class="doc-callout">
+            <strong>Comparison badge</strong>
+            <p>When there is enough previous-period data, Overview shows an up or down percentage near the title or cards. Down is usually good for distracting apps, but not always: read it alongside the top app and project context.</p>
+          </div>
+        </section>
+
+        <section class="doc-section" id="timeline">
+          <h2>Read the app and session timeline</h2>
+          <p>The timeline turns a day into a horizontal 24-hour strip. Colored blocks represent app activity. Longer blocks mean more time in that hour; color groups the blocks by app.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Hour labels</h3>
+              <p>Labels every few hours anchor the day from midnight to night. Look for clusters around your peak hour, lunch break, or end-of-day drift.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Legend focus</h3>
+              <p>The legend highlights the biggest apps in the timeline. Hover or select an app in the app view to dim unrelated blocks and isolate one app's footprint.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Session shape</h3>
+              <p>Dense, repeated slices suggest frequent switching. One long, uninterrupted band suggests a focused block or a long-running meeting.</p>
+            </div>
+            <div class="doc-card">
+              <h3>No data state</h3>
+              <p>If the timeline is empty, confirm the date range, active filters, and macOS Full Disk Access. The app can only show periods it can read or has recorded.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-section" id="top-apps">
+          <h2>Use Top Apps to explain the total</h2>
+          <p>The Top Apps section ranks the apps that contributed most to the selected period. Each row combines the app name, duration, session count where available, percentage of the total, and a progress bar for scale.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Column</th>
+                  <th>What it means</th>
+                  <th>How to use it</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Time</td>
+                  <td>Total recorded time for that app in the active period.</td>
+                  <td>Compare the first few rows to see whether one app dominates or time is spread across many tools.</td>
+                </tr>
+                <tr>
+                  <td>Sessions</td>
+                  <td>The number of separate usage blocks for an app.</td>
+                  <td>High time with low sessions means long focus. Lower time with many sessions often means interruption.</td>
+                </tr>
+                <tr>
+                  <td>Percent</td>
+                  <td>The app's share of the current total time.</td>
+                  <td>Use it to compare days of different lengths without being fooled by raw hours.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="doc-section" id="insights-filters">
+          <h2>Let filters and insights choose the next question</h2>
+          <p>Overview is wired to the global time filters. The same date range, granularity, app filters, category filters, weekday filters, time-of-day filters, and duration filters carry into Review, Details, Projects, and Reports.</p>
+          <div class="doc-steps">
+            <div class="doc-step">
+              <h3>Choose granularity</h3>
+              <p>Use Day for hour-by-hour behavior, Week for work rhythm, Month for habit changes, and Year for long-term direction.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Scan the insight ticker</h3>
+              <p>The ticker calls out useful observations such as unusually high usage, peak hours, top apps, or shifts from the previous period.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Click through</h3>
+              <p>Use Review for charts and heatmaps, Details for raw sessions, Projects for category rollups, and Reports when you need a shareable summary.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-section" id="workflow">
+          <h2>A practical Overview workflow</h2>
+          <ol>
+            <li>Start on Today and note Total Time, Daily Average, Peak Hour, and Apps Used.</li>
+            <li>Look at the timeline to identify the busiest block of the day.</li>
+            <li>Check Top Apps to see which apps explain that block.</li>
+            <li>Switch to Week or Month to see whether the same pattern repeats.</li>
+            <li>Open Details if you need the exact sessions, or Review if you need a visual breakdown.</li>
+          </ol>
+          <div class="docs-next">
+            <a class="btn btn-primary" href="review.html">NEXT: REVIEW</a>
+            <a class="btn btn-outline" href="details.html">OPEN DETAILS</a>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="../privacy.html" class="footer-link">PRIVACY</a>
+        <a href="../terms.html" class="footer-link">TERMS</a>
+        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+      </div>
+      <div class="footer-right">
+        <span>© 2026 time.md. BUILT WITH PRECISION.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

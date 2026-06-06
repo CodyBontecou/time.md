@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports screen docs — time.md</title>
+  <meta name="description" content="Learn how to use the time.md Reports screen: date range, grouping controls, time distribution, weekday averages, report tables, export, and how Reports differs from Export.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md app icon" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a href="../index.html#download" class="nav-cta">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">05 / Screen guide</div>
+          <h1 class="docs-title">Reports screen</h1>
+          <p class="docs-subtitle">Reports turns the current time range into a clean, exportable summary. Use it when you want a readable snapshot with charts, weekday averages, and tables grouped by app, category, or day.</p>
+        </div>
+        <aside class="docs-hero-card" aria-label="Reports quick reference">
+          <h2>Best for</h2>
+          <ul>
+            <li>Creating a quick report for the active range</li>
+            <li>Comparing app, category, or daily totals</li>
+            <li>Seeing weekday averages</li>
+            <li>Exporting CSV, JSON, or Markdown summaries</li>
+          </ul>
+        </aside>
+      </div>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar" aria-label="Documentation navigation">
+        <div class="docs-eyebrow">Docs</div>
+        <nav>
+          <a href="overview.html">Overview</a>
+          <a href="review.html">Review</a>
+          <a href="details.html">Details</a>
+          <a href="projects-rules.html">Projects + Rules</a>
+          <a href="reports.html" aria-current="page">Reports</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <section class="doc-section" id="controls">
+          <h2>Set date and grouping controls</h2>
+          <p>Reports follows the global date range and granularity, just like Overview, Review, Details, and Projects. The screen then adds report-specific controls for grouping and export format.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Control</th>
+                  <th>Options</th>
+                  <th>What changes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Date range</td>
+                  <td>Today, previous periods, or any range selected globally.</td>
+                  <td>All summary cards, charts, averages, tables, and exports use this range.</td>
+                </tr>
+                <tr>
+                  <td>Group by</td>
+                  <td>By App, By Category, By Day.</td>
+                  <td>The report table switches between app rows, category rows, or daily totals.</td>
+                </tr>
+                <tr>
+                  <td>Format</td>
+                  <td>CSV, JSON, Markdown.</td>
+                  <td>The Export button writes the report in the selected format.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="doc-section" id="summary-cards">
+          <h2>Read the report summary cards</h2>
+          <p>The summary cards are the headline of the report. They give you the total, the breadth of tracked apps and categories, and the top app for the range.</p>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <h3>Total time</h3>
+              <p>The full tracked time in the report range. Use it as the denominator for table percentages.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Apps tracked</h3>
+              <p>The count of apps included in the report, plus the number of categories available for category grouping.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Top app</h3>
+              <p>The single app with the most time in the range, paired with its duration.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-section" id="charts">
+          <h2>Use Time Distribution and Weekday Averages</h2>
+          <p>Reports includes two chart sections before the data table. They are built for quick communication: one shows how time is distributed across dates, the other shows the average shape of a week.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Time distribution</h3>
+              <p>A bar chart of total time over the report range. Use it to spot spikes, quiet days, and whether usage is concentrated or steady.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Weekday averages</h3>
+              <p>A bar chart showing average usage per weekday. It is most useful on ranges long enough to include multiple weekdays.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Not enough data</h3>
+              <p>If weekday averages are empty, expand the range. A single day cannot produce a meaningful weekday average.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Chart units</h3>
+              <p>Charts display hours for scale, while table cells use readable durations such as hours and minutes.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-section" id="tables">
+          <h2>Choose the right report data table</h2>
+          <p>The Report Data table changes with the grouping control. Pick the grouping that matches the story you need to tell.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Grouping</th>
+                  <th>Columns</th>
+                  <th>Use when</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>By App</td>
+                  <td>Rank, app, time, sessions, percent.</td>
+                  <td>You need specific app accountability and session counts.</td>
+                </tr>
+                <tr>
+                  <td>By Category</td>
+                  <td>Rank, category, time, percent.</td>
+                  <td>You need a project-style summary for work buckets.</td>
+                </tr>
+                <tr>
+                  <td>By Day</td>
+                  <td>Date and total time.</td>
+                  <td>You need a simple daily ledger for a week, month, or custom range.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="doc-callout">
+            <strong>Reports reuse your mappings</strong>
+            <p>Category report quality depends on Projects + Rules. If category rows look vague or too much time lands in Uncategorized, map more apps before exporting.</p>
+          </div>
+        </section>
+
+        <section class="doc-section" id="export">
+          <h2>Export a report</h2>
+          <p>The Export button writes the current report using the selected format. After export, time.md opens the containing folder so you can attach, archive, or inspect the file.</p>
+          <div class="doc-steps">
+            <div class="doc-step">
+              <h3>Pick the range</h3>
+              <p>Use the global date controls to choose the day, week, month, year, or period you want to report on.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Pick the grouping</h3>
+              <p>Use By App for tool-level detail, By Category for project-style reporting, or By Day for a daily ledger.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Pick CSV, JSON, or Markdown</h3>
+              <p>Choose CSV for spreadsheets, JSON for scripts, or Markdown for notes and docs.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Click Export</h3>
+              <p>The report is generated from the same filtered data currently visible on screen.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-section" id="reports-vs-export">
+          <h2>Reports vs. the full Export screen</h2>
+          <p>Reports and Export both create files, but they are optimized for different jobs.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Screen</th>
+                  <th>Use it for</th>
+                  <th>Scope</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Reports</td>
+                  <td>A readable summary of the active range with charts and tables.</td>
+                  <td>Top apps, categories, trend data, weekday averages, and report tables in CSV, JSON, or Markdown.</td>
+                </tr>
+                <tr>
+                  <td>Export</td>
+                  <td>Full data extraction, automation, presets, and custom sections.</td>
+                  <td>General, extensive, or custom exports that can include raw sessions, heatmaps, web history, analytics, selected sections, saved filters, destinations, and scheduled auto-save.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="doc-callout">
+            <strong>Rule of thumb</strong>
+            <p>Use Reports when you want to read or share a concise summary. Use Export when you need a data pipeline, recurring file, raw session archive, or a custom section set.</p>
+          </div>
+        </section>
+
+        <section class="doc-section" id="workflow">
+          <h2>A practical Reports workflow</h2>
+          <ol>
+            <li>Choose the report range globally, then open Reports.</li>
+            <li>Check Total Time, Apps Tracked, and Top App to confirm the range looks right.</li>
+            <li>Review Time Distribution for spikes and Weekday Averages for routine patterns.</li>
+            <li>Select By App, By Category, or By Day based on the audience.</li>
+            <li>Export as CSV, JSON, or Markdown.</li>
+          </ol>
+          <div class="docs-next">
+            <a class="btn btn-primary" href="overview.html">BACK TO OVERVIEW</a>
+            <a class="btn btn-outline" href="projects-rules.html">CLEAN UP CATEGORIES</a>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="../privacy.html" class="footer-link">PRIVACY</a>
+        <a href="../terms.html" class="footer-link">TERMS</a>
+        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+      </div>
+      <div class="footer-right">
+        <span>© 2026 time.md. BUILT WITH PRECISION.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

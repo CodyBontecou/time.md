@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Details screen docs — time.md</title>
+  <meta name="description" content="Learn how to use the time.md Details screen: session timeline, app filters, loading more sessions, summaries, top transitions, context switches, and missing session troubleshooting.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md app icon" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a href="../index.html#download" class="nav-cta">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">03 / Screen guide</div>
+          <h1 class="docs-title">Details screen</h1>
+          <p class="docs-subtitle">Details is the raw session view. It shows the individual app intervals behind your totals, then summarizes the day with session counts, transitions, and context-switch patterns.</p>
+        </div>
+        <aside class="docs-hero-card" aria-label="Details quick reference">
+          <h2>Best for</h2>
+          <ul>
+            <li>Auditing exact start and end times</li>
+            <li>Filtering a timeline to one app</li>
+            <li>Loading older sessions in large periods</li>
+            <li>Finding repeated app-to-app transitions</li>
+            <li>Troubleshooting missing or surprising sessions</li>
+          </ul>
+        </aside>
+      </div>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar" aria-label="Documentation navigation">
+        <div class="docs-eyebrow">Docs</div>
+        <nav>
+          <a href="overview.html">Overview</a>
+          <a href="review.html">Review</a>
+          <a href="details.html" aria-current="page">Details</a>
+          <a href="projects-rules.html">Projects + Rules</a>
+          <a href="reports.html">Reports</a>
+        </nav>
+      </aside>
+
+      <article class="docs-content">
+        <section class="doc-section" id="timeline">
+          <h2>Read the session timeline</h2>
+          <p>Each timeline entry is a recorded app session. The left side shows the start and end time, the center shows the app color and timeline line, and the row shows the app, duration, and a small duration bar.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Start and end time</h3>
+              <p>Use these timestamps when you need to reconstruct a specific part of the day, such as a meeting block or an afternoon browsing detour.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Duration bar</h3>
+              <p>The bar is scaled against the longest visible session. It makes outliers obvious even before you read the exact duration.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Color and icon</h3>
+              <p>Colors match the app identity used across charts. Icons make repeated switches easier to scan.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Empty state</h3>
+              <p>If no sessions appear, the active period, app filter, or permissions may be excluding the data. Use the troubleshooting section below.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-section" id="filters-load-more">
+          <h2>Filter to one app or load more sessions</h2>
+          <p>The filter bar starts with All Apps, followed by the most active apps in the current range. Selecting an app reloads the timeline with only that app's sessions and resets the pagination.</p>
+          <div class="doc-steps">
+            <div class="doc-step">
+              <h3>Start with All Apps</h3>
+              <p>This shows the real sequence of your day, including switches between apps.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Select an app chip</h3>
+              <p>Use an app filter when you want every session for one tool, such as every Slack check or every Xcode block.</p>
+            </div>
+            <div class="doc-step">
+              <h3>Load more</h3>
+              <p>Large periods load the first batch of sessions for speed. Use the Load more link at the bottom to append the next batch until you reach the total session count.</p>
+            </div>
+          </div>
+          <div class="doc-callout">
+            <strong>Pagination keeps Details fast</strong>
+            <p>The screen starts with a limited session count, then loads additional chunks on demand. This keeps a busy week or month usable without hiding the total count.</p>
+          </div>
+        </section>
+
+        <section class="doc-section" id="summary">
+          <h2>Use the sidebar summary</h2>
+          <p>The right sidebar turns the raw timeline into quick stats. Use it to judge whether the visible sessions represent focused work or frequent interruptions.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Sidebar item</th>
+                  <th>What it tells you</th>
+                  <th>What to look for</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Total Sessions</td>
+                  <td>How many separate app intervals exist in the current range and filter.</td>
+                  <td>A high count with a normal total time often means fragmented attention.</td>
+                </tr>
+                <tr>
+                  <td>Total Time</td>
+                  <td>The sum of all matching session durations for the current query, even when only the first page is visible.</td>
+                  <td>Compare it to Overview or Review when validating filters.</td>
+                </tr>
+                <tr>
+                  <td>Avg Session</td>
+                  <td>Total time divided by the session count.</td>
+                  <td>Short averages suggest quick checks; long averages suggest deeper focus blocks.</td>
+                </tr>
+                <tr>
+                  <td>Unique Apps</td>
+                  <td>How many apps appear in the current session set.</td>
+                  <td>Use this with context switches to identify scattered work.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="doc-section" id="transitions">
+          <h2>Understand transitions and context switches</h2>
+          <p>Details does more than list sessions. It also shows repeated app-to-app transitions and a context-switch summary by hour.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Top transitions</h3>
+              <p>These rows show the most common jumps, such as Browser to Editor or Slack to Calendar. Repeated transitions reveal habits that raw totals can hide.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Context switches</h3>
+              <p>The context-switch block counts how many times activity moved between apps and identifies the peak hour for switching.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Good vs. bad switching</h3>
+              <p>Some switching is normal, like design to code. The useful signal is repetition: many short loops between the same apps usually deserve attention.</p>
+            </div>
+            <div class="doc-card">
+              <h3>Follow-up screen</h3>
+              <p>Open Review to see whether the same high-switch hour appears as a heatmap hotspot.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="doc-section" id="troubleshooting">
+          <h2>Troubleshoot missing sessions</h2>
+          <p>If Details does not show the sessions you expected, check the simple causes first. Most missing-session confusion comes from filters, permissions, or asking for a period before data was available.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Symptom</th>
+                  <th>Likely cause</th>
+                  <th>What to try</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>No sessions for the whole day</td>
+                  <td>time.md cannot read the local Screen Time database or the period has no recorded activity.</td>
+                  <td>Confirm macOS Full Disk Access, restart time.md, then return to Today.</td>
+                </tr>
+                <tr>
+                  <td>An app is missing</td>
+                  <td>An app filter, category filter, time-of-day filter, or duration filter is active.</td>
+                  <td>Clear filters, choose All Apps, and reload the same date range.</td>
+                </tr>
+                <tr>
+                  <td>Old sessions are not visible</td>
+                  <td>The current batch is only the first page of a larger result set.</td>
+                  <td>Use Load more at the bottom of the timeline until the remaining count reaches zero.</td>
+                </tr>
+                <tr>
+                  <td>The app name looks unexpected</td>
+                  <td>macOS may report a bundle identifier or display name differently from the app label you expect.</td>
+                  <td>Compare the icon, name, and category mapping in Projects + Rules.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="doc-callout warning">
+            <strong>Remember the date range</strong>
+            <p>Details follows the same global date and granularity controls as the other screens. If Review and Details disagree, first make sure both are using the same filters.</p>
+          </div>
+        </section>
+
+        <section class="doc-section" id="workflow">
+          <h2>A practical Details workflow</h2>
+          <ol>
+            <li>Open Details from a suspicious Overview card, Review chart, or heatmap hotspot.</li>
+            <li>Scan the timeline around the start and end time you care about.</li>
+            <li>Filter to one app if you need its full history for the period.</li>
+            <li>Check Top Transitions and Context Switches for repeated loops.</li>
+            <li>Load more sessions if the range is large and the bottom of the timeline still shows remaining sessions.</li>
+          </ol>
+          <div class="docs-next">
+            <a class="btn btn-primary" href="projects-rules.html">NEXT: PROJECTS + RULES</a>
+            <a class="btn btn-outline" href="review.html">BACK TO REVIEW</a>
+          </div>
+        </section>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="../privacy.html" class="footer-link">PRIVACY</a>
+        <a href="../terms.html" class="footer-link">TERMS</a>
+        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+      </div>
+      <div class="footer-right">
+        <span>© 2026 time.md. BUILT WITH PRECISION.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

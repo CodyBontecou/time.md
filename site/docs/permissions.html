@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Permissions — time.md Docs</title>
+  <meta name="description" content="Plain-English guide to time.md macOS permissions: Full Disk Access, Accessibility, Input Monitoring, website blocking helper, and trial/license network calls.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html" aria-current="page">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a href="../index.html#download" class="nav-cta">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">PRIVACY / MACOS ACCESS</div>
+          <h1 class="docs-title">PERMISSIONS,<br>IN PLAIN ENGLISH<span class="hero-dot">.</span></h1>
+          <p class="docs-subtitle">time.md asks macOS for access only when a feature needs it. This page explains what each permission enables, what it does not do, how to revoke it, and which small network calls are used for trial and license validation.</p>
+        </div>
+        <aside class="docs-hero-card">
+          <h2>Permission snapshot</h2>
+          <ul>
+            <li>Full Disk Access unlocks protected local files.</li>
+            <li>Input permissions are optional and only for Input Tracking.</li>
+            <li>The website-blocking helper is optional and admin-gated.</li>
+            <li>Trial/license network calls never include activity data.</li>
+          </ul>
+        </aside>
+      </div>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-sidebar-title">Docs</div>
+        <nav class="docs-nav-list" aria-label="Documentation pages">
+          <a href="index.html">Docs home</a>
+          <a href="getting-started.html">Getting Started</a>
+          <a href="permissions.html" aria-current="page">Permissions</a>
+          <a href="troubleshooting.html">Troubleshooting</a>
+          <a href="faq.html">FAQ</a>
+        </nav>
+        <div class="docs-sidebar-title">On this page</div>
+        <nav class="docs-nav-list" aria-label="Page sections">
+          <a href="#overview">Overview</a>
+          <a href="#full-disk-access">Full Disk Access</a>
+          <a href="#accessibility">Accessibility</a>
+          <a href="#input-monitoring">Input Monitoring</a>
+          <a href="#blocking-helper">Website helper</a>
+          <a href="#network">Trial/license calls</a>
+          <a href="#revoke">How to revoke</a>
+          <a href="#privacy">Privacy implications</a>
+        </nav>
+      </aside>
+
+      <div class="docs-content">
+        <section id="overview" class="doc-section">
+          <h2>What time.md needs and why</h2>
+          <p>macOS protects screen time files, browser history databases, global keyboard/mouse streams, and system website-blocking files. time.md does not bypass those protections; you choose which access to grant.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Access</th>
+                  <th>Required?</th>
+                  <th>Enables</th>
+                  <th>Does not enable</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Full Disk Access</td>
+                  <td>Recommended / needed for complete data</td>
+                  <td>Reading protected local Screen Time and browser history files.</td>
+                  <td>Uploading your files or controlling your Mac.</td>
+                </tr>
+                <tr>
+                  <td>Accessibility</td>
+                  <td>Optional</td>
+                  <td>Global event access on macOS versions/features that require Accessibility for Input Tracking.</td>
+                  <td>Input Tracking unless you enable it in time.md settings.</td>
+                </tr>
+                <tr>
+                  <td>Input Monitoring</td>
+                  <td>Optional</td>
+                  <td>Keyboard and mouse event capture for the Input Tracking screen.</td>
+                  <td>Capture while the feature is off or while time.md is not running.</td>
+                </tr>
+                <tr>
+                  <td>Website blocking helper</td>
+                  <td>Optional</td>
+                  <td>System-wide website blocking through time.md-managed hosts and pf rules.</td>
+                  <td>Reading browser pages, passwords, or arbitrary system files.</td>
+                </tr>
+                <tr>
+                  <td>Network access</td>
+                  <td>Needed for trial/license</td>
+                  <td>Stripe trial setup, trial verification, license activation, and update checks.</td>
+                  <td>Sending screen time, browser history, exports, or input data.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="doc-callout">
+            <strong>Rule of thumb</strong>
+            <p>If a permission sounds too broad, it is because macOS grants broad categories. time.md uses each permission for the specific local feature described here.</p>
+          </div>
+        </section>
+
+        <section id="full-disk-access" class="doc-section">
+          <h2>Full Disk Access</h2>
+          <p><strong>Plain English:</strong> Full Disk Access lets time.md read files macOS normally hides from apps. It is the permission that most often fixes empty Screen Time or Web History views.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>What it enables</h3>
+              <ul>
+                <li>Reading Apple's local Screen Time/CoreDuet files when available.</li>
+                <li>Reading Safari history at <code>~/Library/Safari/History.db</code>.</li>
+                <li>Reading Chromium browser history under <code>~/Library/Application Support/...</code>.</li>
+                <li>Reading Firefox profile history files such as <code>places.sqlite</code>.</li>
+              </ul>
+            </div>
+            <div class="doc-card">
+              <h3>How to grant it</h3>
+              <ol>
+                <li>Open <strong>System Settings → Privacy & Security → Full Disk Access</strong>.</li>
+                <li>Add <code>/Applications/time.md.app</code>.</li>
+                <li>Turn the switch on.</li>
+                <li>Quit and reopen time.md.</li>
+              </ol>
+            </div>
+          </div>
+          <div class="doc-callout warning">
+            <strong>Multiple copies can confuse macOS</strong>
+            <p>If you downloaded time.md twice, permissions may be attached to the wrong copy. Remove stale time.md entries, move the app to <code>/Applications</code>, add that copy, then restart.</p>
+          </div>
+        </section>
+
+        <section id="accessibility" class="doc-section">
+          <h2>Accessibility</h2>
+          <p><strong>Plain English:</strong> Accessibility lets an app observe or control certain global UI events. time.md does not need Accessibility for the normal dashboard. It is relevant to optional input/event features on macOS configurations that require it.</p>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <span class="doc-card-number">OPTIONAL</span>
+              <h3>Input Tracking support</h3>
+              <p>Some global event taps require Accessibility in addition to Input Monitoring. If Input Tracking is enabled but no events appear, grant Accessibility and restart time.md.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">NOT NORMAL USE</span>
+              <h3>Dashboards do not need it</h3>
+              <p>Overview, Review, Details, Calendar, Trends, Reports, Web History, exports, CLI, and MCP do not require Accessibility by themselves.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">REVOCABLE</span>
+              <h3>You can turn it off</h3>
+              <p>Go to <strong>System Settings → Privacy & Security → Accessibility</strong>, disable time.md, and restart the app.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="input-monitoring" class="doc-section">
+          <h2>Input Monitoring</h2>
+          <p><strong>Plain English:</strong> Input Monitoring allows time.md to listen for keyboard and mouse events across apps. It is off by default and only used if you enable <strong>Settings → Input Tracking</strong>.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Input level</th>
+                  <th>Stored locally</th>
+                  <th>Use case</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Activity only</td>
+                  <td>Timestamps/counts, no key codes, no characters.</td>
+                  <td>Typing-intensity charts.</td>
+                </tr>
+                <tr>
+                  <td>Per-key counts</td>
+                  <td>Timestamps and virtual key codes, no characters.</td>
+                  <td>Most-pressed-key analytics.</td>
+                </tr>
+                <tr>
+                  <td>Full content</td>
+                  <td>Actual typed characters when macOS does not redact them.</td>
+                  <td>Top typed words. Treat the database like sensitive content.</td>
+                </tr>
+                <tr>
+                  <td>Cursor heatmap / clicks / trail</td>
+                  <td>Mouse positions, optional clicks, optional scroll events.</td>
+                  <td>Cursor heatmaps and raw mouse-event queries.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="doc-callout danger">
+            <strong>High privacy cost at full content</strong>
+            <p>time.md excludes common password managers and respects macOS Secure Input when apps enable it, but not every password or private field activates Secure Input. Only enable Full Content if you understand that typed characters are stored in your local <code>input-tracking.db</code>.</p>
+          </div>
+          <ul class="doc-checklist">
+            <li>Input Tracking is off by default.</li>
+            <li>The pause shortcut is <kbd>⌥</kbd><kbd>⌘</kbd><kbd>P</kbd>, which pauses capture for 30 minutes.</li>
+            <li>Raw event retention is configurable from 1 to 30 days.</li>
+            <li>The Settings screen includes a delete action for all input data.</li>
+          </ul>
+        </section>
+
+        <section id="blocking-helper" class="doc-section">
+          <h2>Optional website-blocking helper and admin password</h2>
+          <p><strong>Plain English:</strong> Website blocking needs access to system networking files. time.md asks for administrator approval once to install or upgrade a small helper, then the helper can apply time.md-managed domain blocks without asking for your password on every rule change.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>What the helper changes</h3>
+              <ul>
+                <li>Only the marked time.md block inside <code>/etc/hosts</code>.</li>
+                <li>Only the time.md pf anchor under <code>/etc/pf.anchors/</code>.</li>
+                <li>Only domains that are active in your time.md Blocking rules.</li>
+              </ul>
+            </div>
+            <div class="doc-card">
+              <h3>What it does not do</h3>
+              <ul>
+                <li>It does not inspect page contents.</li>
+                <li>It does not read browser passwords or cookies.</li>
+                <li>It does not manage unrelated hosts or firewall configuration.</li>
+              </ul>
+            </div>
+          </div>
+          <p>You can skip helper setup during onboarding and configure it later from the Blocking screen. App blocking does not use this helper; it observes frontmost-app changes and hides or notifies when a blocked app opens.</p>
+        </section>
+
+        <section id="network" class="doc-section">
+          <h2>Trial, license, and Stripe network calls</h2>
+          <p>time.md has no account system and no in-app analytics. Network calls are limited to entitlement and update workflows.</p>
+          <div class="doc-table-wrap">
+            <table class="doc-table">
+              <thead>
+                <tr>
+                  <th>Call</th>
+                  <th>When it happens</th>
+                  <th>Data sent</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Stripe Checkout trial setup</td>
+                  <td>You click Start 14-Day Free Trial.</td>
+                  <td>A request for a Checkout URL. Stripe collects card details in the browser.</td>
+                </tr>
+                <tr>
+                  <td>Trial checkout verification</td>
+                  <td>Stripe returns through <code>timemd://activate-trial</code>.</td>
+                  <td>Stripe Checkout session ID, then trial token verification fields.</td>
+                </tr>
+                <tr>
+                  <td>Saved trial verification</td>
+                  <td>On app launch or Verify Now while trialing.</td>
+                  <td>Trial token, app version, random locally generated device ID.</td>
+                </tr>
+                <tr>
+                  <td>Paid license activation</td>
+                  <td>You paste a <code>TMD-...</code> activation key.</td>
+                  <td>Activation key, app version, random locally generated device ID.</td>
+                </tr>
+                <tr>
+                  <td>Sparkle update check</td>
+                  <td>The updater checks for a new app version.</td>
+                  <td>Update-check metadata only; not your activity database.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="doc-callout">
+            <strong>What is never sent</strong>
+            <p>Screen time sessions, browser visits, exports, input-tracking rows, category mappings, blocking rules, and local SQL query results are not sent to time.md entitlement servers.</p>
+          </div>
+        </section>
+
+        <section id="revoke" class="doc-section">
+          <h2>How to revoke access</h2>
+          <div class="doc-card-grid">
+            <div class="doc-card">
+              <span class="doc-card-number">FULL DISK</span>
+              <h3>Revoke file access</h3>
+              <p>System Settings → Privacy & Security → Full Disk Access → turn off or remove time.md. Restart the app afterward.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">INPUT</span>
+              <h3>Stop input capture</h3>
+              <p>Turn off Settings → Input Tracking first. Then remove time.md from Input Monitoring and Accessibility in System Settings.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">HELPER</span>
+              <h3>Clear blocks</h3>
+              <p>In Blocking, turn off individual rules or use <strong>Turn off all blocks</strong>. Run diagnostics or repair if a website remains blocked.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">LICENSE</span>
+              <h3>Reset entitlement</h3>
+              <p>In Settings → License & Trial, use Reset to remove saved trial/license state from this Mac. The app locks until reactivated.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">LOCAL DATA</span>
+              <h3>Delete databases</h3>
+              <p>Quit time.md and remove <code>~/Library/Application Support/time.md/</code>, or delete specific exports from your chosen export folder.</p>
+            </div>
+            <div class="doc-card">
+              <span class="doc-card-number">CLI/MCP</span>
+              <h3>Disable agent access</h3>
+              <p>Use Settings → CLI Access to uninstall <code>timemd</code>, and Settings → MCP Integration to unregister agents or turn the server off.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="privacy" class="doc-section">
+          <h2>Privacy implications</h2>
+          <p>The important distinction is <strong>local access</strong> versus <strong>network upload</strong>. Full Disk Access and Input Monitoring let time.md read sensitive local data if you enable features that need it. They do not mean that data leaves your Mac.</p>
+          <div class="doc-grid">
+            <div class="doc-card">
+              <h3>Safer defaults</h3>
+              <ul>
+                <li>No app account.</li>
+                <li>No telemetry service.</li>
+                <li>No advertising SDK.</li>
+                <li>Input Tracking off by default.</li>
+                <li>Web history persistence opt-in.</li>
+              </ul>
+            </div>
+            <div class="doc-card">
+              <h3>Higher-sensitivity choices</h3>
+              <ul>
+                <li>Granting Full Disk Access exposes more local files to the app process.</li>
+                <li>Input Tracking Full Content stores typed characters locally.</li>
+                <li>Auto-export writes readable files to the destination you choose.</li>
+                <li>MCP/CLI can expose local results to tools you run.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="docs-next">
+            <a class="btn btn-primary" href="troubleshooting.html">NEXT: TROUBLESHOOTING</a>
+            <a class="btn btn-outline" href="../privacy.html">READ PRIVACY POLICY</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="../privacy.html" class="footer-link">PRIVACY</a>
+        <a href="../terms.html" class="footer-link">TERMS</a>
+        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+      </div>
+      <div class="footer-right">
+        <span>© 2026 time.md. BUILT WITH PRECISION.</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

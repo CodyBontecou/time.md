@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>time.md Docs — Help, Guides, and Troubleshooting</title>
+  <meta name="description" content="Documentation for time.md, the local-only macOS Screen Time analytics app. Learn setup, permissions, exports, web history, blocking, input tracking, CLI, MCP, and troubleshooting.">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">
+        <img src="../app-icon.png" alt="time.md" class="nav-icon">
+        <span class="nav-wordmark">time.md</span>
+      </a>
+      <div class="nav-links">
+        <a href="../index.html#portal">PORTAL</a>
+        <a href="index.html">DOCS</a>
+        <a href="../privacy.html">PRIVACY</a>
+      </div>
+      <a href="../index.html#download" class="nav-cta">DOWNLOAD</a>
+    </div>
+  </nav>
+
+  <main class="docs-page">
+    <header class="docs-hero">
+      <div class="docs-hero-inner">
+        <div>
+          <div class="docs-eyebrow">DOCUMENTATION / USER MANUAL</div>
+          <h1 class="docs-title">ANSWER EVERY<br>TIME.MD QUESTION<span class="hero-dot">.</span></h1>
+          <p class="docs-subtitle">Guides for installing time.md, granting macOS permissions, reading every analytics screen, exporting your data, troubleshooting common issues, and connecting local data to Terminal or MCP-compatible agents.</p>
+        </div>
+        <aside class="docs-hero-card">
+          <h2>Start here</h2>
+          <ul>
+            <li><a href="getting-started.html">Install and activate time.md</a></li>
+            <li><a href="permissions.html">Understand macOS permissions</a></li>
+            <li><a href="troubleshooting.html">Fix empty data or setup issues</a></li>
+            <li><a href="faq.html">Read the full FAQ</a></li>
+          </ul>
+        </aside>
+      </div>
+    </header>
+
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <div class="docs-sidebar-title">Docs sections</div>
+        <nav>
+          <a href="#setup">Setup</a>
+          <a href="#screens">App screens</a>
+          <a href="#advanced">Advanced features</a>
+          <a href="#support">Support</a>
+        </nav>
+      </aside>
+
+      <div class="docs-content">
+        <section id="setup" class="doc-section">
+          <h2>Setup and first launch</h2>
+          <p>New to time.md? These pages explain what the app needs from macOS, how the card-backed trial and paid license work, and how to recover when permissions or activation get stuck.</p>
+          <div class="doc-card-grid">
+            <a class="doc-card" href="getting-started.html">
+              <span class="doc-card-number">01 / SETUP</span>
+              <h3>Getting Started</h3>
+              <p>Download, install, complete onboarding, start the trial, activate a license, and confirm your first data sync.</p>
+            </a>
+            <a class="doc-card" href="permissions.html">
+              <span class="doc-card-number">02 / PERMISSIONS</span>
+              <h3>macOS Permissions</h3>
+              <p>Full Disk Access, Accessibility, Input Monitoring, and the optional website-blocking helper explained in plain English.</p>
+            </a>
+            <a class="doc-card" href="privacy-local-data.html">
+              <span class="doc-card-number">03 / LOCAL DATA</span>
+              <h3>What Leaves Your Mac?</h3>
+              <p>A practical privacy explainer covering local databases, exports, browser history, license checks, Stripe, and update checks.</p>
+            </a>
+          </div>
+        </section>
+
+        <section id="screens" class="doc-section">
+          <h2>Screen-by-screen guides</h2>
+          <p>time.md mirrors its documentation around the app sidebar: Tracking screens, organization screens, and data screens. Use these guides when a metric, chart, or table needs context.</p>
+          <div class="doc-card-grid">
+            <a class="doc-card" href="overview.html">
+              <span class="doc-card-number">TRACKING</span>
+              <h3>Overview</h3>
+              <p>Total time, daily average, peak hour, app timeline, top apps, and the insight ticker.</p>
+            </a>
+            <a class="doc-card" href="review.html">
+              <span class="doc-card-number">TRACKING</span>
+              <h3>Review</h3>
+              <p>Compare app/category usage with bar, pie, trend charts, heatmaps, and detailed breakdowns.</p>
+            </a>
+            <a class="doc-card" href="details.html">
+              <span class="doc-card-number">TRACKING</span>
+              <h3>Details</h3>
+              <p>Inspect individual sessions, top transitions, context switches, app filters, and timeline pagination.</p>
+            </a>
+            <a class="doc-card" href="projects-rules.html">
+              <span class="doc-card-number">ORGANIZE</span>
+              <h3>Projects & Rules</h3>
+              <p>Group apps into meaningful categories, edit mappings, use suggestions, and improve coverage.</p>
+            </a>
+            <a class="doc-card" href="reports.html">
+              <span class="doc-card-number">DATA</span>
+              <h3>Reports</h3>
+              <p>Read time distribution, weekday averages, report data tables, and quick report exports.</p>
+            </a>
+            <a class="doc-card" href="web-history.html">
+              <span class="doc-card-number">DATA</span>
+              <h3>Web History</h3>
+              <p>Analyze browsing across Safari, Chrome, Firefox, Arc, Brave, and Edge without cloud sync.</p>
+            </a>
+            <a class="doc-card" href="filters.html">
+              <span class="doc-card-number">GLOBAL</span>
+              <h3>Filters & Date Ranges</h3>
+              <p>Use global date, granularity, app, category, weekday, time-of-day, and duration filters.</p>
+            </a>
+          </div>
+        </section>
+
+        <section id="advanced" class="doc-section">
+          <h2>Advanced features</h2>
+          <p>These guides cover optional or power-user workflows: exporting to knowledge bases, blocking distractions, tracking input locally, and querying data from Terminal or coding agents.</p>
+          <div class="doc-card-grid">
+            <a class="doc-card" href="export.html">
+              <span class="doc-card-number">EXPORT</span>
+              <h3>Export & Automation</h3>
+              <p>CSV, JSON, YAML, Markdown, Obsidian, filter presets, custom sections, live auto-export, and schedules.</p>
+            </a>
+            <a class="doc-card" href="blocking.html">
+              <span class="doc-card-number">BLOCKING</span>
+              <h3>Website & App Blocking</h3>
+              <p>Simple on/off website and app blocks, helper setup, diagnostics, repair, and safe removal.</p>
+            </a>
+            <a class="doc-card" href="input-tracking.html">
+              <span class="doc-card-number">OPTIONAL</span>
+              <h3>Input Tracking</h3>
+              <p>Opt-in keyboard and cursor analytics, redaction safeguards, retention, pause shortcut, and deletion.</p>
+            </a>
+            <a class="doc-card" href="cli-mcp.html">
+              <span class="doc-card-number">POWER USER</span>
+              <h3>CLI & MCP</h3>
+              <p>Install the `timemd` command, query local data from Terminal, and expose selected tools to AI agents.</p>
+            </a>
+          </div>
+        </section>
+
+        <section id="support" class="doc-section">
+          <h2>Troubleshooting and support</h2>
+          <div class="doc-grid">
+            <a class="doc-card" href="troubleshooting.html">
+              <span class="doc-card-number">FIXES</span>
+              <h3>Troubleshooting</h3>
+              <p>Empty data, missing browser history, activation, exports, blocking recovery, input tracking, CLI, and MCP.</p>
+            </a>
+            <a class="doc-card" href="faq.html">
+              <span class="doc-card-number">ANSWERS</span>
+              <h3>FAQ</h3>
+              <p>Short answers for the questions users ask before and after installing time.md.</p>
+            </a>
+            <a class="doc-card" href="changelog.html">
+              <span class="doc-card-number">RELEASES</span>
+              <h3>Changelog</h3>
+              <p>User-facing notes for recent time.md releases and feature changes.</p>
+            </a>
+            <a class="doc-card" href="support.html">
+              <span class="doc-card-number">CONTACT</span>
+              <h3>Support</h3>
+              <p>What to try first, what to include in a support email, and where to get license or setup help.</p>
+            </a>
+          </div>
+          <div class="doc-callout">
+            <strong>Need human help?</strong>
+            <p>Email <a href="mailto:cody@isolated.tech">cody@isolated.tech</a>. Include your macOS version, time.md version, what screen you were using, and any exact error text shown by the app.</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="../privacy.html" class="footer-link">PRIVACY</a>
+        <a href="../terms.html" class="footer-link">TERMS</a>
+        <a href="mailto:cody@isolated.tech" class="footer-link">SUPPORT</a>
+      </div>
+      <div class="footer-right">
+        <span>© 2026 time.md. BUILT WITH PRECISION.</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
